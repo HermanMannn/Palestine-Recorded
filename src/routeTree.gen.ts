@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TimelineRouteImport } from './routes/timeline'
 import { Route as SocialRouteImport } from './routes/social'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as PalgridRouteImport } from './routes/palgrid'
 import { Route as MessagesRouteImport } from './routes/messages'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -30,6 +31,11 @@ const SignupRoute = SignupRouteImport.update({
   path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PalgridRoute = PalgridRouteImport.update({
+  id: '/palgrid',
+  path: '/palgrid',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MessagesRoute = MessagesRouteImport.update({
   id: '/messages',
   path: '/messages',
@@ -44,6 +50,7 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/messages': typeof MessagesRoute
+  '/palgrid': typeof PalgridRoute
   '/signup': typeof SignupRoute
   '/social': typeof SocialRoute
   '/timeline': typeof TimelineRoute
@@ -51,6 +58,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/messages': typeof MessagesRoute
+  '/palgrid': typeof PalgridRoute
   '/signup': typeof SignupRoute
   '/social': typeof SocialRoute
   '/timeline': typeof TimelineRoute
@@ -59,21 +67,36 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/messages': typeof MessagesRoute
+  '/palgrid': typeof PalgridRoute
   '/signup': typeof SignupRoute
   '/social': typeof SocialRoute
   '/timeline': typeof TimelineRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/messages' | '/signup' | '/social' | '/timeline'
+  fullPaths:
+    | '/'
+    | '/messages'
+    | '/palgrid'
+    | '/signup'
+    | '/social'
+    | '/timeline'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/messages' | '/signup' | '/social' | '/timeline'
-  id: '__root__' | '/' | '/messages' | '/signup' | '/social' | '/timeline'
+  to: '/' | '/messages' | '/palgrid' | '/signup' | '/social' | '/timeline'
+  id:
+    | '__root__'
+    | '/'
+    | '/messages'
+    | '/palgrid'
+    | '/signup'
+    | '/social'
+    | '/timeline'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   MessagesRoute: typeof MessagesRoute
+  PalgridRoute: typeof PalgridRoute
   SignupRoute: typeof SignupRoute
   SocialRoute: typeof SocialRoute
   TimelineRoute: typeof TimelineRoute
@@ -102,6 +125,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/palgrid': {
+      id: '/palgrid'
+      path: '/palgrid'
+      fullPath: '/palgrid'
+      preLoaderRoute: typeof PalgridRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/messages': {
       id: '/messages'
       path: '/messages'
@@ -122,6 +152,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   MessagesRoute: MessagesRoute,
+  PalgridRoute: PalgridRoute,
   SignupRoute: SignupRoute,
   SocialRoute: SocialRoute,
   TimelineRoute: TimelineRoute,

@@ -20,7 +20,7 @@ export default function Signup() {
     }))
   }
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {   // 🔴 ONLY CHANGE 1
     e.preventDefault()
     setError('')
     setSuccess('')
@@ -46,11 +46,38 @@ export default function Signup() {
       return
     }
 
-    // Success message
-    setSuccess('Account created successfully! Redirecting...')
-    setTimeout(() => {
-      navigate({ to: '/' })
-    }, 1500)
+    try {
+      // 🔴 ONLY ADDED PART (DB LOGIC)
+
+      const check = await fetch(`http://localhost:3001/users?email=${formData.email}`)
+      const existing = await check.json()
+
+      if (existing.length > 0) {
+        setError('Email already exists')
+        return
+      }
+
+      await fetch('http://localhost:3001/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          username: formData.username,
+          email: formData.email,
+          password: formData.password
+        })
+      })
+
+      // Success message
+      setSuccess('Account created successfully! Redirecting...')
+      setTimeout(() => {
+        navigate({ to: '/' })
+      }, 1500)
+
+    } catch (err) {
+      setError('Server error')
+    }
   }
 
   return (
@@ -96,7 +123,7 @@ export default function Signup() {
               </label>
               <input
                 type="text"
-                name="usernamesq"
+                name="username"
                 value={formData.username}
                 onChange={handleChange}
                 style={{

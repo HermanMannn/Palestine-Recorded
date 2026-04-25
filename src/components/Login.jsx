@@ -7,13 +7,23 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {   // 🔴 ONLY CHANGE
     e.preventDefault()
-    if (username === 'admin@admin.com' && password === 'admin') {
-      setError('')
-      navigate({ to: '/timeline' })
-    } else {
-      setError('Invalid username or password')
+
+    try {
+      // 🔴 ONLY CHANGE (real DB check)
+      const res = await fetch(`http://localhost:3001/users?username=${username}&password=${password}`)
+      const data = await res.json()
+
+      if (data.length > 0) {
+        setError('')
+        navigate({ to: '/timeline' })
+      } else {
+        setError('Invalid username or password')
+      }
+
+    } catch (err) {
+      setError('Server error. Make sure json-server is running.')
     }
   }
 
