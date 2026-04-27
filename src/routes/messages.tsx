@@ -18,15 +18,7 @@ export const Route = createFileRoute("/messages")({
 
 function MessagesPage() {
   return (
-    <div
-      className="flex h-screen flex-col overflow-hidden"
-      style={{
-        backgroundImage: 'url(/PalRecBG.png)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed',
-      }}
-    >
+    <div className="flex h-screen flex-col overflow-hidden">
       <Navbar />
       <div className="relative flex-1 overflow-hidden pr-14">
         <Messages />
