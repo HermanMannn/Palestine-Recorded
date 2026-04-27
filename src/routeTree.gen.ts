@@ -14,6 +14,7 @@ import { Route as SocialRouteImport } from './routes/social'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as PalgridRouteImport } from './routes/palgrid'
 import { Route as MessagesRouteImport } from './routes/messages'
+import { Route as DonateRouteImport } from './routes/donate'
 import { Route as IndexRouteImport } from './routes/index'
 
 const TimelineRoute = TimelineRouteImport.update({
@@ -41,6 +42,11 @@ const MessagesRoute = MessagesRouteImport.update({
   path: '/messages',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DonateRoute = DonateRouteImport.update({
+  id: '/donate',
+  path: '/donate',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -49,6 +55,7 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/donate': typeof DonateRoute
   '/messages': typeof MessagesRoute
   '/palgrid': typeof PalgridRoute
   '/signup': typeof SignupRoute
@@ -57,6 +64,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/donate': typeof DonateRoute
   '/messages': typeof MessagesRoute
   '/palgrid': typeof PalgridRoute
   '/signup': typeof SignupRoute
@@ -66,6 +74,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/donate': typeof DonateRoute
   '/messages': typeof MessagesRoute
   '/palgrid': typeof PalgridRoute
   '/signup': typeof SignupRoute
@@ -76,16 +85,25 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/donate'
     | '/messages'
     | '/palgrid'
     | '/signup'
     | '/social'
     | '/timeline'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/messages' | '/palgrid' | '/signup' | '/social' | '/timeline'
+  to:
+    | '/'
+    | '/donate'
+    | '/messages'
+    | '/palgrid'
+    | '/signup'
+    | '/social'
+    | '/timeline'
   id:
     | '__root__'
     | '/'
+    | '/donate'
     | '/messages'
     | '/palgrid'
     | '/signup'
@@ -95,6 +113,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DonateRoute: typeof DonateRoute
   MessagesRoute: typeof MessagesRoute
   PalgridRoute: typeof PalgridRoute
   SignupRoute: typeof SignupRoute
@@ -139,6 +158,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MessagesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/donate': {
+      id: '/donate'
+      path: '/donate'
+      fullPath: '/donate'
+      preLoaderRoute: typeof DonateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -151,6 +177,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DonateRoute: DonateRoute,
   MessagesRoute: MessagesRoute,
   PalgridRoute: PalgridRoute,
   SignupRoute: SignupRoute,

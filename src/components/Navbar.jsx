@@ -15,7 +15,7 @@ export default function Navbar() {
         <Link to="/timeline" className="text-base font-medium text-foreground hover:text-primary transition-colors">
           About
         </Link>
-        <Link to="/timeline" className="text-base font-medium text-foreground hover:text-primary transition-colors">
+        <Link to="/donate" className="text-base font-medium text-foreground hover:text-primary transition-colors">
           Donate
         </Link>
         <Link to="/timeline" className="text-base font-medium text-foreground hover:text-primary transition-colors">
