@@ -5,6 +5,12 @@
       "email": "test@test.com",
       "password": "test123",
       "id": "C9lwHs3s22g"
+    },
+    {
+      "username": "admin",
+      "email": "test@test.com",
+      "password": "admin",
+      "id": "C9lwHs3s22g"
     }
   ],
   "messages": {
