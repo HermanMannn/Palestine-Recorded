@@ -29,14 +29,18 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "PalRec" },
-      { name: "description", content: "PalRec" },
-      { name: "author", content: "PalRec" },
-      { property: "og:title", content: "PalRec" },
-      { property: "og:description", content: "PalRec" },
+      { title: "Lovable App" },
+      { name: "description", content: "Lovable Generated Project" },
+      { name: "author", content: "Lovable" },
+      { property: "og:title", content: "Lovable App" },
+      { property: "og:description", content: "Lovable Generated Project" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "PalRec" },
+      { name: "twitter:description", content: "An interactive map application with a zoomable, draggable map, event timeline, and social feed." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/01001e60-a265-49ef-ad89-2fd62e8f35dc/id-preview-cb376cdd--78d1761f-dab0-41d5-ae30-dc6ae59bc7a1.lovable.app-1777217343901.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/01001e60-a265-49ef-ad89-2fd62e8f35dc/id-preview-cb376cdd--78d1761f-dab0-41d5-ae30-dc6ae59bc7a1.lovable.app-1777217343901.png" },
     ],
     links: [
       {

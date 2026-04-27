@@ -105,6 +105,41 @@ export default function EventDetails({ event, onClose }) {
             {event.description}
           </p>
         </div>
+
+        {event.articles?.length > 0 && (
+          <div>
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
+              Related Articles
+            </h3>
+            <ul className="space-y-1.5">
+              {event.articles.map((article) => (
+                <li key={article.url}>
+                  <a
+                    href={article.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex items-start gap-1.5 text-sm text-primary hover:underline"
+                  >
+                    <svg
+                      className="h-3.5 w-3.5 mt-0.5 shrink-0 opacity-70 group-hover:opacity-100"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M13.828 10.172a4 4 0 0 0-5.656 0l-4 4a4 4 0 1 0 5.656 5.656l1.102-1.101m-.758-4.899a4 4 0 0 0 5.656 0l4-4a4 4 0 0 0-5.656-5.656l-1.1 1.1"
+                      />
+                    </svg>
+                    <span className="leading-snug">{article.title}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </aside>
   );
