@@ -7,5 +7,26 @@
       "id": "C9lwHs3s22g"
     }
   ],
+  "messages": {
+    "hamza": [
+      {
+        "id": 1,
+        "from": "me",
+        "text": "How is your project coming along? Preserving Palestinian culture is very very important!!",
+        "time": "11:34 am"
+      },
+      { "id": 2, "from": "them", "text": "Well... not as smoothly as you'd like", "time": "11:35 am" },
+      { "id": 3, "from": "them", "text": "😅", "time": "11:35 am", "emoji": true }
+    ],
+    "palrec": [
+      { "id": 1, "from": "me", "text": "Good morning!!", "time": "9:50 am" }
+    ],
+    "amr": [
+      { "id": 1, "from": "them", "text": "Thank you for sharing that photo.", "time": "Yesterday" }
+    ],
+    "layla": [
+      { "id": 1, "from": "them", "text": "I'll send the archive tomorrow.", "time": "Tuesday" }
+    ]
+  },
   "$schema": "./node_modules/json-server/schema.json"
 }
