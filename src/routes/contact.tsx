@@ -19,9 +19,9 @@ export const Route = createFileRoute("/contact")({
 
 
 function ContactPage() {
-  return (<div className="flex h-screen flex-col overflow-hidden ">
+  return (<div className="flex h-screen flex-col ">
         <Navbar />
-        <div className="relative flex-1 overflow-hidden">
+        <div className="relative flex-1 ">
           <Contact/>
         </div>
       </div>
