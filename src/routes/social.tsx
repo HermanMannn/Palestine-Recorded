@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import Navbar from "../components/Navbar.jsx";
-import RightToolbar from "../components/RightToolbar.jsx";
 import SocialFeed from "../components/SocialFeed.jsx";
 
 export const Route = createFileRoute("/social")({
@@ -22,7 +21,6 @@ function SocialPage() {
       <Navbar />
       <div className="relative flex-1 overflow-hidden">
         <SocialFeed />
-        <RightToolbar />
       </div>
     </div>
   );
