@@ -1,9 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { auth } from '../firebase'; // Make sure you export 'auth' from your config
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { db } from '../firebase';
-
+import { auth, db } from '../firebase'; // Consolidated imports
 import { ref, query, orderByChild, equalTo, get } from "firebase/database";
 
 export default function Login() {
@@ -11,43 +8,37 @@ export default function Login() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false) // Added loading state
 
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError('');
+    setIsLoading(true); // Start loading
 
+    try {
+      const usersRef = ref(db, 'users');
+      const userQuery = query(usersRef, orderByChild('username'), equalTo(username));
+      const snapshot = await get(userQuery);
 
-const handleLogin = async (e) => {
-  e.preventDefault();
-  setError('');
+      if (snapshot.exists()) {
+        const userData = Object.values(snapshot.val())[0];
 
-  try {
-    // 1. Create a reference to the 'users' node
-    const usersRef = ref(db, 'users');
-
-    // 2. Create a query to find the user where the 'username' matches
-    const userQuery = query(usersRef, orderByChild('username'), equalTo(username));
-
-    // 3. Execute the query
-    const snapshot = await get(userQuery);
-
-    if (snapshot.exists()) {
-      // Firebase returns an object of objects, so we grab the first match
-      const userData = Object.values(snapshot.val())[0];
-
-      // 4. Check the password
-      if (userData.password === password) {
-        navigate({ to: '/timeline' });
+        if (userData.password === password) {
+          navigate({ to: '/timeline' });
+        } else {
+          setError('Invalid password');
+          setIsLoading(false); // Stop loading on error
+        }
       } else {
-        setError('Invalid password');
+        setError('User not found');
+        setIsLoading(false); // Stop loading on error
       }
-    } else {
-      setError('User not found');
+    } catch (err) {
+      console.error("FULL ERROR:", err);
+      setError(`Error: ${err.message}`);
+      setIsLoading(false); // Stop loading on catch
     }
-  } catch (err) {
-    console.error(err);
-    setError('Database connection error');
-    console.error("FULL ERROR:", err); // Check your browser inspect tool (F12)
-  setError(`Error: ${err.message}`);
-  }
-};
+  };
 
   return (
     <div style={{
@@ -94,6 +85,7 @@ const handleLogin = async (e) => {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
+                disabled={isLoading}
                 style={{
                   width: '100%',
                   boxSizing: 'border-box',
@@ -102,6 +94,7 @@ const handleLogin = async (e) => {
                   borderRadius: '8px',
                   fontSize: '14px',
                   outline: 'none',
+                  backgroundColor: isLoading ? '#f5f5f5' : 'white',
                 }}
               />
             </div>
@@ -115,6 +108,7 @@ const handleLogin = async (e) => {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
                 style={{
                   width: '100%',
                   boxSizing: 'border-box',
@@ -123,6 +117,7 @@ const handleLogin = async (e) => {
                   borderRadius: '8px',
                   fontSize: '14px',
                   outline: 'none',
+                  backgroundColor: isLoading ? '#f5f5f5' : 'white',
                 }}
               />
             </div>
@@ -142,32 +137,35 @@ const handleLogin = async (e) => {
             )}
 
             {/* Login Button */}
-            <button type="submit" style={{
-              width: '100%',
-              padding: '13px',
-              background: '#2a9d4a',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '16px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              marginBottom: '18px',
-            }}>
-              Login
+            <button 
+              type="submit" 
+              disabled={isLoading}
+              style={{
+                width: '100%',
+                padding: '13px',
+                background: isLoading ? '#94c9a1' : '#2a9d4a',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: 600,
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                marginBottom: '18px',
+                transition: 'background 0.2s',
+              }}
+            >
+              {isLoading ? 'Logging in...' : 'Login'}
             </button>
           </form>
 
-          {/* OR Divider */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
             <div style={{ flex: 1, height: '1px', background: '#e0e0e0' }} />
             <span style={{ fontSize: '11px', color: '#999', letterSpacing: '0.5px' }}>OR</span>
             <div style={{ flex: 1, height: '1px', background: '#e0e0e0' }} />
           </div>
 
-          {/* Institute / Government Buttons */}
           <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-            <button style={{
+            <button disabled={isLoading} style={{
               flex: 1,
               padding: '12px 8px',
               background: '#c0392b',
@@ -176,11 +174,12 @@ const handleLogin = async (e) => {
               borderRadius: '8px',
               fontSize: '14px',
               fontWeight: 600,
-              cursor: 'pointer',
+              cursor: isLoading ? 'not-allowed' : 'pointer',
+              opacity: isLoading ? 0.7 : 1
             }}>
               Institute Login
             </button>
-            <button style={{
+            <button disabled={isLoading} style={{
               flex: 1,
               padding: '12px 8px',
               background: '#c0392b',
@@ -189,18 +188,24 @@ const handleLogin = async (e) => {
               borderRadius: '8px',
               fontSize: '14px',
               fontWeight: 600,
-              cursor: 'pointer',
+              cursor: isLoading ? 'not-allowed' : 'pointer',
+              opacity: isLoading ? 0.7 : 1
             }}>
               Government Login
             </button>
           </div>
 
-          {/* Sign Up */}
           <p style={{ fontSize: '14px', color: '#c0392b', margin: 0 }}>
             Don't have an account?{' '}
             <a
-              onClick={() => navigate({ to: '/signup' })}
-              style={{ color: '#c0392b', fontWeight: 700, textDecoration: 'none', cursor: 'pointer' }}
+              onClick={() => !isLoading && navigate({ to: '/signup' })}
+              style={{ 
+                color: '#c0392b', 
+                fontWeight: 700, 
+                textDecoration: 'none', 
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                opacity: isLoading ? 0.5 : 1
+              }}
             >
               Sign up here
             </a>
