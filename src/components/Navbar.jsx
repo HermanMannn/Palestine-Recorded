@@ -12,13 +12,13 @@ export default function Navbar() {
       </Link>
 
       <nav className="flex items-center gap-8">
-        <Link to="/timeline" className="text-base font-medium text-foreground hover:text-primary transition-colors">
+        <Link to="/about" className="text-base font-medium text-foreground hover:text-primary transition-colors">
           About
         </Link>
         <Link to="/donate" className="text-base font-medium text-foreground hover:text-primary transition-colors">
           Donate
         </Link>
-        <Link to="/timeline" className="text-base font-medium text-foreground hover:text-primary transition-colors">
+        <Link to="/contact" className="text-base font-medium text-foreground hover:text-primary transition-colors">
           Contact Us
         </Link>
       </nav>

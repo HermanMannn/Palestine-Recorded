@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { WORDS } from "../data/words";
 import Navbar from "./Navbar";
+import RTB from "./RightToolbar"
 
 const WORD_LENGTH = 5;
 const MAX_TRIES = 6;
@@ -116,78 +117,83 @@ export default function PalGrid() {
   const grid = [...guesses, current.padEnd(WORD_LENGTH, " ")];
 
   return (
-    <div
-      className="flex flex-col items-center justify-center min-h-screen text-white gap-4 bg-cover bg-center"
-      style={{
-        backgroundImage:
-          "linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('/PalRecBG.png')",
-      }}
-    >
-      <h1 className="text-4xl font-bold tracking-widest">PALGRID</h1>
+   
+      <div 
+        className="flex flex-col items-center justify-center min-h-screen text-white gap-4 bg-cover bg-center"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(182, 182, 182, 0.6), rgba(172, 172, 172, 0.6)), url('/PalRecBG.png')",
+        }}
+      >
+        
+        
+        <h1 className="text-4xl font-bold tracking-widest">PALGRID</h1>
 
-      {error && (
-        <div className="text-sm bg-white text-black px-3 py-1 rounded">
-          {error}
+        {error && (
+          <div className="text-sm bg-white text-black px-3 py-1 rounded">
+            {error}
+          </div>
+        )}
+
+        <div className="flex flex-col gap-2">
+          {Array.from({ length: MAX_TRIES }).map((_, i) => {
+            const word = grid[i] || "";
+            const evaluated = guesses[i] ? evaluate(guesses[i]) : null;
+            const isCurrent = i === guesses.length && status === "playing";
+
+            return (
+              <div
+                key={i}
+                className={`flex gap-2 ${isCurrent && shake ? "animate-[shake_0.4s_ease-in-out]" : ""}`}
+              >
+                {Array.from({ length: WORD_LENGTH }).map((_, j) => {
+                  const letter = word[j] || "";
+
+                  let bg = "bg-white/10 border border-white/30";
+
+                  if (evaluated) {
+                    if (evaluated[j].status === "correct")
+                      bg = "bg-green-600 border-green-700";
+                    else if (evaluated[j].status === "present")
+                      bg = "bg-yellow-500 border-yellow-600";
+                    else
+                      bg = "bg-zinc-700 border-zinc-800";
+                  }
+
+                  return (
+                    <div
+                      key={j}
+                      className={`w-14 h-14 flex items-center justify-center text-2xl font-bold uppercase rounded-md ${bg}`}
+                    >
+                      {letter.trim()}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
         </div>
-      )}
 
-      <div className="flex flex-col gap-2">
-        {Array.from({ length: MAX_TRIES }).map((_, i) => {
-          const word = grid[i] || "";
-          const evaluated = guesses[i] ? evaluate(guesses[i]) : null;
-          const isCurrent = i === guesses.length && status === "playing";
+        <div className="text-sm text-white/70 mt-6 max-w-md text-center leading-relaxed bg-black/30 px-4 py-3 rounded">
+          <h2 className="text-white font-bold mb-2">How to Play</h2>
+          <p>
+            Guess the 5-letter word in 6 tries. Type letters using your keyboard and press Enter to submit.
+            Green means the letter is correct and in the right position, yellow means the letter exists in the word
+            but in a different position, and gray means the letter is not in the word.
+          </p>
+        </div>
 
-          return (
-            <div
-              key={i}
-              className={`flex gap-2 ${isCurrent && shake ? "animate-[shake_0.4s_ease-in-out]" : ""}`}
-            >
-              {Array.from({ length: WORD_LENGTH }).map((_, j) => {
-                const letter = word[j] || "";
+        {status !== "playing" && (
+          <div className="text-xl mt-4 bg-black/60 px-4 py-2 rounded">
+            {status === "won" ? "You Won 🎉" : `You Lost 💀 Answer: ${answer}`}
+          </div>
+        )}
 
-                let bg = "bg-white/10 border border-white/30";
-
-                if (evaluated) {
-                  if (evaluated[j].status === "correct")
-                    bg = "bg-green-600 border-green-700";
-                  else if (evaluated[j].status === "present")
-                    bg = "bg-yellow-500 border-yellow-600";
-                  else
-                    bg = "bg-zinc-700 border-zinc-800";
-                }
-
-                return (
-                  <div
-                    key={j}
-                    className={`w-14 h-14 flex items-center justify-center text-2xl font-bold uppercase rounded-md ${bg}`}
-                  >
-                    {letter.trim()}
-                  </div>
-                );
-              })}
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="text-sm text-white/70 mt-6 max-w-md text-center leading-relaxed bg-black/30 px-4 py-3 rounded">
-        <h2 className="text-white font-bold mb-2">How to Play</h2>
-        <p>
-          Guess the 5-letter word in 6 tries. Type letters using your keyboard and press Enter to submit.
-          Green means the letter is correct and in the right position, yellow means the letter exists in the word
-          but in a different position, and gray means the letter is not in the word.
+        <p className="text-sm text-white/70 mt-2">
+          Type with keyboard. Enter to submit.
         </p>
+        
       </div>
-
-      {status !== "playing" && (
-        <div className="text-xl mt-4 bg-black/60 px-4 py-2 rounded">
-          {status === "won" ? "You Won 🎉" : `You Lost 💀 Answer: ${answer}`}
-        </div>
-      )}
-
-      <p className="text-sm text-white/70 mt-2">
-        Type with keyboard. Enter to submit.
-      </p>
-    </div>
+   
   );
 }

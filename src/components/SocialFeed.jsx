@@ -70,7 +70,7 @@ export default function SocialFeed() {
   };
 
   return (
-    <div className="absolute inset-0 right-14 overflow-y-auto bg-gradient-to-b from-secondary/50 to-background">
+    <div className="absolute inset-0 right-14 overflow-y-auto bg-gradient-to-b from-secondary/5 to-background">
       <div className="mx-auto max-w-2xl px-4 py-6 space-y-4">
         {/* Header */}
         <div>

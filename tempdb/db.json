@@ -11,51 +11,92 @@
       "email": "test@test.com",
       "password": "admin",
       "id": "C9lwHs3s22g"
+    },
+    {
+      "username": "Herman",
+      "email": "herman@gmail.com",
+      "password": "herman",
+      "id": "jtArlqZJZJc"
     }
   ],
   "messages": [
     {
-      "id": 1,
+      "id": "1",
       "conversationId": "hamza",
       "from": "me",
       "text": "How is your project coming along? Preserving Palestinian culture is very very important!!",
       "time": "11:34 am"
     },
     {
-      "id": 2,
+      "id": "2",
       "conversationId": "hamza",
       "from": "them",
       "text": "Well... not as smoothly as you'd like",
       "time": "11:35 am"
     },
     {
-      "id": 3,
+      "id": "3",
       "conversationId": "hamza",
       "from": "them",
-      "text": "😅",
+      "text": "laugh sweating emoji",
       "time": "11:35 am",
       "emoji": true
     },
     {
-      "id": 4,
+      "id": "4",
       "conversationId": "palrec",
       "from": "me",
       "text": "Good morning!!",
       "time": "9:50 am"
     },
     {
-      "id": 5,
+      "id": "5",
       "conversationId": "amr",
       "from": "them",
       "text": "Thank you for sharing that photo.",
       "time": "Yesterday"
     },
     {
-      "id": 6,
+      "id": "6",
       "conversationId": "layla",
       "from": "them",
       "text": "I'll send the archive tomorrow.",
       "time": "Tuesday"
+    },
+    {
+      "id": "y9s4ZvFBuRY",
+      "conversationId": "hamza",
+      "from": "me",
+      "text": "heyy",
+      "time": "12:41 am"
+    },
+    {
+      "id": "4lo0TnGnqKg",
+      "conversationId": "hamza",
+      "from": "me",
+      "text": "heyy",
+      "time": "12:41 am"
+    },
+    {
+      "id": "PHkxa85kcrU",
+      "conversationId": "hamza",
+      "from": "me",
+      "text": "asd",
+      "time": "12:49 am"
+    },
+    {
+      "id": "0qYJ9NIo4Ks",
+      "conversationId": "amr",
+      "from": "me",
+      "text": "No problem!",
+      "time": "12:50 am"
+    },
+    {
+      "id": "8H0vD0hiXSs",
+      "conversationId": "hamza",
+      "from": "me",
+      "text": "yay",
+      "time": "2:12 am"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"

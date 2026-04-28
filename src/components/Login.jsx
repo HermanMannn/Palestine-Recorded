@@ -1,5 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
+import { auth } from '../firebase'; // Make sure you export 'auth' from your config
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { db } from '../firebase';
+
+import { ref, query, orderByChild, equalTo, get } from "firebase/database";
 
 export default function Login() {
   const navigate = useNavigate()
@@ -7,25 +12,42 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
 
-  const handleLogin = async (e) => {   // 🔴 ONLY CHANGE
-    e.preventDefault()
 
-    try {
-      // 🔴 ONLY CHANGE (real DB check)
-      const res = await fetch(`http://localhost:3001/users?username=${username}&password=${password}`)
-      const data = await res.json()
 
-      if (data.length > 0) {
-        setError('')
-        navigate({ to: '/timeline' })
+const handleLogin = async (e) => {
+  e.preventDefault();
+  setError('');
+
+  try {
+    // 1. Create a reference to the 'users' node
+    const usersRef = ref(db, 'users');
+
+    // 2. Create a query to find the user where the 'username' matches
+    const userQuery = query(usersRef, orderByChild('username'), equalTo(username));
+
+    // 3. Execute the query
+    const snapshot = await get(userQuery);
+
+    if (snapshot.exists()) {
+      // Firebase returns an object of objects, so we grab the first match
+      const userData = Object.values(snapshot.val())[0];
+
+      // 4. Check the password
+      if (userData.password === password) {
+        navigate({ to: '/timeline' });
       } else {
-        setError('Invalid username or password')
+        setError('Invalid password');
       }
-
-    } catch (err) {
-      setError('Server error. Make sure json-server is running.')
+    } else {
+      setError('User not found');
     }
+  } catch (err) {
+    console.error(err);
+    setError('Database connection error');
+    console.error("FULL ERROR:", err); // Check your browser inspect tool (F12)
+  setError(`Error: ${err.message}`);
   }
+};
 
   return (
     <div style={{

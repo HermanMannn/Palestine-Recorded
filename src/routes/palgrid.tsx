@@ -1,8 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import PalGrid from "../components/PalGrid.jsx";
+import Navbar from "../components/Navbar.jsx";
+import RightToolbar from "../components/RightToolbar.jsx";
+
 
 function PalGridPage() {
-  return <PalGrid />;
+  return (<div className="flex h-screen flex-col overflow-hidden">
+        <Navbar />
+        <div className="relative flex-1 overflow-hidden pr-14">
+          <PalGrid />
+          <RightToolbar />
+        </div>
+      </div>)
 }
 
 export const Route = createFileRoute("/palgrid")({
@@ -17,3 +26,4 @@ export const Route = createFileRoute("/palgrid")({
     ],
   }),
 });
+

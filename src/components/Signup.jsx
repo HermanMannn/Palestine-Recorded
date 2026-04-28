@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-
+ import { db } from '../firebase'; 
+import { ref, get, set, query, orderByChild, equalTo } from "firebase/database";
 export default function Signup() {
   const navigate = useNavigate()
   const [formData, setFormData] = useState({
@@ -20,65 +21,54 @@ export default function Signup() {
     }))
   }
 
-  const handleSignup = async (e) => {   // 🔴 ONLY CHANGE 1
-    e.preventDefault()
-    setError('')
-    setSuccess('')
 
-    // Validation
-    if (!formData.username || !formData.email || !formData.password || !formData.confirmPassword) {
-      setError('All fields are required')
-      return
-    }
 
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match')
-      return
-    }
+const handleSignup = async (e) => {
+  e.preventDefault();
+  setError('');
+  setSuccess('');
 
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters')
-      return
-    }
-
-    if (!formData.email.includes('@')) {
-      setError('Please enter a valid email')
-      return
-    }
-
-    try {
-      // 🔴 ONLY ADDED PART (DB LOGIC)
-
-      const check = await fetch(`http://localhost:3001/users?email=${formData.email}`)
-      const existing = await check.json()
-
-      if (existing.length > 0) {
-        setError('Email already exists')
-        return
-      }
-
-      await fetch('http://localhost:3001/users', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          username: formData.username,
-          email: formData.email,
-          password: formData.password
-        })
-      })
-
-      // Success message
-      setSuccess('Account created successfully! Redirecting...')
-      setTimeout(() => {
-        navigate({ to: '/' })
-      }, 1500)
-
-    } catch (err) {
-      setError('Server error')
-    }
+  // 1. Keep your existing frontend validations
+  if (!formData.username || !formData.email || !formData.password || !formData.confirmPassword) {
+    setError('All fields are required');
+    return;
   }
+  if (formData.password !== formData.confirmPassword) {
+    setError('Passwords do not match');
+    return;
+  }
+
+  try {
+    // 2. Check if Email already exists (Replacement for your 'check' fetch)
+    const usersRef = ref(db, 'users');
+    const emailQuery = query(usersRef, orderByChild('email'), equalTo(formData.email));
+    const snapshot = await get(emailQuery);
+
+    if (snapshot.exists()) {
+      setError('Email already exists');
+      return;
+    }
+
+    // 3. Create the new user (Replacement for your POST fetch)
+    // We create a unique key using Date.now() to mimic how json-server adds IDs
+    const newUserKey = Date.now(); 
+    await set(ref(db, 'users/' + newUserKey), {
+      id: newUserKey,
+      username: formData.username,
+      email: formData.email,
+      password: formData.password // Note: Still plain text for now as requested
+    });
+
+    setSuccess('Account created successfully! Redirecting...');
+    setTimeout(() => {
+      navigate({ to: '/' });
+    }, 1500);
+
+  } catch (err) {
+    console.error(err);
+    setError('Database error. Please try again.');
+  }
+};
 
   return (
     <div style={{
