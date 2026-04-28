@@ -19,7 +19,7 @@ function SocialPage() {
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       <Navbar />
-      <div className="relative flex-1 overflow-hidden">
+      <div className="relative flex-1">
         <SocialFeed />
       </div>
     </div>

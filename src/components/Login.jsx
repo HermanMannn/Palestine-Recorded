@@ -24,6 +24,9 @@ export default function Login() {
         const userData = Object.values(snapshot.val())[0];
 
         if (userData.password === password) {
+          localStorage.setItem('palrec_user', JSON.stringify({ 
+            username: userData.username 
+          }));
           navigate({ to: '/timeline' });
         } else {
           setError('Invalid password');
@@ -39,6 +42,7 @@ export default function Login() {
       setIsLoading(false);
     }
   };
+  
 
   return (
     <div 

@@ -19,15 +19,21 @@ const tools = [
 export default function Navbar() {
   const [profilePic, setProfilePic] = useState(null);
 
-  // Listen to Firebase for real-time profile picture updates
   useEffect(() => {
+    // 1. Check who is logged in from our "User Thingy"
+    const saved = localStorage.getItem('palrec_user');
+    const loggedInUser = saved ? JSON.parse(saved) : null;
+
+    // If no one is logged in, you can fallback to "ahmed" for testing
+    const targetUsername = loggedInUser?.username || "ahmed";
+
     const usersRef = ref(db, 'users');
-    const userQuery = query(usersRef, orderByChild('username'), equalTo('ahmed'));
+    const userQuery = query(usersRef, orderByChild('username'), equalTo(targetUsername));
     
-    // onValue creates a live connection to the database
     const unsubscribe = onValue(userQuery, (snapshot) => {
       if (snapshot.exists()) {
         const userData = Object.values(snapshot.val())[0];
+        // 2. This updates automatically whenever you save in Settings!
         setProfilePic(userData.profilePic || null);
       }
     });

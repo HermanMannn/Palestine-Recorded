@@ -5,7 +5,7 @@ import Navbar from "../components/Navbar.jsx";
 function SettingsPage() {
   return (<div className="flex h-screen flex-col overflow-hidden">
         <Navbar />
-        <div className="relative flex-1 overflow-hidden pr-14">
+        <div className="relative flex-1">
           <Settings />
         </div>
       </div>)
