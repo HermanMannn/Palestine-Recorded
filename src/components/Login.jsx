@@ -79,7 +79,7 @@ export default function Login() {
             {/* Username */}
             <div style={{ textAlign: 'left', marginBottom: '16px' }}>
               <label style={{ display: 'block', fontSize: '14px', color: '#222', marginBottom: '6px' }}>
-                Username
+                Username / Email
               </label>
               <input
                 type="text"
