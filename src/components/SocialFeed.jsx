@@ -165,7 +165,8 @@ export default function SocialFeed() {
   };
 
   return (
-    <div className="absolute inset-0  overflow-y-auto">
+    
+    <div className="absolute inset-0  overflow-y-auto dark:bg-slate-900/40 backdrop-blur-m transition-colors duration-300 custom-scrollbar">
       <div className="mx-auto max-w-2xl px-4 py-6 space-y-4 overflow-hidden">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Community Feed</h1>
@@ -177,7 +178,7 @@ export default function SocialFeed() {
         {/* Composer */}
         <form
           onSubmit={submitPost}
-          className="rounded-xl border border-border bg-card/90 backdrop-blur-sm shadow-sm"
+          className="rounded-xl border border-border bg-card/90 backdrop-blur-sm shadow-sm dark:bg-slate-800/60 backdrop-blur-sm shadow-sm"
         >
           <div className="p-4">
             <div className="flex gap-3">
@@ -276,7 +277,7 @@ export default function SocialFeed() {
         {posts.map((post) => (
           <article
             key={post.id}
-            className="rounded-xl border border-border bg-card/90 backdrop-blur-sm shadow-sm"
+            className="rounded-xl border border-border bg-card/90 backdrop-blur-sm shadow-sm "
           >
             <div className="flex items-start justify-between p-4 pb-2">
               <div className="flex items-center gap-3">

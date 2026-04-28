@@ -114,10 +114,10 @@ export default function PalGrid() {
   const grid = [...guesses, current.padEnd(WORD_LENGTH, " ")];
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center p-4">
+    <div className="fixed inset-0 flex items-center justify-center p-4 dark:bg-slate-900/40 backdrop-blur-m transition-colors duration-300 custom-scrollbar">
       
       {/* Updated: Transparent Gray Container with Blur */}
-      <div className="bg-zinc-700/40 backdrop-blur-md p-8 rounded-[2.5rem] shadow-2xl flex flex-col items-center gap-6 border border-white/20 w-full max-w-sm">
+      <div className="bg-zinc-700/40 backdrop-blur-md p-8 rounded-[2.5rem] shadow-2xl flex flex-col items-center gap-6 border border-white/20 w-full max-w-sm ">
         
         <h1 className="text-4xl text-white font-bold tracking-widest drop-shadow-lg">PALGRID</h1>
 

@@ -19,27 +19,36 @@ export default function Settings() {
   const [showPasswords, setShowPasswords] = useState(false);
 
   // Appearance State
-  const [theme, setTheme] = useState("system");
+const [theme, setTheme] = useState(() => {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("theme") || "system";
+  }
+  return "system";
+});
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
 
   // 1. Initial Load: Get user from LocalStorage & SessionStorage
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedUser = localStorage.getItem('palrec_user');
-      if (savedUser) {
-        setLoggedInUser(JSON.parse(savedUser));
-      } else {
-        console.warn("No session found, defaulting to 'ahmed' for testing.");
-        setLoggedInUser({ username: "ahmed" }); 
+    useEffect(() => {
+      if (typeof window !== "undefined") {
+        // User Session
+        const savedUser = localStorage.getItem('palrec_user');
+        if (savedUser) {
+          setLoggedInUser(JSON.parse(savedUser));
+        } else {
+          setLoggedInUser({ username: "ahmed" }); 
+        }
+
+        // Theme - Crucial: Only update state if something is actually saved
+        const savedTheme = localStorage.getItem("theme");
+        if (savedTheme) {
+          setTheme(savedTheme); 
+        }
+
+        // Temporary Picture
+        const tempPic = sessionStorage.getItem("temp_profile_pic");
+        if (tempPic) setProfilePic(tempPic);
       }
-
-      const savedTheme = localStorage.getItem("theme");
-      if (savedTheme) setTheme(savedTheme || "system");
-
-      const tempPic = sessionStorage.getItem("temp_profile_pic");
-      if (tempPic) setProfilePic(tempPic);
-    }
-  }, []);
+    }, []);
 
   // 2. Fetch User Data from Firebase
   useEffect(() => {
@@ -73,15 +82,33 @@ export default function Settings() {
   }, [loggedInUser]);
 
   // 3. Theme Logic
-  useEffect(() => {
-    localStorage.setItem("theme", theme);
-    const root = window.document.documentElement;
-    root.classList.remove("light", "dark");
-    const actualTheme = theme === "system" 
-      ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
-      : theme;
-    root.classList.add(actualTheme);
-  }, [theme]);
+  
+    useEffect(() => {
+      if (typeof window === "undefined") return;
+
+      const root = window.document.documentElement;
+      
+      // Clean up existing classes
+      root.classList.remove("light", "dark");
+
+      let themeToApply = theme;
+
+      // Handle the 'system' preference logic
+      if (theme === "system") {
+        const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        themeToApply = systemPrefersDark ? "dark" : "light";
+      }
+
+      // Apply the correct class
+      root.classList.add(themeToApply);
+      
+      // Sync with localStorage so it persists across refreshes/navigation
+      localStorage.setItem("theme", theme);
+
+      console.log(`Theme updated to: ${theme} (Applied: ${themeToApply})`);
+    }, [theme]);
+
+
 
   const showToast = (message: string, type: "success" | "error" = "success") => {
     setToast({ show: true, message, type });
