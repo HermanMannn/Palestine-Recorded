@@ -38,7 +38,7 @@ function getTagClass(tag) {
 
 export default function EventDetails({ event, onClose }) {
   return (
-    <aside className="absolute top-0 left-72 z-10 h-full w-96 overflow-y-auto bg-card/95 backdrop-blur-md border-r border-border shadow-xl animate-in slide-in-from-left duration-200">
+    <aside className="absolute top-0 left-0 z-20 h-full w-96 max-w-full overflow-y-auto bg-card/95 backdrop-blur-md border-r border-border shadow-2xl animate-in slide-in-from-left duration-200">
       <div className="sticky top-0 bg-card/95 backdrop-blur-sm p-4 border-b border-border flex items-start justify-between gap-3">
         <h2 className="text-lg font-bold text-foreground leading-tight">
           {event.title}
