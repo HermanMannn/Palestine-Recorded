@@ -74,7 +74,7 @@ export default function Messages() {
   return (
     <div className="flex h-full">
       {/* Conversations sidebar */}
-      <aside className="flex w-72 flex-col border-r border-border bg-[oklch(0.92_0.08_140/0.75)] backdrop-blur-md">
+      <aside className="flex w-72 flex-col border-r border-border">
         <div className="p-3">
           <div className="relative">
             <input
@@ -126,8 +126,8 @@ export default function Messages() {
       </aside>
 
       {/* Chat area */}
-      <main className="relative flex flex-1 flex-col bg-[oklch(0.94_0.04_145/0.55)] backdrop-blur-sm">
-        <div className="flex items-center gap-3 border-b border-border bg-[oklch(0.88_0.08_25/0.55)] px-4 py-3 backdrop-blur-sm">
+      <main className="relative flex flex-1 flex-col">
+        <div className="flex items-center gap-3 border-b border-border px-4 py-3">
           <div className={`flex h-12 w-12 items-center justify-center rounded-full text-lg font-bold text-white ${active?.color ?? "bg-muted"}`}>
             {active?.initial}
           </div>
@@ -151,7 +151,7 @@ export default function Messages() {
           ))}
         </div>
 
-        <form onSubmit={sendMessage} className="flex items-center gap-2 border-t border-border bg-[oklch(0.35_0.05_145/0.75)] px-4 py-3 backdrop-blur-sm">
+        <form onSubmit={sendMessage} className="flex items-center gap-2 border-t border-border px-4 py-3">
           <button type="button" className="flex h-9 w-9 items-center justify-center rounded-full bg-card/80 text-foreground hover:bg-muted">
             <Plus className="h-5 w-5" />
           </button>

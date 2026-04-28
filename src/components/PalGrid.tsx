@@ -117,13 +117,7 @@ export default function PalGrid() {
 
   return (
    
-      <div 
-        className="flex flex-col items-center justify-center min-h-screen text-white gap-4 bg-cover bg-center"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(182, 182, 182, 0.6), rgba(172, 172, 172, 0.6)), url('/PalRecBG.png')",
-        }}
-      >
+      <div className="flex flex-col items-center justify-center min-h-screen text-white gap-4">
         
         
         <h1 className="text-4xl font-bold tracking-widest">PALGRID</h1>
