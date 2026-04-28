@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import Navbar from "../components/Navbar.jsx";
-import RightToolbar from "../components/RightToolbar.jsx";
 import About from "@/components/About.jsx";
 
 
@@ -24,7 +23,6 @@ function ContactPage() {
         <Navbar />
         <div className="relative flex-1 overflow-hidden pr-14">
           <About/>
-          <RightToolbar />
         </div>
       </div>
       )

@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import Navbar from "../components/Navbar.jsx";
 import TimelineSidebar from "../components/TimelineSidebar.jsx";
-import RightToolbar from "../components/RightToolbar.jsx";
 import HistoricalMap from "../components/HistoricalMap.jsx";
 
 export const Route = createFileRoute("/timeline")({
@@ -24,7 +23,6 @@ function TimelinePage() {
       <div className="relative flex-1">
         <HistoricalMap />
         <TimelineSidebar />
-        <RightToolbar />
       </div>
     </div>
   );

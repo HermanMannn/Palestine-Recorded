@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import Navbar from "../components/Navbar.jsx";
-import RightToolbar from "../components/RightToolbar.jsx";
 import Messages from "../components/Messages.jsx";
 
 export const Route = createFileRoute("/messages")({
@@ -22,7 +21,6 @@ function MessagesPage() {
       <Navbar />
       <div className="relative flex-1 overflow-hidden pr-14">
         <Messages />
-        <RightToolbar />
       </div>
     </div>
   );
