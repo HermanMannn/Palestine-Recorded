@@ -3,7 +3,7 @@ import Settings from "../components/Settings.jsx";
 import Navbar from "../components/Navbar.jsx";
 
 function SettingsPage() {
-  return (<div className="flex h-screen flex-col overflow-hidden">
+  return (<div className="flex h-screen flex-col ">
         <Navbar />
         <div className="relative flex-1">
           <Settings />

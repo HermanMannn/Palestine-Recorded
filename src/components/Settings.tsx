@@ -153,85 +153,160 @@ export default function Settings() {
 
   return (
     <div className="min-h-screen bg-background/85 backdrop-blur-sm text-foreground transition-colors duration-300 pb-20 overflow-x-hidden">
+      
+      
+
       <main className="max-w-4xl mx-auto px-6 py-10">
         <div className="mb-10">
-          <h1 className="text-4xl font-bold mb-3 text-foreground">Account Settings</h1>
-          <p className="text-muted-foreground">Manage your profile, preferences, and security.</p>
+          <h1 className="text-4xl font-bold mb-3">Account Settings</h1>
+          <p className="text-muted-foreground">
+            Manage your profile, preferences, and security.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Sidebar Nav */}
           <aside className="md:col-span-1">
             <div className="sticky top-24 space-y-2">
               <a href="#profile" onClick={(e) => scrollToSection(e, "profile")} className="flex items-center gap-3 p-3 rounded-lg hover:bg-card border border-transparent hover:border-border transition-colors text-muted-foreground hover:text-foreground font-medium">
-                <User size={18} /> Public Profile
+                <User className="h-5 w-5" />
+                Public Profile
               </a>
               <a href="#appearance" onClick={(e) => scrollToSection(e, "appearance")} className="flex items-center gap-3 p-3 rounded-lg hover:bg-card border border-transparent hover:border-border transition-colors text-muted-foreground hover:text-foreground font-medium">
-                <Palette size={18} /> Appearance
+                <Palette className="h-5 w-5" />
+                Appearance
               </a>
               <a href="#security" onClick={(e) => scrollToSection(e, "security")} className="flex items-center gap-3 p-3 rounded-lg hover:bg-card border border-transparent hover:border-border transition-colors text-muted-foreground hover:text-foreground font-medium">
-                <Lock size={18} /> Security
+                <Lock className="h-5 w-5" />
+                Security & Password
               </a>
             </div>
           </aside>
 
-          {/* Main Content Sections */}
           <div className="md:col-span-3 space-y-12">
             
-            {/* PROFILE SECTION */}
-            <section id="profile" className="rounded-2xl border border-border bg-card/95 p-6 shadow-sm scroll-mt-24">
-              <h2 className="text-xl font-bold mb-6 flex items-center gap-2"><User className="text-primary" size={20}/> Profile Manager</h2>
+            <section id="profile" className="rounded-2xl border border-border bg-card/95 p-6 shadow-sm scroll-mt-24 transition-colors duration-300">
+              <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+                <User className="h-5 w-5 text-primary" />
+                Profile Manager
+              </h2>
+              
               <form onSubmit={handleProfileUpdate} className="space-y-6">
                 <div className="flex items-center gap-6">
-                  <div className="relative h-20 w-20 shrink-0 rounded-full bg-muted border-2 border-border overflow-hidden">
-                    {profilePic ? <img src={profilePic} className="h-full w-full object-cover" /> : <User className="m-auto h-full w-1/2 opacity-20"/>}
+                  <div className="relative h-20 w-20 shrink-0 rounded-full bg-muted border-2 border-border overflow-hidden flex items-center justify-center">
+                    {profilePic ? (
+                      <img src={profilePic} alt="Profile preview" className="h-full w-full object-cover" />
+                    ) : (
+                      <User className="h-8 w-8 text-muted-foreground" />
+                    )}
                   </div>
                   <div>
                     <input type="file" id="avatar-upload" accept="image/*" className="hidden" onChange={handleImageUpload} />
-                    <label htmlFor="avatar-upload" className="inline-flex items-center gap-2 px-4 py-2 bg-secondary border border-border rounded-md text-sm font-medium hover:bg-accent cursor-pointer transition-colors">
-                      <Camera size={16} /> Upload New Picture
+                    <label htmlFor="avatar-upload" className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground border border-border rounded-md text-sm font-medium hover:bg-accent transition-colors cursor-pointer">
+                      <Camera className="h-4 w-4" />
+                      Upload New Picture
                     </label>
+                    <p className="text-xs text-muted-foreground mt-2">Recommended: Square image, max 2MB.</p>
                   </div>
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium mb-1.5 text-muted-foreground">Display Name</label>
-                  <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} className="w-full px-3 py-2 rounded-md border border-border bg-background outline-none focus:border-primary transition-all" />
+                  <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm outline-none focus:border-primary transition-colors duration-300" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1.5 text-muted-foreground">Bio</label>
-                  <textarea rows={4} value={bio} onChange={(e) => setBio(e.target.value)} className="w-full px-3 py-2 rounded-md border border-border bg-background outline-none focus:border-primary resize-none transition-all" />
+                  <label className="block text-sm font-medium mb-1.5 text-muted-foreground">Bio / About Me</label>
+                  <textarea rows={4} value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Tell the community about yourself..." className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm outline-none focus:border-primary resize-none transition-colors duration-300" />
                 </div>
-                <button type="submit" className="flex items-center gap-2 px-6 py-2.5 bg-[#2a9d4a] text-white rounded-md font-bold hover:opacity-90 transition-opacity shadow-md">
-                  <Save size={18} /> Save Changes
+                <button type="submit" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md font-medium hover:opacity-90 transition-opacity">
+                  <Save className="h-4 w-4" />
+                  Save Changes
                 </button>
               </form>
             </section>
 
-            {/* APPEARANCE SECTION */}
-            <section id="appearance" className="rounded-2xl border border-border bg-card/95 p-6 shadow-sm scroll-mt-24">
-              <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><Palette className="text-primary" size={20}/> Appearance</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {['light', 'dark', 'system'].map((m) => (
-                  <button key={m} onClick={() => setTheme(m)} className={`p-4 rounded-xl border-2 transition-all ${theme === m ? 'border-primary bg-primary/5' : 'border-border bg-background'}`}>
-                    <span className="capitalize font-medium text-sm">{m} Mode</span>
+            <section id="appearance" className="rounded-2xl border border-border bg-card/95 p-6 shadow-sm scroll-mt-24 transition-colors duration-300">
+              <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                <Palette className="h-5 w-5 text-primary" />
+                Appearance
+              </h2>
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground mb-4">Customize how Palestine Recorded looks on your device.</p>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <button type="button" onClick={() => { setTheme("light"); showToast("Theme changed to Light"); }} className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-colors ${theme === 'light' ? 'border-primary bg-primary/5' : 'border-border bg-background hover:border-primary/50'}`}>
+                    <div className="h-10 w-10 rounded-full bg-slate-100 border border-slate-300"></div>
+                    <span className="font-medium text-sm">Light</span>
                   </button>
-                ))}
+                  <button type="button" onClick={() => { setTheme("dark"); showToast("Theme changed to Dark"); }} className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-colors ${theme === 'dark' ? 'border-primary bg-primary/5' : 'border-border bg-background hover:border-primary/50'}`}>
+                    <div className="h-10 w-10 rounded-full bg-slate-900 border border-slate-700"></div>
+                    <span className="font-medium text-sm">Dark</span>
+                  </button>
+                  <button type="button" onClick={() => { setTheme("system"); showToast("Theme synced with Device"); }} className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-colors ${theme === 'system' ? 'border-primary bg-primary/5' : 'border-border bg-background hover:border-primary/50'}`}>
+                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-slate-100 to-slate-900 border border-slate-400"></div>
+                    <span className="font-medium text-sm">Device Default</span>
+                  </button>
+                </div>
               </div>
             </section>
 
-            {/* SECURITY SECTION */}
-            <section id="security" className="rounded-2xl border border-border bg-card/95 p-6 shadow-sm scroll-mt-24">
-              <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><Lock className="text-primary" size={20}/> Change Password</h2>
+            <section id="security" className="rounded-2xl border border-border bg-card/95 p-6 shadow-sm scroll-mt-24 transition-colors duration-300">
+              <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                <Lock className="h-5 w-5 text-primary" />
+                Change Password
+              </h2>
               <form onSubmit={handlePasswordChange} className="space-y-4">
-                <input type={showPasswords ? "text" : "password"} placeholder="Current Password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="w-full px-3 py-2 rounded-md border border-border bg-background outline-none focus:border-primary" />
-                <div className="grid grid-cols-2 gap-4">
-                  <input type={showPasswords ? "text" : "password"} placeholder="New Password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="px-3 py-2 rounded-md border border-border bg-background outline-none focus:border-primary" />
-                  <input type={showPasswords ? "text" : "password"} placeholder="Confirm New" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="px-3 py-2 rounded-md border border-border bg-background outline-none focus:border-primary" />
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1.5 text-muted-foreground">Current Password</label>
+                  <div className="relative">
+                    <input 
+                      type={showPasswords ? "text" : "password"} 
+                      value={currentPassword} 
+                      onChange={(e) => setCurrentPassword(e.target.value)} 
+                      className="w-full px-3 py-2 pr-10 rounded-md border border-border bg-background text-sm outline-none focus:border-primary transition-colors duration-300" 
+                      required 
+                    />
+                    <button 
+                      type="button" 
+                      onClick={() => setShowPasswords(!showPasswords)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showPasswords ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
-                <button type="button" onClick={() => setShowPasswords(!showPasswords)} className="text-xs text-primary font-medium hover:underline">
-                  {showPasswords ? "Hide Passwords" : "Show Passwords"}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5 text-muted-foreground">New Password</label>
+                    <div className="relative">
+                      <input 
+                        type={showPasswords ? "text" : "password"} 
+                        value={newPassword} 
+                        onChange={(e) => setNewPassword(e.target.value)} 
+                        className="w-full px-3 py-2 pr-10 rounded-md border border-border bg-background text-sm outline-none focus:border-primary transition-colors duration-300" 
+                        required 
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5 text-muted-foreground">Confirm New Password</label>
+                    <div className="relative">
+                      <input 
+                        type={showPasswords ? "text" : "password"} 
+                        value={confirmPassword} 
+                        onChange={(e) => setConfirmPassword(e.target.value)} 
+                        className="w-full px-3 py-2 pr-10 rounded-md border border-border bg-background text-sm outline-none focus:border-primary transition-colors duration-300" 
+                        required 
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <button type="submit" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md font-medium hover:opacity-90 transition-opacity">
+                  <Lock className="h-4 w-4" />
+                  Update Password
                 </button>
-                <button type="submit" className="block w-full sm:w-auto px-6 py-2 bg-primary text-primary-foreground rounded-md font-bold">Update Password</button>
               </form>
             </section>
 
@@ -239,10 +314,13 @@ export default function Settings() {
         </div>
       </main>
 
+      {/* Pop-up Toast Notification */}
       {toast.show && (
-        <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg text-white font-medium animate-in slide-in-from-bottom-5 ${toast.type === "success" ? "bg-[#2a9d4a]" : "bg-[#c0392b]"}`}>
-          {toast.type === "success" ? <CheckCircle2 size={18} /> : <XCircle size={18} />}
-          {toast.message}
+        <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-5 duration-300">
+          <div className={`flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg text-white font-medium ${toast.type === "success" ? "bg-[#2a9d4a]" : "bg-[#c0392b]"}`}>
+            {toast.type === "success" ? <CheckCircle2 className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
+            {toast.message}
+          </div>
         </div>
       )}
     </div>
