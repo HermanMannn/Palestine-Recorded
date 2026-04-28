@@ -160,7 +160,7 @@ export default function Messages() {
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             placeholder="Type a message..."
-            className="flex-1 rounded-full bg-transparent px-3 py-2 text-sm text-white placeholder:text-white/60 focus:outline-none"
+            className="flex-1 rounded-full bg-card/70 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
           />
           <button type="submit" className="flex h-9 w-9 items-center justify-center rounded-full bg-card/80 text-foreground hover:bg-muted">
             <Mic className="h-5 w-5" />
