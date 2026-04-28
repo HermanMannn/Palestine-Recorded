@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TimelineRouteImport } from './routes/timeline'
 import { Route as SocialRouteImport } from './routes/social'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as PalgridRouteImport } from './routes/palgrid'
 import { Route as MessagesRouteImport } from './routes/messages'
 import { Route as DonateRouteImport } from './routes/donate'
@@ -32,6 +33,11 @@ const SocialRoute = SocialRouteImport.update({
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PalgridRoute = PalgridRouteImport.update({
@@ -72,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/donate': typeof DonateRoute
   '/messages': typeof MessagesRoute
   '/palgrid': typeof PalgridRoute
+  '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
   '/social': typeof SocialRoute
   '/timeline': typeof TimelineRoute
@@ -83,6 +90,7 @@ export interface FileRoutesByTo {
   '/donate': typeof DonateRoute
   '/messages': typeof MessagesRoute
   '/palgrid': typeof PalgridRoute
+  '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
   '/social': typeof SocialRoute
   '/timeline': typeof TimelineRoute
@@ -95,6 +103,7 @@ export interface FileRoutesById {
   '/donate': typeof DonateRoute
   '/messages': typeof MessagesRoute
   '/palgrid': typeof PalgridRoute
+  '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
   '/social': typeof SocialRoute
   '/timeline': typeof TimelineRoute
@@ -108,6 +117,7 @@ export interface FileRouteTypes {
     | '/donate'
     | '/messages'
     | '/palgrid'
+    | '/settings'
     | '/signup'
     | '/social'
     | '/timeline'
@@ -119,6 +129,7 @@ export interface FileRouteTypes {
     | '/donate'
     | '/messages'
     | '/palgrid'
+    | '/settings'
     | '/signup'
     | '/social'
     | '/timeline'
@@ -130,6 +141,7 @@ export interface FileRouteTypes {
     | '/donate'
     | '/messages'
     | '/palgrid'
+    | '/settings'
     | '/signup'
     | '/social'
     | '/timeline'
@@ -142,6 +154,7 @@ export interface RootRouteChildren {
   DonateRoute: typeof DonateRoute
   MessagesRoute: typeof MessagesRoute
   PalgridRoute: typeof PalgridRoute
+  SettingsRoute: typeof SettingsRoute
   SignupRoute: typeof SignupRoute
   SocialRoute: typeof SocialRoute
   TimelineRoute: typeof TimelineRoute
@@ -168,6 +181,13 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/palgrid': {
@@ -222,6 +242,7 @@ const rootRouteChildren: RootRouteChildren = {
   DonateRoute: DonateRoute,
   MessagesRoute: MessagesRoute,
   PalgridRoute: PalgridRoute,
+  SettingsRoute: SettingsRoute,
   SignupRoute: SignupRoute,
   SocialRoute: SocialRoute,
   TimelineRoute: TimelineRoute,

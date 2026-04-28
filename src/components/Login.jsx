@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { auth, db } from '../firebase'; // Consolidated imports
+import { db } from '../firebase';
 import { ref, query, orderByChild, equalTo, get } from "firebase/database";
 
 export default function Login() {
@@ -8,12 +8,12 @@ export default function Login() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const [isLoading, setIsLoading] = useState(false) // Added loading state
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
-    setIsLoading(true); // Start loading
+    setIsLoading(true);
 
     try {
       const usersRef = ref(db, 'users');
@@ -27,58 +27,48 @@ export default function Login() {
           navigate({ to: '/timeline' });
         } else {
           setError('Invalid password');
-          setIsLoading(false); // Stop loading on error
+          setIsLoading(false);
         }
       } else {
         setError('User not found');
-        setIsLoading(false); // Stop loading on error
+        setIsLoading(false);
       }
     } catch (err) {
       console.error("FULL ERROR:", err);
       setError(`Error: ${err.message}`);
-      setIsLoading(false); // Stop loading on catch
+      setIsLoading(false);
     }
   };
 
   return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      minHeight: '100vh',
-      padding: '2rem 1rem',
-      backgroundImage: 'url(/PalRecBG.png)',
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-    }}>
-      <div style={{ width: '100%', maxWidth: '420px', textAlign: 'center' }}>
-        <h1 style={{
-          fontFamily: "Georgia, 'Times New Roman', serif",
-          fontSize: '42px',
-          fontWeight: 700,
-          color: '#111',
-          margin: '0 0 6px',
-          letterSpacing: '-0.5px',
-        }}>Palestine Recorded</h1>
+    <div 
+      className="relative min-h-screen flex items-center justify-center p-6 transition-colors duration-300"
+      style={{
+        backgroundImage: 'url(/PalRecBG.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+      }}
+    >
+      {/* Semi-transparent overlay to ensure text is readable in all themes */}
+      <div className="absolute inset-0 bg-background/85 backdrop-blur-sm transition-colors duration-300"></div>
 
-        <p style={{
-          fontFamily: "Georgia, 'Times New Roman', serif",
-          fontStyle: 'italic',
-          fontSize: '15px',
-          color: '#333',
-          margin: '0 0 24px',
-        }}>Join a community dedicated to truth and heritage</p>
+      <div className="relative z-10 w-full max-w-[420px] text-center">
+        
+        <h1 className="font-serif text-[42px] font-bold text-foreground m-0 mb-1.5 tracking-tight transition-colors duration-300">
+          Palestine Recorded
+        </h1>
 
-        <div style={{
-          background: 'white',
-          borderRadius: '12px',
-          padding: '28px 28px 24px',
-          boxShadow: '0 2px 16px rgba(0,0,0,0.12)',
-        }}>
+        <p className="font-serif italic text-[15px] text-muted-foreground mb-6 transition-colors duration-300">
+          Join a community dedicated to truth and heritage
+        </p>
+
+        <div className="bg-card/95 backdrop-blur-md rounded-2xl p-7 shadow-xl border border-border transition-colors duration-300">
           <form onSubmit={handleLogin}>
-            {/* Username */}
-            <div style={{ textAlign: 'left', marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '14px', color: '#222', marginBottom: '6px' }}>
+            
+            {/* Username / Email */}
+            <div className="text-left mb-4">
+              <label className="block text-sm font-medium text-foreground mb-1.5 transition-colors duration-300">
                 Username / Email
               </label>
               <input
@@ -86,22 +76,13 @@ export default function Login() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 disabled={isLoading}
-                style={{
-                  width: '100%',
-                  boxSizing: 'border-box',
-                  padding: '10px 12px',
-                  border: '1.5px solid #ddd',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  outline: 'none',
-                  backgroundColor: isLoading ? '#f5f5f5' : 'white',
-                }}
+                className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-foreground text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all duration-300 disabled:opacity-60"
               />
             </div>
 
             {/* Password */}
-            <div style={{ textAlign: 'left', marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '14px', color: '#222', marginBottom: '6px' }}>
+            <div className="text-left mb-5">
+              <label className="block text-sm font-medium text-foreground mb-1.5 transition-colors duration-300">
                 Password
               </label>
               <input
@@ -109,29 +90,13 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
-                style={{
-                  width: '100%',
-                  boxSizing: 'border-box',
-                  padding: '10px 12px',
-                  border: '1.5px solid #ddd',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  outline: 'none',
-                  backgroundColor: isLoading ? '#f5f5f5' : 'white',
-                }}
+                className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-foreground text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all duration-300 disabled:opacity-60"
               />
             </div>
 
+            {/* Error Message */}
             {error && (
-              <div style={{
-                background: '#fdecea',
-                color: '#c0392b',
-                padding: '8px 12px',
-                borderRadius: '6px',
-                fontSize: '13px',
-                marginBottom: '14px',
-                textAlign: 'left',
-              }}>
+              <div className="bg-destructive/10 text-destructive border border-destructive/20 px-3 py-2 rounded-lg text-sm mb-4 text-left font-medium">
                 {error}
               </div>
             )}
@@ -140,72 +105,41 @@ export default function Login() {
             <button 
               type="submit" 
               disabled={isLoading}
-              style={{
-                width: '100%',
-                padding: '13px',
-                background: isLoading ? '#94c9a1' : '#2a9d4a',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '16px',
-                fontWeight: 600,
-                cursor: isLoading ? 'not-allowed' : 'pointer',
-                marginBottom: '18px',
-                transition: 'background 0.2s',
-              }}
+              className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed mb-5"
             >
               {isLoading ? 'Logging in...' : 'Login'}
             </button>
           </form>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
-            <div style={{ flex: 1, height: '1px', background: '#e0e0e0' }} />
-            <span style={{ fontSize: '11px', color: '#999', letterSpacing: '0.5px' }}>OR</span>
-            <div style={{ flex: 1, height: '1px', background: '#e0e0e0' }} />
+          {/* Divider */}
+          <div className="flex items-center gap-3 mb-5">
+            <div className="flex-1 h-px bg-border transition-colors duration-300" />
+            <span className="text-[11px] font-semibold text-muted-foreground tracking-wider uppercase transition-colors duration-300">OR</span>
+            <div className="flex-1 h-px bg-border transition-colors duration-300" />
           </div>
 
-          <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-            <button disabled={isLoading} style={{
-              flex: 1,
-              padding: '12px 8px',
-              background: '#c0392b',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: 600,
-              cursor: isLoading ? 'not-allowed' : 'pointer',
-              opacity: isLoading ? 0.7 : 1
-            }}>
+          {/* Secondary Logins */}
+          <div className="flex gap-3 mb-6">
+            <button 
+              disabled={isLoading} 
+              className="flex-1 py-2.5 bg-destructive text-destructive-foreground font-semibold rounded-lg text-sm hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               Institute Login
             </button>
-            <button disabled={isLoading} style={{
-              flex: 1,
-              padding: '12px 8px',
-              background: '#c0392b',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: 600,
-              cursor: isLoading ? 'not-allowed' : 'pointer',
-              opacity: isLoading ? 0.7 : 1
-            }}>
+            <button 
+              disabled={isLoading} 
+              className="flex-1 py-2.5 bg-destructive text-destructive-foreground font-semibold rounded-lg text-sm hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               Government Login
             </button>
           </div>
 
-          <p style={{ fontSize: '14px', color: '#c0392b', margin: 0 }}>
+          {/* Signup Link */}
+          <p className="text-sm text-foreground transition-colors duration-300 m-0">
             Don't have an account?{' '}
             <a
               onClick={() => !isLoading && navigate({ to: '/signup' })}
-              style={{ 
-                color: '#c0392b', 
-                fontWeight: 700, 
-                textDecoration: 'none', 
-                cursor: isLoading ? 'not-allowed' : 'pointer',
-                opacity: isLoading ? 0.5 : 1
-              }}
+              className={`font-bold text-destructive decoration-2 underline-offset-2 ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:underline'}`}
             >
               Sign up here
             </a>

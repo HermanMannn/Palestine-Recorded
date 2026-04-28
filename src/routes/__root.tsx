@@ -29,9 +29,9 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
+      { title: "PalRec" },
+      { name: "description", content: "PalRec is here to show realism" },
+      { name: "author", content: "Midas" },
       { property: "og:title", content: "Lovable App" },
       { property: "og:description", content: "Lovable Generated Project" },
       { property: "og:type", content: "website" },
@@ -54,11 +54,29 @@ export const Route = createRootRoute({
   notFoundComponent: NotFoundComponent,
 });
 
+// The script that runs instantly to apply the theme and prevent the white flash
+const themeScript = `
+  (function() {
+    try {
+      var savedTheme = localStorage.getItem('theme') || 'system';
+      var html = document.documentElement;
+      if (savedTheme === 'system') {
+        var systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        html.classList.add(systemTheme);
+      } else {
+        html.classList.add(savedTheme);
+      }
+    } catch (e) {}
+  })();
+`;
+
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
         <HeadContent />
+        {/* Inject the theme script right into the head */}
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body
         style={{
