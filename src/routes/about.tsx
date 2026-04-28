@@ -20,9 +20,9 @@ export const Route = createFileRoute("/about")({
 
 
 function AboutPage() {
-  return (<div className="flex h-screen flex-col overflow-hidden">
+  return (<div className="flex h-screen flex-col">
         <Navbar />
-        <div className="relative flex-1 overflow-hidden pr-14">
+        <div className="relative flex-1">
           <About/>
         </div>
       </div>
