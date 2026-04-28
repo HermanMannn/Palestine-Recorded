@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
  import { db } from '../firebase'; 
 import { ref, get, set, query, orderByChild, equalTo } from "firebase/database";
+
+
 export default function Signup() {
   const navigate = useNavigate()
   const [formData, setFormData] = useState({

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import Donate from "../components/Donate.jsx";
+import Navbar from "@/components/Navbar.jsx";
 
 export const Route = createFileRoute("/donate")({
   component: Donate,
