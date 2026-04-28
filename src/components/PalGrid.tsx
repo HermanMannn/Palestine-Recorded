@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { WORDS } from "../data/words";
 import Navbar from "./Navbar";
-import RTB from "./RightToolbar"
 
 const WORD_LENGTH = 5;
 const MAX_TRIES = 6;
