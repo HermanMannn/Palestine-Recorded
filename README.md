@@ -1,3 +1,21 @@
+*Preserving Identity, One Story at a Time.*
+
+Palestine Recorded (PalRec) is a web-based platform dedicated to preserving the rich tapestry of Palestinian heritage, culture, and traditions. By providing an unabridged record of historical events supported by unbiased, verified sources, alongside a dynamic space for community testimonies, PalRec aims to reclaim narratives often overshadowed by conflict.
+
+Table of Contents
+-----------------
+
+*   [Overview](#overview)
+*   [Key Features](#key-features)
+*   [The Dual-Timeline System](#the-dual-timeline-system)
+*   [Platform Ecosystem](#platform-ecosystem)
+*   [Getting Started](#getting-started)
+*   [Development Setup](#development-setup)
+*   [Testing](#testing)
+*   [Team](#team)
+
+Overview
+--------
 For decades, the narrative surrounding Palestine has been dominated by conflict, often obscuring the vibrant reality of its people. PalRec serves as a digital archive and social hub, merging verified historical data with community-contributed media to create a comprehensive and authentic record of Palestinian life. The platform leverages modern web technologies to ensure accessibility, integrity, and engaging user experiences.
 
 Key Features
