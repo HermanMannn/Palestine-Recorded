@@ -55,7 +55,7 @@ export default function Login() {
       }}
     >
       {/* Semi-transparent overlay to ensure text is readable in all themes */}
-      <div className="absolute inset-0 bg-background/85 backdrop-blur-sm transition-colors duration-300"></div>
+      <div className="absolute inset-0 transition-colors duration-300 dark:bg-slate-900/40 text-foreground transition-colors duration-300 pb-20 overflow-x-hidden custom-scrollbar"></div>
 
       <div className="relative z-10 w-full max-w-[420px] text-center">
         

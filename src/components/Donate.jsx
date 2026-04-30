@@ -107,7 +107,7 @@ export default function Donate() {
   const finalAmount = customAmount ? Number(customAmount) : amount;
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen dark:bg-slate-900/40 backdrop-blur-xl text-foreground transition-colors duration-300 pb-20 overflow-x-hidden custom-scrollbar">
       <Navbar />
 
       <main className="max-w-5xl mx-auto px-6 py-10">

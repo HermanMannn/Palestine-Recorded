@@ -70,6 +70,9 @@ export default function SocialFeed() {
   const [error, setError] = useState("");
   const fileInputRef = useRef(null);
 
+  // Filter state
+  const [activeTab, setActiveTab] = useState("For you");
+
   useEffect(() => {
     const postsRef = dbRef(db, "posts");
     const unsub = onValue(postsRef, (snap) => {
@@ -84,6 +87,15 @@ export default function SocialFeed() {
     });
     return () => unsub();
   }, []);
+
+  // Filter Logic:
+  // "Following" -> Only shows your posts
+  // "Trending" -> Only shows default seed posts
+  const filteredPosts = posts.filter((post) => {
+    if (activeTab === "Following") return post.author === "You";
+    if (activeTab === "Trending") return post.id.startsWith("seed-");
+    return true; // "For you" shows everything
+  });
 
   const toggleLike = (id) => {
     const isLiked = !!liked[id];
@@ -154,19 +166,14 @@ export default function SocialFeed() {
       clearImage();
     } catch (err) {
       console.error("Failed to post:", err);
-      setError(
-        err?.code === "storage/unauthorized"
-          ? "Image upload blocked by Firebase Storage rules. Allow writes to /posts in your Storage rules."
-          : `Failed to post: ${err.message}`,
-      );
+      setError(`Failed to post: ${err.message}`);
     } finally {
       setPosting(false);
     }
   };
 
   return (
-    
-    <div className="absolute inset-0  overflow-y-auto dark:bg-slate-900/40 backdrop-blur-m transition-colors duration-300 custom-scrollbar">
+    <div className="absolute inset-0 overflow-y-auto dark:bg-slate-900/50 backdrop-blur transition-colors duration-300 custom-scrollbar">
       <div className="mx-auto max-w-2xl px-4 py-6 space-y-4 overflow-hidden">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Community Feed</h1>
@@ -178,7 +185,7 @@ export default function SocialFeed() {
         {/* Composer */}
         <form
           onSubmit={submitPost}
-          className="rounded-xl border border-border bg-card/90 backdrop-blur-sm shadow-sm dark:bg-slate-800/60 backdrop-blur-sm shadow-sm"
+          className="rounded-xl border border-border bg-card/90 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm"
         >
           <div className="p-4">
             <div className="flex gap-3">
@@ -189,7 +196,7 @@ export default function SocialFeed() {
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 placeholder="Share a story, photo, or memory..."
-                className="min-h-[60px] flex-1 resize-none rounded-lg border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                className="min-h-[60px] flex-1 resize-none rounded-lg border border-input bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
               />
             </div>
 
@@ -200,7 +207,6 @@ export default function SocialFeed() {
                   type="button"
                   onClick={clearImage}
                   className="absolute right-2 top-2 rounded-full bg-black/60 p-1 text-white hover:bg-black/80"
-                  aria-label="Remove image"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -230,29 +236,14 @@ export default function SocialFeed() {
               >
                 <ImageIcon className="h-4 w-4" /> Photo
               </button>
-              <button
-                type="button"
-                className="hidden sm:flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-muted-foreground hover:bg-accent/40 hover:text-primary"
-              >
+              <button type="button" className="hidden sm:flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-muted-foreground hover:bg-accent/40 hover:text-primary">
                 <Video className="h-4 w-4" /> Video
-              </button>
-              <button
-                type="button"
-                className="hidden sm:flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-muted-foreground hover:bg-accent/40 hover:text-primary"
-              >
-                <MapPin className="h-4 w-4" /> Location
-              </button>
-              <button
-                type="button"
-                className="hidden sm:flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-muted-foreground hover:bg-accent/40 hover:text-primary"
-              >
-                <Smile className="h-4 w-4" /> Feeling
               </button>
             </div>
             <button
               type="submit"
               disabled={(!draft.trim() && !imageFile) || posting}
-              className="flex items-center gap-1.5 rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+              className="flex items-center gap-1.5 rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
             >
               {posting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
               {posting ? "Posting..." : "Post"}
@@ -262,95 +253,90 @@ export default function SocialFeed() {
 
         {/* Filter tabs */}
         <div className="flex items-center gap-1 border-b border-border">
-          <button className="border-b-2 border-primary px-4 py-2 text-sm font-medium text-primary">
-            For you
-          </button>
-          <button className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground">
-            Following
-          </button>
-          <button className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground">
-            Trending
-          </button>
+          {["For you", "Following", "Trending"].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 text-sm font-medium transition-colors ${
+                activeTab === tab
+                  ? "border-b-2 border-primary text-primary"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
         </div>
 
         {/* Posts */}
-        {posts.map((post) => (
-          <article
-            key={post.id}
-            className="rounded-xl border border-border bg-card/90 backdrop-blur-sm shadow-sm "
-          >
-            <div className="flex items-start justify-between p-4 pb-2">
-              <div className="flex items-center gap-3">
-                <div
-                  className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold text-white ${post.color ?? "bg-primary"}`}
+        <div className="space-y-4">
+          {filteredPosts.map((post) => (
+            <article
+              key={post.id}
+              className="rounded-xl border border-border bg-card/90 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm"
+            >
+              <div className="flex items-start justify-between p-4 pb-2">
+                <div className="flex items-center gap-3">
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold text-white ${post.color ?? "bg-primary"}`}>
+                    {post.initial ?? post.author?.[0]}
+                  </div>
+                  <div>
+                    <div className="font-semibold text-foreground leading-tight">{post.author}</div>
+                    <div className="text-xs italic text-muted-foreground">{post.role}</div>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <span>{post.time ?? timeAgo(post.createdAt)}</span>
+                      <span>·</span>
+                      <Globe className="h-3 w-3" />
+                    </div>
+                  </div>
+                </div>
+                <button className="rounded-md p-1.5 text-muted-foreground hover:bg-accent/40">
+                  <MoreHorizontal className="h-4 w-4" />
+                </button>
+              </div>
+
+              {post.text && (
+                <div className="px-4 pb-3 text-sm leading-relaxed text-foreground whitespace-pre-wrap">
+                  {post.text}
+                </div>
+              )}
+
+              {post.image && (
+                <div className="border-y border-border bg-muted">
+                  <img src={post.image} alt="" className="w-full object-cover" />
+                </div>
+              )}
+
+              <div className="flex items-center justify-between px-4 py-1 text-xs text-muted-foreground">
+                <span>{post.likes ?? 0} likes</span>
+                <span>{post.comments ?? 0} comments · {post.shares ?? 0} shares</span>
+              </div>
+
+              <div className="flex items-center justify-around border-t border-border px-2 py-1">
+                <button
+                  onClick={() => toggleLike(post.id)}
+                  className={`flex flex-1 items-center justify-center gap-2 rounded-md py-2 text-sm font-medium transition-colors hover:bg-accent/40 ${
+                    liked[post.id] ? "text-red-500" : "text-muted-foreground hover:text-primary"
+                  }`}
                 >
-                  {post.initial ?? post.author?.[0]}
-                </div>
-                <div>
-                  <div className="font-semibold text-foreground leading-tight">
-                    {post.author}
-                  </div>
-                  <div className="text-xs italic text-muted-foreground">
-                    {post.role}
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <span>{post.time ?? timeAgo(post.createdAt)}</span>
-                    <span>·</span>
-                    <Globe className="h-3 w-3" />
-                  </div>
-                </div>
+                  <Heart className="h-4 w-4" fill={liked[post.id] ? "currentColor" : "none"} /> Like
+                </button>
+                <button className="flex flex-1 items-center justify-center gap-2 rounded-md py-2 text-sm font-medium text-muted-foreground hover:bg-accent/40 hover:text-primary">
+                  <MessageCircle className="h-4 w-4" /> Comment
+                </button>
+                <button className="flex flex-1 items-center justify-center gap-2 rounded-md py-2 text-sm font-medium text-muted-foreground hover:bg-accent/40 hover:text-primary">
+                  <Share2 className="h-4 w-4" /> Share
+                </button>
               </div>
-              <button className="rounded-md p-1.5 text-muted-foreground hover:bg-accent/40">
-                <MoreHorizontal className="h-4 w-4" />
-              </button>
+            </article>
+          ))}
+
+          {filteredPosts.length === 0 && (
+            <div className="py-12 text-center text-muted-foreground">
+              No posts to show in this section yet.
             </div>
-
-            {post.text && (
-              <div className="px-4 pb-3 text-sm leading-relaxed text-foreground whitespace-pre-wrap">
-                {post.text}
-              </div>
-            )}
-
-            {post.image && (
-              <div className="border-y border-border bg-muted">
-                <img src={post.image} alt="" className="w-full object-cover" />
-              </div>
-            )}
-
-            <div className="flex items-center justify-between px-4 py-1 text-xs text-muted-foreground">
-              <span>{post.likes ?? 0} likes</span>
-              <span>
-                {post.comments ?? 0} comments · {post.shares ?? 0} shares
-              </span>
-            </div>
-
-            <div className="flex items-center justify-around border-t border-border px-2 py-1">
-              <button
-                onClick={() => toggleLike(post.id)}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-md py-2 text-sm font-medium transition-colors hover:bg-accent/40 ${
-                  liked[post.id]
-                    ? "text-red-500 hover:text-red-500"
-                    : "text-muted-foreground hover:text-primary"
-                }`}
-              >
-                <Heart
-                  className="h-4 w-4"
-                  fill={liked[post.id] ? "currentColor" : "none"}
-                />{" "}
-                Like
-              </button>
-              <button className="flex flex-1 items-center justify-center gap-2 rounded-md py-2 text-sm font-medium text-muted-foreground hover:bg-accent/40 hover:text-primary">
-                <MessageCircle className="h-4 w-4" /> Comment
-              </button>
-              <button className="flex flex-1 items-center justify-center gap-2 rounded-md py-2 text-sm font-medium text-muted-foreground hover:bg-accent/40 hover:text-primary">
-                <Share2 className="h-4 w-4" /> Share
-              </button>
-              <button className="flex flex-1 items-center justify-center gap-2 rounded-md py-2 text-sm font-medium text-muted-foreground hover:bg-accent/40 hover:text-primary">
-                <Bookmark className="h-4 w-4" /> Save
-              </button>
-            </div>
-          </article>
-        ))}
+          )}
+        </div>
       </div>
     </div>
   );
