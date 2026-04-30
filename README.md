@@ -70,9 +70,6 @@ Ensure you have the following installed before proceeding:
 
 5.  Open your browser and navigate to `http://localhost:5173` (or the port specified by Vite).
 
-### Standalone Local Execution
-
-For rapid testing or demonstration without a local Node.js server, PalRec can be compiled to run entirely within a single `index.html` file using Babel Standalone and Firebase Compatibility scripts. See the `standalone-demo/` directory for instructions.
 
 Development Setup
 -----------------
