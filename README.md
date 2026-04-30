@@ -1,6 +1,3 @@
-git clone https://github.com/YourPalestine Recorded (PalRec)
-===========================
-
 *Preserving Identity, One Story at a Time.*
 
 Palestine Recorded (PalRec) is a web-based platform dedicated to preserving the rich tapestry of Palestinian heritage, culture, and traditions. By providing an unabridged record of historical events supported by unbiased, verified sources, alongside a dynamic space for community testimonies, PalRec aims to reclaim narratives often overshadowed by conflict.
