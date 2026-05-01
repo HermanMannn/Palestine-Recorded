@@ -104,8 +104,7 @@ const timelineData = [
             description:
               "The First Aliyah marked the beginning of large-scale Zionist Jewish immigration to Ottoman Palestine, with around 25,000–35,000 immigrants — mostly from the Russian Empire and Yemen — arriving between 1882 and 1903. Settlements such as Rishon LeZion and Petah Tikva were established, marking the start of organized Zionist colonization.",
             articles: [
-              { title: "First Aliyah — Wikipedia", url: "https://en.wikipedia.org/wiki/First_Aliyah" },
-              { title: "Aliyah — Jewish Virtual Library", url: "https://www.jewishvirtuallibrary.org/aliyah-immigration-to-israel" },
+              { title: "First Aliyah — Wikipedia", url: "https://en.wikipedia.org/wiki/First_Aliyah" }
             ],
           },
         ],
