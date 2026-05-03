@@ -2,6 +2,8 @@
 
 Palestine Recorded (PalRec) is a web-based platform dedicated to preserving the rich tapestry of Palestinian heritage, culture, and traditions. By providing an unabridged record of historical events supported by unbiased, verified sources, alongside a dynamic space for community testimonies, PalRec aims to reclaim narratives often overshadowed by conflict.
 
+Accessible through: https://palrec.lovable.app/timeline (as of May 2026)
+
 Table of Contents
 -----------------
 
