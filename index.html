@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PalRec - Supabase Edition</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        border: "hsl(var(--border))",
+                        background: "#0f172a",
+                        foreground: "#f8fafc",
+                        primary: "#10b981",
+                        card: "#1e293b",
+                    }
+                }
+            }
+        }
+    </script>
+
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <script src="https://unpkg.com/react-router-dom@6.23.0/dist/umd/react-router-dom.development.js"></script>
+
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-background text-foreground min-h-screen custom-scrollbar">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { HashRouter, Routes, Route, Link } = ReactRouterDOM;
+
+        // --- SUPABASE INITIALIZATION ---
+        // Replace with your project details from Settings > API
+        const SUPABASE_URL = "https://your-project-id.supabase.co";
+        const SUPABASE_ANON_KEY = "your-public-anon-key";
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // --- ICONS (Mocked for Standalone) ---
+        const IconHeart = ({ fill, className }) => <svg className={className} fill={fill || "none"} stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>;
+
+
+        const Signup = () => {
+    const [formData, setFormData] = useState({
+        username: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+    });
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleSignup = async (e) => {
+        e.preventDefault();
+        setError('');
+        setSuccess('');
+        setIsLoading(true);
+
+        // Validation
+        if (formData.password !== formData.confirmPassword) {
+            setError('Passwords do not match');
+            setIsLoading(false);
+            return;
+        }
+
+        try {
+            // 1. Call Supabase Auth SignUp
+            const { data, error } = await supabase.auth.signUp({
+                email: formData.email,
+                password: formData.password,
+                options: {
+                    // This stores the username in the 'user_metadata' field
+                    data: {
+                        display_name: formData.username,
+                    },
+                },
+            });
+
+            if (error) throw error;
+
+            setSuccess('Account created! Please check your email for verification.');
+            // Optionally redirect after a delay
+        } catch (err) {
+            setError(err.message || 'Signup failed');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <div className="bg-card p-8 rounded-2xl border border-border shadow-xl max-w-md mx-auto mt-20">
+            <h2 className="text-2xl font-bold mb-6 text-center text-primary">Join PalRec</h2>
+            <form onSubmit={handleSignup} className="space-y-4">
+                <input
+                    type="text"
+                    placeholder="Username"
+                    className="w-full p-3 rounded-lg bg-background border border-border"
+                    onChange={(e) => setFormData({...formData, username: e.target.value})}
+                />
+                <input
+                    type="email"
+                    placeholder="Email"
+                    className="w-full p-3 rounded-lg bg-background border border-border"
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                />
+                <input
+                    type="password"
+                    placeholder="Password"
+                    className="w-full p-3 rounded-lg bg-background border border-border"
+                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                />
+                <input
+                    type="password"
+                    placeholder="Confirm Password"
+                    className="w-full p-3 rounded-lg bg-background border border-border"
+                    onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                />
+                
+                {error && <p className="text-red-500 text-sm italic">{error}</p>}
+                {success && <p className="text-emerald-500 text-sm font-bold">{success}</p>}
+
+                <button 
+                    disabled={isLoading}
+                    className="w-full bg-primary py-3 rounded-lg font-bold hover:opacity-90 disabled:opacity-50"
+                >
+                    {isLoading ? "Processing..." : "Create Account"}
+                </button>
+            </form>
+        </div>
+    );
+};
+        // --- COMPONENT: SocialFeed ---
+        const SocialFeed = () => {
+            const [posts, setPosts] = useState([]);
+            const [activeTab, setActiveTab] = useState("For you");
+            const [draft, setDraft] = useState("");
+
+            const seedPosts = [
+                { id: "seed-1", author: "Amr Bu-Gazala", text: "Jaffa, 1946 memories...", role: "Official" },
+                { id: "seed-2", author: "Rawda Asfur", text: "Visited my village today...", role: "Journalist" }
+            ];
+
+            useEffect(() => {
+                fetchPosts();
+                
+                // Real-time listener: Listen for new posts in the 'posts' table
+                const channel = supabase
+                    .channel('public:posts')
+                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts' }, payload => {
+                        setPosts(prev => [payload.new, ...prev]);
+                    })
+                    .subscribe();
+
+                return () => supabase.removeChannel(channel);
+            }, []);
+
+            const fetchPosts = async () => {
+                const { data, error } = await supabase
+                    .from('posts')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (data) setPosts([...data, ...seedPosts]);
+            };
+
+            const submitPost = async (e) => {
+                e.preventDefault();
+                if (!draft.trim()) return;
+
+                const { error } = await supabase
+                    .from('posts')
+                    .insert([{ 
+                        author: "You", 
+                        text: draft, 
+                        role: "Community Member" 
+                    }]);
+
+                if (!error) setDraft("");
+            };
+
+            const filteredPosts = posts.filter(post => {
+                if (activeTab === "Following") return post.author === "You";
+                if (activeTab === "Trending") return String(post.id).startsWith("seed-");
+                return true;
+            });
+
+            return (
+                <div className="max-w-2xl mx-auto py-8 px-4">
+                    <form onSubmit={submitPost} className="bg-card p-4 rounded-xl mb-6">
+                        <textarea 
+                            value={draft}
+                            onChange={(e) => setDraft(e.target.value)}
+                            className="w-full bg-transparent border-none focus:ring-0 text-lg" 
+                            placeholder="Share a story..."
+                        />
+                        <div className="text-right mt-2">
+                            <button className="bg-primary px-6 py-2 rounded-lg font-bold">Post</button>
+                        </div>
+                    </form>
+
+                    <div className="flex gap-4 border-b border-slate-700 mb-6">
+                        {["For you", "Following", "Trending"].map(tab => (
+                            <button 
+                                key={tab} 
+                                onClick={() => setActiveTab(tab)}
+                                className={`pb-2 px-2 ${activeTab === tab ? "border-b-2 border-primary text-primary" : "text-slate-400"}`}
+                            >
+                                {tab}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="space-y-4">
+                        {filteredPosts.map(post => (
+                            <article key={post.id} className="bg-card p-6 rounded-xl border border-slate-800">
+                                <div className="font-bold text-emerald-400">{post.author}</div>
+                                <div className="text-sm text-slate-400 italic mb-2">{post.role}</div>
+                                <p className="text-lg">{post.text}</p>
+                            </article>
+                        ))}
+                    </div>
+                </div>
+
+                
+            );
+        };
+
+        // --- MAIN APP ---
+        const App = () => (
+            <HashRouter>
+                <nav className="p-4 border-b border-slate-800 bg-card/50 backdrop-blur sticky top-0 z-50">
+                    <div className="max-w-5xl mx-auto flex justify-between items-center">
+                        <div className="text-2xl font-black text-primary italic">PalRec.</div>
+                        <div className="space-x-6">
+                            <Link to="/" className="hover:text-primary">Social</Link>
+                            <Link to="/timeline" className="hover:text-primary">Timeline</Link>
+                        </div>
+                    </div>
+                </nav>
+                <Routes>
+                    <Route path="/" element={<SocialFeed />} />
+                    <Route path="/timeline" element={<div className="p-20 text-center text-2xl italic">Timeline Map View (Supabase Edition)</div>} />
+                </Routes>
+            </HashRouter>
+        );
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

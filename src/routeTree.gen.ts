@@ -17,6 +17,7 @@ import { Route as PalgridRouteImport } from './routes/palgrid'
 import { Route as MessagesRouteImport } from './routes/messages'
 import { Route as DonateRouteImport } from './routes/donate'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as AuthcontextRouteImport } from './routes/authcontext'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -60,6 +61,11 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthcontextRoute = AuthcontextRouteImport.update({
+  id: '/authcontext',
+  path: '/authcontext',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
@@ -74,6 +80,7 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/authcontext': typeof AuthcontextRoute
   '/contact': typeof ContactRoute
   '/donate': typeof DonateRoute
   '/messages': typeof MessagesRoute
@@ -86,6 +93,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/authcontext': typeof AuthcontextRoute
   '/contact': typeof ContactRoute
   '/donate': typeof DonateRoute
   '/messages': typeof MessagesRoute
@@ -99,6 +107,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/authcontext': typeof AuthcontextRoute
   '/contact': typeof ContactRoute
   '/donate': typeof DonateRoute
   '/messages': typeof MessagesRoute
@@ -113,6 +122,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/authcontext'
     | '/contact'
     | '/donate'
     | '/messages'
@@ -125,6 +135,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/authcontext'
     | '/contact'
     | '/donate'
     | '/messages'
@@ -137,6 +148,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/authcontext'
     | '/contact'
     | '/donate'
     | '/messages'
@@ -150,6 +162,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  AuthcontextRoute: typeof AuthcontextRoute
   ContactRoute: typeof ContactRoute
   DonateRoute: typeof DonateRoute
   MessagesRoute: typeof MessagesRoute
@@ -218,6 +231,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/authcontext': {
+      id: '/authcontext'
+      path: '/authcontext'
+      fullPath: '/authcontext'
+      preLoaderRoute: typeof AuthcontextRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/about': {
       id: '/about'
       path: '/about'
@@ -238,6 +258,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  AuthcontextRoute: AuthcontextRoute,
   ContactRoute: ContactRoute,
   DonateRoute: DonateRoute,
   MessagesRoute: MessagesRoute,
@@ -250,3 +271,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
