@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Search, Plus, Mic, CheckCheck, Users } from "lucide-react";
-import { db } from '../firebase'; 
-import { ref, onValue, push, set, serverTimestamp } from "firebase/database";
+import { supabase } from "@/integrations/supabase/client";
 
 const conversations = [
   { id: "hamza", name: "Hamza", initial: "H", color: "bg-orange-400", time: "11:35 am", preview: "😅", unread: true },
@@ -10,81 +9,77 @@ const conversations = [
   { id: "layla", name: "Layla Haddad", initial: "L", color: "bg-purple-500", time: "Tuesday", preview: "I'll send the archive tomorrow.", unread: false },
 ];
 
+const formatTime = (iso) =>
+  new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }).toLowerCase();
+
 export default function Messages() {
   const [activeId, setActiveId] = useState("hamza");
   const [search, setSearch] = useState("");
   const [allMessages, setAllMessages] = useState([]);
   const [draft, setDraft] = useState("");
-  
+  const [userId, setUserId] = useState(null);
+
   const scrollRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  // 1. Real-time Firebase Sync
   useEffect(() => {
-    const messagesRef = ref(db, 'messages');
-    const unsubscribe = onValue(messagesRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const messageList = Object.keys(data).map(key => ({
-          id: key,
-          ...data[key]
-        }));
-        setAllMessages(messageList);
-      }
-    });
-    return () => unsubscribe();
+    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id || null));
+
+    const load = async () => {
+      const { data } = await supabase.from("messages").select("*").order("created_at", { ascending: true });
+      setAllMessages(data || []);
+    };
+    load();
+
+    const channel = supabase
+      .channel("messages-feed")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, (payload) => {
+        setAllMessages((prev) => [...prev, payload.new]);
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
-  // 2. Auto-scroll to bottom
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [allMessages, activeId]);
 
   const active = conversations.find((c) => c.id === activeId);
-  const thread = allMessages.filter((m) => m.conversationId === activeId);
+  const thread = allMessages.filter((m) => m.conversation_id === activeId);
   const filtered = conversations.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  // 3. Handlers
+  const insertMessage = async (payload) => {
+    if (!userId) return;
+    const { error } = await supabase.from("messages").insert({
+      conversation_id: activeId,
+      sender_id: userId,
+      ...payload,
+    });
+    if (error) console.error("Send failed:", error);
+  };
+
   const sendMessage = async (e) => {
     e.preventDefault();
     if (!draft.trim()) return;
-
-    await pushToFirebase({ text: draft.trim() });
+    await insertMessage({ text: draft.trim() });
     setDraft("");
   };
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const localUrl = URL.createObjectURL(file);
-      pushToFirebase({ image: localUrl });
-    }
-  };
-
-  const pushToFirebase = async (payload) => {
-    try {
-      const messagesRef = ref(db, 'messages');
-      const newMessageRef = push(messagesRef);
-      await set(newMessageRef, {
-        conversationId: activeId,
-        from: "me",
-        ...payload,
-        time: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }).toLowerCase(),
-        timestamp: serverTimestamp() 
-      });
-    } catch (err) {
-      console.error("Message error:", err);
-    }
+    if (!file || !userId) return;
+    const path = `${userId}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+    const { error } = await supabase.storage.from("message-images").upload(path, file);
+    if (error) return console.error(error);
+    const { data } = supabase.storage.from("message-images").getPublicUrl(path);
+    await insertMessage({ image_url: data.publicUrl });
   };
 
   return (
-    <div className="flex h-full text-[1.15rem] dark:bg-slate-900/40 dark:backdrop-blur-xl transition-colors duration-300 overflow-hidden">
-      
-      {/* Sidebar */}
+    <div className="flex h-full text-[1.15rem] dark:bg-slate-900/40 dark:backdrop-blur-xl overflow-hidden">
       <aside className="flex w-96 flex-col border-r border-border bg-background/50 shrink-0">
         <div className="p-5">
           <div className="relative">
@@ -101,9 +96,8 @@ export default function Messages() {
 
         <div className="flex-1 overflow-y-auto px-4 pb-5 custom-scrollbar">
           {filtered.map((c) => {
-            const conversationMessages = allMessages.filter(m => m.conversationId === c.id);
+            const conversationMessages = allMessages.filter((m) => m.conversation_id === c.id);
             const lastMessage = conversationMessages[conversationMessages.length - 1];
-
             return (
               <button
                 key={c.id}
@@ -121,12 +115,12 @@ export default function Messages() {
                   <div className="flex items-center justify-between">
                     <span className="truncate font-bold text-foreground text-xl">{c.name}</span>
                     <span className="ml-2 shrink-0 text-sm text-muted-foreground">
-                      {lastMessage ? lastMessage.time : c.time}
+                      {lastMessage ? formatTime(lastMessage.created_at) : c.time}
                     </span>
                   </div>
                   <p className="truncate text-base text-foreground/70">
-                    {lastMessage 
-                      ? `${lastMessage.from === 'me' ? 'You: ' : ''}${lastMessage.text || '📷 Image'}` 
+                    {lastMessage
+                      ? `${lastMessage.sender_id === userId ? "You: " : ""}${lastMessage.text || "📷 Image"}`
                       : c.preview}
                   </p>
                 </div>
@@ -136,7 +130,6 @@ export default function Messages() {
         </div>
       </aside>
 
-      {/* Main Chat */}
       <main className="relative flex flex-1 flex-col h-full overflow-hidden bg-transparent">
         <div className="flex items-center gap-5 border-b border-border px-6 py-5 dark:bg-slate-900/20 shrink-0">
           <div className={`flex h-16 w-16 items-center justify-center rounded-full text-2xl font-bold text-white shadow-md ${active?.color ?? "bg-muted"}`}>
@@ -148,26 +141,22 @@ export default function Messages() {
           </div>
         </div>
 
-        {/* Message Thread */}
-        <div 
-          ref={scrollRef}
-          className="flex-1 space-y-5 overflow-y-auto px-6 py-6 text-lg custom-scrollbar scroll-smooth"
-        >
+        <div ref={scrollRef} className="flex-1 space-y-5 overflow-y-auto px-6 py-6 text-lg custom-scrollbar scroll-smooth">
           {thread.map((m) => {
-            const isMe = m.from === "me";
+            const isMe = m.sender_id === userId;
             return (
               <div key={m.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-xl rounded-[1.5rem] px-3 py-3 text-foreground shadow-lg backdrop-blur-md transition-colors ${
-                  isMe 
-                    ? "bg-[oklch(0.85_0.12_145/0.85)] dark:bg-emerald-700/60 dark:text-emerald-50" 
+                <div className={`max-w-xl rounded-[1.5rem] px-3 py-3 text-foreground shadow-lg backdrop-blur-md ${
+                  isMe
+                    ? "bg-[oklch(0.85_0.12_145/0.85)] dark:bg-emerald-700/60 dark:text-emerald-50"
                     : "bg-[oklch(0.88_0.1_25/0.85)] dark:bg-slate-800/80 dark:text-slate-100 dark:border dark:border-white/5"
                 }`}>
-                  {m.image && (
-                    <img src={m.image} alt="Local Upload" className="mb-2 max-h-96 w-full rounded-2xl object-cover shadow-inner" />
+                  {m.image_url && (
+                    <img src={m.image_url} alt="upload" className="mb-2 max-h-96 w-full rounded-2xl object-cover shadow-inner" />
                   )}
                   {m.text && <p className="px-3 text-[1.15rem] leading-relaxed">{m.text}</p>}
                   <div className={`mt-2 px-3 flex items-center justify-end gap-1 text-[0.8rem] ${isMe ? "text-white/70" : "text-foreground/50"}`}>
-                    {m.time}
+                    {formatTime(m.created_at)}
                     <CheckCheck className="h-5 w-5" />
                   </div>
                 </div>
@@ -176,18 +165,15 @@ export default function Messages() {
           })}
         </div>
 
-        {/* Footer */}
         <form onSubmit={sendMessage} className="shrink-0 flex items-center gap-4 border-t border-border px-6 py-5 dark:bg-slate-900/40 backdrop-blur-md">
           <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
-          
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="flex h-14 w-14 items-center justify-center rounded-full bg-card/80 dark:bg-slate-800 text-foreground hover:bg-muted shadow-sm transition-transform active:scale-95"
+            className="flex h-14 w-14 items-center justify-center rounded-full bg-card/80 dark:bg-slate-800 text-foreground hover:bg-muted shadow-sm active:scale-95"
           >
             <Plus className="h-8 w-8" />
           </button>
-          
           <input
             type="text"
             value={draft}
@@ -195,8 +181,7 @@ export default function Messages() {
             placeholder="Type a message..."
             className="flex-1 rounded-full bg-card/70 dark:bg-slate-800/80 px-6 py-4 text-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
           />
-          
-          <button type="submit" className="flex h-14 w-14 items-center justify-center rounded-full bg-card/80 dark:bg-slate-800 text-foreground hover:bg-muted shadow-sm transition-transform active:scale-95">
+          <button type="submit" className="flex h-14 w-14 items-center justify-center rounded-full bg-card/80 dark:bg-slate-800 text-foreground hover:bg-muted shadow-sm active:scale-95">
             <Mic className="h-8 w-8" />
           </button>
         </form>
