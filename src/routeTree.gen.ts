@@ -12,6 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TimelineRouteImport } from './routes/timeline'
 import { Route as SocialRouteImport } from './routes/social'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as Sheet3RouteImport } from './routes/sheet3'
+import { Route as Sheet2RouteImport } from './routes/sheet2'
+import { Route as Sheet1RouteImport } from './routes/sheet1'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as PalgridRouteImport } from './routes/palgrid'
 import { Route as MessagesRouteImport } from './routes/messages'
@@ -34,6 +37,21 @@ const SocialRoute = SocialRouteImport.update({
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Sheet3Route = Sheet3RouteImport.update({
+  id: '/sheet3',
+  path: '/sheet3',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Sheet2Route = Sheet2RouteImport.update({
+  id: '/sheet2',
+  path: '/sheet2',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Sheet1Route = Sheet1RouteImport.update({
+  id: '/sheet1',
+  path: '/sheet1',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -86,6 +104,9 @@ export interface FileRoutesByFullPath {
   '/messages': typeof MessagesRoute
   '/palgrid': typeof PalgridRoute
   '/settings': typeof SettingsRoute
+  '/sheet1': typeof Sheet1Route
+  '/sheet2': typeof Sheet2Route
+  '/sheet3': typeof Sheet3Route
   '/signup': typeof SignupRoute
   '/social': typeof SocialRoute
   '/timeline': typeof TimelineRoute
@@ -99,6 +120,9 @@ export interface FileRoutesByTo {
   '/messages': typeof MessagesRoute
   '/palgrid': typeof PalgridRoute
   '/settings': typeof SettingsRoute
+  '/sheet1': typeof Sheet1Route
+  '/sheet2': typeof Sheet2Route
+  '/sheet3': typeof Sheet3Route
   '/signup': typeof SignupRoute
   '/social': typeof SocialRoute
   '/timeline': typeof TimelineRoute
@@ -113,6 +137,9 @@ export interface FileRoutesById {
   '/messages': typeof MessagesRoute
   '/palgrid': typeof PalgridRoute
   '/settings': typeof SettingsRoute
+  '/sheet1': typeof Sheet1Route
+  '/sheet2': typeof Sheet2Route
+  '/sheet3': typeof Sheet3Route
   '/signup': typeof SignupRoute
   '/social': typeof SocialRoute
   '/timeline': typeof TimelineRoute
@@ -128,6 +155,9 @@ export interface FileRouteTypes {
     | '/messages'
     | '/palgrid'
     | '/settings'
+    | '/sheet1'
+    | '/sheet2'
+    | '/sheet3'
     | '/signup'
     | '/social'
     | '/timeline'
@@ -141,6 +171,9 @@ export interface FileRouteTypes {
     | '/messages'
     | '/palgrid'
     | '/settings'
+    | '/sheet1'
+    | '/sheet2'
+    | '/sheet3'
     | '/signup'
     | '/social'
     | '/timeline'
@@ -154,6 +187,9 @@ export interface FileRouteTypes {
     | '/messages'
     | '/palgrid'
     | '/settings'
+    | '/sheet1'
+    | '/sheet2'
+    | '/sheet3'
     | '/signup'
     | '/social'
     | '/timeline'
@@ -168,6 +204,9 @@ export interface RootRouteChildren {
   MessagesRoute: typeof MessagesRoute
   PalgridRoute: typeof PalgridRoute
   SettingsRoute: typeof SettingsRoute
+  Sheet1Route: typeof Sheet1Route
+  Sheet2Route: typeof Sheet2Route
+  Sheet3Route: typeof Sheet3Route
   SignupRoute: typeof SignupRoute
   SocialRoute: typeof SocialRoute
   TimelineRoute: typeof TimelineRoute
@@ -194,6 +233,27 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sheet3': {
+      id: '/sheet3'
+      path: '/sheet3'
+      fullPath: '/sheet3'
+      preLoaderRoute: typeof Sheet3RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sheet2': {
+      id: '/sheet2'
+      path: '/sheet2'
+      fullPath: '/sheet2'
+      preLoaderRoute: typeof Sheet2RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sheet1': {
+      id: '/sheet1'
+      path: '/sheet1'
+      fullPath: '/sheet1'
+      preLoaderRoute: typeof Sheet1RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -264,6 +324,9 @@ const rootRouteChildren: RootRouteChildren = {
   MessagesRoute: MessagesRoute,
   PalgridRoute: PalgridRoute,
   SettingsRoute: SettingsRoute,
+  Sheet1Route: Sheet1Route,
+  Sheet2Route: Sheet2Route,
+  Sheet3Route: Sheet3Route,
   SignupRoute: SignupRoute,
   SocialRoute: SocialRoute,
   TimelineRoute: TimelineRoute,
