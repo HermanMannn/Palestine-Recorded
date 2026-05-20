@@ -5,32 +5,6 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-const seedPosts = [
-  {
-    id: "seed-1", author: "Amr Bu-Gazala", role: "Former Palestinian Official",
-    initial: "A", color: "bg-blue-500", time: "2h ago",
-    text: "Sharing a photograph from my family archive — Jaffa, 1946. My grandfather's orange grove before everything changed. We must keep these memories alive for the next generation.",
-    image_url: null, likes: 248, comments_count: 32, shares_count: 14, created_at: 0,
-  },
-  {
-    id: "seed-2", author: "Rawda Asfur", role: "Palestinian Journalist",
-    initial: "R", color: "bg-pink-500", time: "5h ago",
-    text: "Today I visited the village my grandmother was born in. The almond trees she always spoke about are still there. Some roots cannot be erased. 🌿",
-    image_url: null, likes: 512, comments_count: 78, shares_count: 41, created_at: 0,
-  },
-];
-
-// Seed comments per post for demo
-const seedComments = {
-  "seed-1": [
-    { id: "c1", author: "Layla Hassan", initial: "L", color: "bg-violet-500", time: "1h ago", text: "Thank you for sharing this. History must not be forgotten." },
-    { id: "c2", author: "Omar Nasser", initial: "O", color: "bg-orange-500", time: "45m ago", text: "These orange groves were famous across the Arab world. Beautiful archive." },
-  ],
-  "seed-2": [
-    { id: "c3", author: "Sara Al-Khalidi", initial: "S", color: "bg-teal-500", time: "3h ago", text: "The almond trees always survive. A powerful symbol." },
-  ],
-};
-
 function timeAgo(ts) {
   if (!ts) return "just now";
   const t = typeof ts === "string" ? new Date(ts).getTime() : ts;
@@ -49,7 +23,7 @@ function Avatar({ post, size = "md" }) {
     <div className={`flex shrink-0 items-center justify-center overflow-hidden rounded-full font-semibold text-white ${sz} ${post.color ?? "bg-primary"}`}>
       {post.avatar_url
         ? <img src={post.avatar_url} alt="" className="h-full w-full object-cover" />
-        : (post.initial ?? post.author?.[0])}
+        : (post.initial ?? post.author?.[0] ?? "U")}
     </div>
   );
 }
@@ -126,26 +100,82 @@ function PostCard({ post, onClick, liked, onToggleLike, isSelected }) {
 
 function PostDetail({ post, liked, onToggleLike, onClose, user, profiles }) {
   const [commentDraft, setCommentDraft] = useState("");
-  const [comments, setComments] = useState(seedComments[post.id] || []);
+  const [comments, setComments] = useState([]);
+  const [localProfiles, setLocalProfiles] = useState(profiles);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    
+    const fetchComments = async () => {
+      const { data, error } = await supabase
+        .from("comments")
+        .select("*")
+        .eq("post_id", post.id)
+        .order("created_at", { ascending: true });
+
+      if (error || !data) return;
+      if (isMounted) setComments(data);
+
+      const missingProfileIds = [...new Set(data.map(c => c.user_id))].filter(id => !localProfiles[id]);
+      if (missingProfileIds.length > 0) {
+        const { data: profs } = await supabase
+          .from("profiles")
+          .select("id, username, avatar_url")
+          .in("id", missingProfileIds);
+          
+        if (profs && isMounted) {
+          const newProfiles = { ...localProfiles };
+          profs.forEach(p => { newProfiles[p.id] = p; });
+          setLocalProfiles(newProfiles);
+        }
+      }
+    };
+
+    fetchComments();
+
+    const channel = supabase
+      .channel(`comments-${post.id}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "comments", filter: `post_id=eq.${post.id}` }, (payload) => {
+        setComments((prev) => [...prev, payload.new]);
+      })
+      .subscribe();
+
+    return () => {
+      isMounted = false;
+      supabase.removeChannel(channel);
+    };
+  }, [post.id, localProfiles]);
 
   const submitComment = async (e) => {
     e.preventDefault();
     const text = commentDraft.trim();
     if (!text || !user) return;
     setSubmitting(true);
-    const prof = profiles[user.id];
-    const newComment = {
-      id: `local-${Date.now()}`,
-      author: prof?.username || "You",
-      initial: (prof?.username || "Y")[0].toUpperCase(),
-      color: "bg-emerald-500",
-      time: "just now",
-      text,
-    };
-    setComments((prev) => [...prev, newComment]);
-    setCommentDraft("");
-    setSubmitting(false);
+
+    try {
+      const { data, error } = await supabase
+        .from("comments")
+        .insert({ post_id: post.id, user_id: user.id, text })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setComments((prev) => [...prev, data]);
+        setCommentDraft("");
+        
+        await supabase
+          .from("posts")
+          .update({ comments_count: (post.comments_count || 0) + 1 })
+          .eq("id", post.id);
+      }
+    } catch (err) {
+      console.error("Failed to submit comment:", err);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -226,24 +256,32 @@ function PostDetail({ post, liked, onToggleLike, onClose, user, profiles }) {
 
         {/* Comments */}
         <div className="divide-y divide-border">
-          {comments.map((c) => (
-            <div key={c.id} className="flex gap-3 px-4 py-3">
-              <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white ${c.color}`}>
-                {c.initial}
-              </div>
-              <div className="flex-1">
-                <div className="rounded-xl bg-muted/60 dark:bg-slate-700/50 px-3 py-2">
-                  <div className="text-xs font-semibold text-foreground mb-0.5">{c.author}</div>
-                  <div className="text-sm text-foreground leading-snug">{c.text}</div>
+          {comments.map((c) => {
+            const authorProfile = localProfiles[c.user_id] || {};
+            const authorName = authorProfile.username || "Member";
+            const initial = authorName[0].toUpperCase();
+            
+            return (
+              <div key={c.id} className="flex gap-3 px-4 py-3">
+                <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white bg-emerald-500`}>
+                  {authorProfile.avatar_url ? (
+                    <img src={authorProfile.avatar_url} alt="" className="h-full w-full object-cover rounded-full" />
+                  ) : initial}
                 </div>
-                <div className="mt-1 flex items-center gap-3 px-1 text-xs text-muted-foreground">
-                  <span>{c.time}</span>
-                  <button className="font-medium hover:text-primary transition-colors">Like</button>
-                  <button className="font-medium hover:text-primary transition-colors">Reply</button>
+                <div className="flex-1">
+                  <div className="rounded-xl bg-muted/60 dark:bg-slate-700/50 px-3 py-2">
+                    <div className="text-xs font-semibold text-foreground mb-0.5">{authorName}</div>
+                    <div className="text-sm text-foreground leading-snug">{c.text}</div>
+                  </div>
+                  <div className="mt-1 flex items-center gap-3 px-1 text-xs text-muted-foreground">
+                    <span>{timeAgo(c.created_at)}</span>
+                    <button className="font-medium hover:text-primary transition-colors">Like</button>
+                    <button className="font-medium hover:text-primary transition-colors">Reply</button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
 
           {comments.length === 0 && (
             <div className="px-4 py-6 text-center text-sm text-muted-foreground">
@@ -259,7 +297,7 @@ function PostDetail({ post, liked, onToggleLike, onClose, user, profiles }) {
           <Avatar
             post={{
               avatar_url: profiles[user?.id]?.avatar_url ?? null,
-              initial: (profiles[user?.id]?.username || "Y")[0].toUpperCase(),
+              initial: (profiles[user?.id]?.username || "U")[0].toUpperCase(),
               color: "bg-primary",
             }}
             size="sm"
@@ -304,11 +342,30 @@ export default function SocialFeed() {
   const [selectedPost, setSelectedPost] = useState(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data.user || null));
+    supabase.auth.getUser().then(({ data }) => {
+      const currentUser = data.user || null;
+      setUser(currentUser);
+
+      // Fetch user's likes if logged in
+      if (currentUser) {
+        supabase
+          .from("likes")
+          .select("post_id")
+          .eq("user_id", currentUser.id)
+          .then(({ data: userLikes }) => {
+            if (userLikes) {
+              const likesMap = {};
+              userLikes.forEach((l) => { likesMap[l.post_id] = true; });
+              setLiked(likesMap);
+            }
+          });
+      }
+    });
 
     const load = async () => {
       const { data } = await supabase.from("posts").select("*").order("created_at", { ascending: false });
       setDbPosts(data || []);
+      
       const ids = [...new Set((data || []).map((p) => p.user_id))];
       if (ids.length) {
         const { data: profs } = await supabase.from("profiles").select("id, username, avatar_url").in("id", ids);
@@ -325,31 +382,30 @@ export default function SocialFeed() {
         setDbPosts((prev) => [payload.new, ...prev]);
       })
       .subscribe();
+      
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  const allPosts = [
-    ...dbPosts.map((p) => {
-      const prof = profiles[p.user_id];
-      return {
-        ...p,
-        author: prof?.username || "Member",
-        role: "Community Member",
-        initial: (prof?.username || "M")[0].toUpperCase(),
-        color: "bg-emerald-500",
-        avatar_url: prof?.avatar_url,
-      };
-    }),
-    ...seedPosts,
-  ];
+  const allPosts = dbPosts.map((p) => {
+    const prof = profiles[p.user_id];
+    return {
+      ...p,
+      author: prof?.username || "Member",
+      role: "Community Member",
+      initial: (prof?.username || "M")[0].toUpperCase(),
+      color: "bg-emerald-500",
+      avatar_url: prof?.avatar_url,
+    };
+  });
 
   const filteredPosts = allPosts.filter((p) => {
     if (activeTab === "Following") return p.user_id === user?.id;
-    if (activeTab === "Trending") return String(p.id).startsWith("seed-");
     return true;
   });
 
-  // Keep selectedPost in sync if dbPosts updates (likes etc.)
+  // Keep all views properly ordered by chronological creation date
+  filteredPosts.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
   useEffect(() => {
     if (!selectedPost) return;
     const updated = allPosts.find((p) => p.id === selectedPost.id);
@@ -357,19 +413,46 @@ export default function SocialFeed() {
   }, [dbPosts]);
 
   const toggleLike = async (id) => {
+    if (!user) return setError("Please log in to like posts.");
+
     const isLiked = !!liked[id];
+    const increment = isLiked ? -1 : 1;
+    
+    // Optimistic UI update
     setLiked((prev) => ({ ...prev, [id]: !isLiked }));
     setDbPosts((prev) =>
-      prev.map((p) => p.id === id ? { ...p, likes: (p.likes ?? 0) + (isLiked ? -1 : 1) } : p)
+      prev.map((p) => p.id === id ? { ...p, likes: (p.likes ?? 0) + increment } : p)
     );
+    
     if (selectedPost?.id === id) {
-      setSelectedPost((prev) => prev ? { ...prev, likes: (prev.likes ?? 0) + (isLiked ? -1 : 1) } : prev);
+      setSelectedPost((prev) => prev ? { ...prev, likes: (prev.likes ?? 0) + increment } : prev);
     }
-    if (!String(id).startsWith("seed-")) {
-      const post = dbPosts.find((p) => p.id === id);
-      if (post) {
-        await supabase.from("posts").update({ likes: (post.likes ?? 0) + (isLiked ? -1 : 1) }).eq("id", id);
+
+    try {
+      // 1. Insert or delete the user's like in the 'likes' table
+      if (isLiked) {
+        await supabase
+          .from("likes")
+          .delete()
+          .eq("post_id", id)
+          .eq("user_id", user.id);
+      } else {
+        await supabase
+          .from("likes")
+          .insert({ post_id: id, user_id: user.id });
       }
+
+      // 2. Update the counter on the posts table
+      const postToUpdate = dbPosts.find((p) => p.id === id);
+      if (postToUpdate) {
+        await supabase
+          .from("posts")
+          .update({ likes: (postToUpdate.likes ?? 0) + increment })
+          .eq("id", id);
+      }
+    } catch (err) {
+      console.error("Error toggling like:", err);
+      // Optional: Revert optimistic update here if the DB call fails
     }
   };
 
@@ -397,6 +480,7 @@ export default function SocialFeed() {
     if (!text && !imageFile) return;
     setPosting(true);
     setError("");
+    
     try {
       let image_url = null;
       if (imageFile) {
@@ -406,12 +490,14 @@ export default function SocialFeed() {
         if (upErr) throw upErr;
         image_url = supabase.storage.from("post-images").getPublicUrl(path).data.publicUrl;
       }
-      const { error } = await supabase.from("posts").insert({ user_id: user.id, text, image_url });
+      const { error } = await supabase.from("posts").insert({ user_id: user.id, text, image_url, likes: 0, comments_count: 0 });
       if (error) throw error;
+      
       if (!profiles[user.id]) {
         const { data: p } = await supabase.from("profiles").select("id, username, avatar_url").eq("id", user.id).maybeSingle();
         if (p) setProfiles((prev) => ({ ...prev, [p.id]: p }));
       }
+      
       setDraft("");
       clearImage();
     } catch (err) {
@@ -467,7 +553,7 @@ export default function SocialFeed() {
             <div className="p-4">
               <div className="flex gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
-                  {(profiles[user?.id]?.username || "Y")[0].toUpperCase()}
+                  {(profiles[user?.id]?.username || "U")[0].toUpperCase()}
                 </div>
                 <textarea
                   value={draft}
