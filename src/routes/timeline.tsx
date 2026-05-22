@@ -19,10 +19,10 @@ export const Route = createFileRoute("/timeline")({
 function TimelinePage() {
   return (
     <div className="flex flex-col h-screen overflow-hidden">
-      <Navbar />
+      <Navbar/>
       <div className="relative flex-1">
-        <HistoricalMap />
-        <TimelineSidebar />
+          <HistoricalMap />
+          <TimelineSidebar />
       </div>
     </div>
   );

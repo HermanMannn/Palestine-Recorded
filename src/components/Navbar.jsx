@@ -61,7 +61,7 @@ export default function Navbar() {
   };
 
   return (
-    <header className="relative z-20 flex items-center justify-between px-6 py-5 bg-card/90 backdrop-blur-sm border-b border-border">
+    <header className="relative z-2000 flex items-center justify-between px-6 py-5 bg-card/90 backdrop-blur-sm border-b border-border">
       <Link to="/timeline" className="flex items-center gap-3">
         <img src={isDarkMode ? logoDark : logoLight} alt="Palestine Recorded logo" className="h-11 w-auto" />
         <span className="text-xl sm:text-2xl font-bold tracking-tight text-foreground hidden sm:block">
