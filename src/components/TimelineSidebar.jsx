@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { mapEvents } from "../lib/mapEvents";
 import EventDetails from "@/components/EventDetails";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Menu, X } from "lucide-react";
 
 const DEFAULT = { lat: 31.9, lng: 35.2, zoom: 9 };
 
@@ -554,6 +556,9 @@ function getEventDotClass(type) {
 export default function TimelineSidebar() {
   const [search, setSearch] = useState("");
   const [selectedEvent, setSelectedEvent] = useState(null);
+  
+  const [isOpen, setIsOpen] = useState(false); 
+  const isMobile = useIsMobile(); 
 
   const filtered = timelineData
     .map((year) => ({
@@ -572,11 +577,25 @@ export default function TimelineSidebar() {
   const handleSelect = (event) => {
     mapEvents.flyTo(event.coords ?? DEFAULT);
     setSelectedEvent(event);
+    if (isMobile) setIsOpen(false); 
   };
 
   return (
     <>
-      <aside className="absolute top-0 left-0 z-10 h-full w-72 overflow-y-auto bg-card/90 backdrop-blur-sm border-r border-border">
+      {isMobile && (
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="absolute top-24 left-4 z-30 p-2 bg-card/90 backdrop-blur-sm rounded-md shadow-md border border-border text-foreground"
+        >
+          {isOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      )}
+
+      <aside 
+        className={`absolute top-0 left-0 z-20 h-full w-72 overflow-y-auto bg-card/90 backdrop-blur-sm border-r border-border transition-transform duration-300 ease-in-out ${
+          isMobile ? (isOpen ? "translate-x-0" : "-translate-x-full") : "translate-x-0"
+        }`}
+      >
         <div className="sticky top-0 bg-card/95 backdrop-blur-sm p-3 border-b border-border">
           <div className="relative">
             <input
