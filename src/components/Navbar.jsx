@@ -9,7 +9,7 @@ import logoDark from "@/assets/Logo_Dark.png";
 const tools = [
   { icon: Home, label: "Home", to: "/timeline" },
   { icon: Calendar, label: "Community", to: "/social" },
-  { icon: Grid3X3, label: "Grid", to: "/palgrid" },
+  { icon: Grid3X3, label: "PalGrid", to: "/palgrid" },
   { icon: MessageSquare, label: "Messages", to: "/messages" },
   { icon: Settings, label: "Settings", to: "/settings" },
 ];
@@ -61,7 +61,6 @@ export default function Navbar() {
   };
 
   return (
-<<<<<<< HEAD
     <>
       <header className="relative z-20 flex items-center justify-between px-6 py-5 bg-card/90 backdrop-blur-sm border-b border-border">
         <Link to="/timeline" className="flex items-center gap-3">
@@ -70,16 +69,8 @@ export default function Navbar() {
             Palestine Recorded
           </span>
         </Link>
-=======
-    <header className="relative z-2000 flex items-center justify-between px-6 py-5 bg-card/90 backdrop-blur-sm border-b border-border">
-      <Link to="/timeline" className="flex items-center gap-3">
-        <img src={isDarkMode ? logoDark : logoLight} alt="Palestine Recorded logo" className="h-11 w-auto" />
-        <span className="text-xl sm:text-2xl font-bold tracking-tight text-foreground hidden sm:block">
-          Palestine Recorded
-        </span>
-      </Link>
->>>>>>> 548ff721b8845ee9e78d5025460ca2765dc7dc32
 
+        {/* Desktop Tools - Hidden on Mobile */}
         <div className="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-2">
           {tools.map((tool) => (
             <Link
@@ -120,6 +111,7 @@ export default function Navbar() {
         </nav>
       </header>
 
+      {/* Mobile Bottom Navigation Bar */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around bg-card border-t border-border px-2 py-3 pb-safe">
         {tools.map((tool) => (
           <Link
