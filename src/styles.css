@@ -51,7 +51,10 @@
   --color-timeline-event-massacre: var(--timeline-event-massacre);
   --color-timeline-border: var(--timeline-border);
 }
-
+.leaflet-tile-container img {
+  width: 256.5px !important;
+  height: 256.5px !important;
+}
 :root {
   --radius: 0.625rem;
   --background: oklch(0.98 0.005 90);

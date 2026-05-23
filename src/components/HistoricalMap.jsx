@@ -1,33 +1,66 @@
 import { useEffect, useRef, useState } from "react";
 import "leaflet/dist/leaflet.css";
 
+// 1. ADDED MARGINS: You will need to adjust these pixel values for each sheet 
+// to perfectly crop out the legends and white paper borders.
 const SHEETS = [
-  { label: "Sheet 1", url: "/maps/sheet1.jpg", imageWidth: 13315, imageHeight: 13248 },
-  { label: "Sheet 2", url: "/maps/sheet2.jpg", imageWidth: 13777, imageHeight: 12283 },
-  { label: "Sheet 3", url: "/maps/sheet3.jpg", imageWidth: 13343, imageHeight: 15074 },
+  { 
+    label: "Sheet 1", 
+    tileUrl: "/tiles/sheet1", 
+    imageWidth: 13315, 
+    imageHeight: 13248,
+    margins: { top: 800, right: 800, bottom: 1200, left: 800 } 
+  },
+  { 
+    label: "Sheet 2", 
+    tileUrl: "/tiles/sheet2", 
+    imageWidth: 13777, 
+    imageHeight: 12283,
+    margins: { top: 800, right: 800, bottom: 1200, left: 800 }
+  },
+  { 
+    label: "Sheet 3", 
+    tileUrl: "/tiles/sheet3", 
+    imageWidth: 13343, 
+    imageHeight: 15074,
+    margins: { top: 800, right: 800, bottom: 2500, left: 800 } // Example: larger bottom margin for the legend
+  },
 ];
+
+const TILE_SIZE = 256;
+// Slightly adjusted fit options so it doesn't force you out of the new tight bounds
+const FIT_OPTS = { paddingTopLeft: [0, 0], paddingBottomRight: [200, 0] };
+
+function getMaxNativeZoom(w, h) {
+  return Math.ceil(Math.log2(Math.max(w, h) / TILE_SIZE));
+}
+
+// 2. UPDATED BOUNDS CALCULATION: Now factor in the margins to shrink the viewable area
+function getSheetBounds(L, map, sheet) {
+  const z = getMaxNativeZoom(sheet.imageWidth, sheet.imageHeight);
+  const m = sheet.margins || { top: 0, right: 0, bottom: 0, left: 0 };
+  
+  // Calculate new corners based on the cropped pixel values
+  const sw = map.unproject([m.left, sheet.imageHeight - m.bottom], z);
+  const ne = map.unproject([sheet.imageWidth - m.right, m.top], z);
+  
+  return L.latLngBounds(sw, ne);
+}
 
 export default function HistoricalMap() {
   const [activeIndex, setActiveIndex] = useState(0);
-  const active = SHEETS[activeIndex];
-
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
-  const overlayRef = useRef(null);
+  const tileLayerRef = useRef(null);
+  const leafletRef = useRef(null);
   const [loading, setLoading] = useState(true);
-  const [switching, setSwitching] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
       const L = (await import("leaflet")).default;
-
-      const iconRetinaUrl = (await import("leaflet/dist/images/marker-icon-2x.png")).default;
-      const iconUrl       = (await import("leaflet/dist/images/marker-icon.png")).default;
-      const shadowUrl     = (await import("leaflet/dist/images/marker-shadow.png")).default;
-      delete L.Icon.Default.prototype._getIconUrl;
-      L.Icon.Default.mergeOptions({ iconRetinaUrl, iconUrl, shadowUrl });
+      leafletRef.current = L;
 
       if (cancelled || !mapRef.current || mapInstance.current) return;
 
@@ -35,19 +68,38 @@ export default function HistoricalMap() {
         crs: L.CRS.Simple,
         zoomControl: false,
         attributionControl: false,
+        minZoom: -2,
+        maxZoom: 8,
+        maxBoundsViscosity: 1.0, // This keeps the map strictly inside the bounds
+        fadeAnimation: true,
+        zoomAnimation: true,
+        markerZoomAnimation: true,
+        bounceAtZoomLimits: false,
       });
 
       L.control.zoom({ position: "bottomright" }).addTo(map);
       mapInstance.current = map;
 
-      const { url, imageWidth, imageHeight } = SHEETS[0];
-      const bounds = [[0, 0], [imageHeight / 10, imageWidth / 10]];
+      const sheet = SHEETS[0];
+      const bounds = getSheetBounds(L, map, sheet);
+      const maxNativeZoom = getMaxNativeZoom(sheet.imageWidth, sheet.imageHeight);
 
-      overlayRef.current = L.imageOverlay(url, bounds, { opacity: 1 }).addTo(map);
-      map.fitBounds(bounds, { padding: [20, 20] });
+      tileLayerRef.current = L.tileLayer(`${sheet.tileUrl}/{z}/{y}/{x}.jpg`, {
+        tileSize: TILE_SIZE,
+        maxNativeZoom,
+        maxZoom: maxNativeZoom + 2,
+        minZoom: -2,
+        bounds, 
+        noWrap: true,
+        keepBuffer: 2,
+      }).addTo(map);
+
+      // 3. REMOVED EXTRA PADDING: Lock the map strictly to the cropped bounds
+      map.setMaxBounds(bounds);
 
       setTimeout(() => {
         map.invalidateSize();
+        map.fitBounds(bounds, FIT_OPTS);
         if (!cancelled) setLoading(false);
       }, 0);
     })();
@@ -57,44 +109,44 @@ export default function HistoricalMap() {
       if (mapInstance.current) {
         mapInstance.current.remove();
         mapInstance.current = null;
-        overlayRef.current = null;
+        tileLayerRef.current = null;
+        leafletRef.current = null;
       }
     };
   }, []);
 
   useEffect(() => {
     const map = mapInstance.current;
-    const overlay = overlayRef.current;
-    if (!map || !overlay) return;
+    const L = leafletRef.current;
+    if (!map || !L) return;
 
-    setSwitching(true);
+    const sheet = SHEETS[activeIndex];
+    const bounds = getSheetBounds(L, map, sheet);
+    const maxNativeZoom = getMaxNativeZoom(sheet.imageWidth, sheet.imageHeight);
 
-    const { url, imageWidth, imageHeight } = active;
-    const bounds = [[0, 0], [imageHeight / 10, imageWidth / 10]];
+    if (tileLayerRef.current) tileLayerRef.current.remove();
 
-    // Preload the image first, then swap
-    const img = new Image();
-    img.src = url;
-    img.onload = () => {
-      overlay.setUrl(url);
-      overlay.setBounds(bounds);
-      map.fitBounds(bounds, { padding: [20, 20], animate: true });
-      setSwitching(false);
-    };
-    img.onerror = () => {
-      // Still swap even if preload fails
-      overlay.setUrl(url);
-      overlay.setBounds(bounds);
-      map.fitBounds(bounds, { padding: [20, 20], animate: true });
-      setSwitching(false);
-    };
+    tileLayerRef.current = L.tileLayer(`${sheet.tileUrl}/{z}/{y}/{x}.jpg`, {
+      tileSize: TILE_SIZE,
+      maxNativeZoom,
+      maxZoom: maxNativeZoom + 2,
+      minZoom: -2,
+      bounds, 
+      noWrap: true,
+      keepBuffer: 2,
+    }).addTo(map);
+
+    // 3. REMOVED EXTRA PADDING: Lock the map strictly to the cropped bounds
+    map.setMaxBounds(bounds);
+
+    setTimeout(() => {
+      map.invalidateSize();
+      map.fitBounds(bounds, FIT_OPTS);
+    }, 0);
   }, [activeIndex]);
-
-  const showOverlay = loading || switching;
 
   return (
     <div className="relative flex w-full h-screen overflow-hidden">
-
       <div
         ref={mapRef}
         className="flex-1 h-full z-0"
@@ -105,16 +157,15 @@ export default function HistoricalMap() {
         <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-2">
           Map Sheets
         </p>
-
         {SHEETS.map((sheet, i) => (
           <button
             key={i}
-            onClick={() => !switching && setActiveIndex(i)}
+            onClick={() => setActiveIndex(i)}
             className={`flex flex-col gap-0.5 px-4 py-3 rounded-xl border text-left transition-all ${
               i === activeIndex
                 ? "bg-foreground text-background border-foreground"
                 : "border-border text-muted-foreground hover:text-foreground hover:border-foreground/30"
-            } ${switching ? "opacity-50 cursor-not-allowed" : ""}`}
+            }`}
           >
             <span className="text-sm font-medium">{sheet.label}</span>
             <span className={`text-xs ${i === activeIndex ? "opacity-60" : "opacity-50"}`}>
@@ -124,11 +175,9 @@ export default function HistoricalMap() {
         ))}
       </aside>
 
-      {showOverlay && (
-        <div className="absolute inset-0 z-0 flex items-center justify-center bg-background/60 backdrop-blur-sm pointer-events-none">
-          <span className="text-sm text-muted-foreground">
-            {switching ? `Loading ${active.label}…` : "Loading map…"}
-          </span>
+      {loading && (
+        <div className="absolute inset-0 z-2 flex items-center justify-center bg-background/60 backdrop-blur-sm pointer-events-none">
+          <span className="text-sm text-muted-foreground">Loading map…</span>
         </div>
       )}
     </div>

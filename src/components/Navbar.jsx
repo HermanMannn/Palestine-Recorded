@@ -61,6 +61,7 @@ export default function Navbar() {
   };
 
   return (
+<<<<<<< HEAD
     <>
       <header className="relative z-20 flex items-center justify-between px-6 py-5 bg-card/90 backdrop-blur-sm border-b border-border">
         <Link to="/timeline" className="flex items-center gap-3">
@@ -69,6 +70,15 @@ export default function Navbar() {
             Palestine Recorded
           </span>
         </Link>
+=======
+    <header className="relative z-2000 flex items-center justify-between px-6 py-5 bg-card/90 backdrop-blur-sm border-b border-border">
+      <Link to="/timeline" className="flex items-center gap-3">
+        <img src={isDarkMode ? logoDark : logoLight} alt="Palestine Recorded logo" className="h-11 w-auto" />
+        <span className="text-xl sm:text-2xl font-bold tracking-tight text-foreground hidden sm:block">
+          Palestine Recorded
+        </span>
+      </Link>
+>>>>>>> 548ff721b8845ee9e78d5025460ca2765dc7dc32
 
         <div className="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-2">
           {tools.map((tool) => (
