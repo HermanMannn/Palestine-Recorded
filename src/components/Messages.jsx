@@ -24,22 +24,24 @@ function ConvoAvatar({ convo, size = "md" }) {
 }
 
 export default function Messages() {
-  const [activeId, setActiveId] = useState("hamza");
+  const [activeId, setActiveId] = useState(conversations[0].id);
   const [search, setSearch] = useState("");
   const [allMessages, setAllMessages] = useState([]);
   const [draft, setDraft] = useState("");
   const [userId, setUserId] = useState(null);
-  // Profile panel: { seedKey } for sidebar contacts (all seed for now)
   const [profileView, setProfileView] = useState(null);
 
   const scrollRef = useRef(null);
-  const fileInputRef = useRef(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id || null));
 
     const load = async () => {
-      const { data } = await supabase.from("messages").select("*").order("created_at", { ascending: true });
+      const { data, error } = await supabase
+        .from("messages")
+        .select("*")
+        .order("created_at", { ascending: true });
+      if (error) console.error("Load failed:", error);
       setAllMessages(data || []);
     };
     load();
@@ -59,41 +61,29 @@ export default function Messages() {
   }, [allMessages, activeId]);
 
   const active = conversations.find((c) => c.id === activeId);
-  const thread = allMessages.filter((m) => m.conversation_id === activeId);
+  const thread = allMessages.filter((m) => m.chat_id === activeId);
   const filtered = conversations.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const insertMessage = async (payload) => {
-    if (!userId) return;
-    const { error } = await supabase.from("messages").insert({
-      conversation_id: activeId,
-      sender_id: userId,
-      ...payload,
-    });
-    if (error) console.error("Send failed:", error);
-  };
-
   const sendMessage = async (e) => {
     e.preventDefault();
-    if (!draft.trim()) return;
-    await insertMessage({ text: draft.trim() });
+    const text = draft.trim();
+    if (!text || !userId) return;
     setDraft("");
-  };
-
-  const handleImageUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file || !userId) return;
-    const path = `${userId}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
-    const { error } = await supabase.storage.from("message-images").upload(path, file);
-    if (error) return console.error(error);
-    const { data } = supabase.storage.from("message-images").getPublicUrl(path);
-    await insertMessage({ image_url: data.publicUrl });
+    const { error } = await supabase.from("messages").insert({
+      chat_id: activeId,
+      sender_id: userId,
+      content: text,
+      is_read: false,
+    });
+    if (error) console.error("Send failed:", error);
   };
 
   const openProfile = (convo) => {
     setProfileView({ seedKey: convo.seedKey });
   };
+
 
   return (
     <div className="flex h-full text-[1.15rem] dark:bg-slate-900/40 dark:backdrop-blur-xl overflow-hidden">
