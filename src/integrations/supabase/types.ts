@@ -101,6 +101,42 @@ export type Database = {
         }
         Relationships: []
       }
+      verification_requests: {
+        Row: {
+          account_type: Database["public"]["Enums"]["verification_account_type"]
+          created_at: string
+          email: string
+          id: string
+          official_id: string
+          organization_name: string
+          status: Database["public"]["Enums"]["verification_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_type: Database["public"]["Enums"]["verification_account_type"]
+          created_at?: string
+          email: string
+          id?: string
+          official_id: string
+          organization_name: string
+          status?: Database["public"]["Enums"]["verification_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_type?: Database["public"]["Enums"]["verification_account_type"]
+          created_at?: string
+          email?: string
+          id?: string
+          official_id?: string
+          organization_name?: string
+          status?: Database["public"]["Enums"]["verification_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -109,7 +145,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      verification_account_type: "government" | "researcher"
+      verification_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -236,6 +273,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      verification_account_type: ["government", "researcher"],
+      verification_status: ["pending", "approved", "rejected"],
+    },
   },
 } as const
