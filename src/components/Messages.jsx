@@ -127,7 +127,7 @@ export default function Messages() {
                   </div>
                   <p className="truncate text-base text-foreground/70">
                     {lastMessage
-                      ? `${lastMessage.sender_id === userId ? "You: " : ""}${lastMessage.text || "📷 Image"}`
+                      ? `${lastMessage.sender_id === userId ? "You: " : ""}${lastMessage.content || ""}`
                       : c.preview}
                   </p>
                 </div>
