@@ -177,10 +177,7 @@ export default function Messages() {
                         ? "bg-[oklch(0.85_0.12_145/0.85)] dark:bg-emerald-700/60 dark:text-emerald-50"
                         : "bg-[oklch(0.88_0.1_25/0.85)] dark:bg-slate-800/80 dark:text-slate-100 dark:border dark:border-white/5"
                     }`}>
-                      {m.image_url && (
-                        <img src={m.image_url} alt="upload" className="mb-2 max-h-96 w-full rounded-2xl object-cover shadow-inner" />
-                      )}
-                      {m.text && <p className="px-3 text-[1.15rem] leading-relaxed">{m.text}</p>}
+                      {m.content && <p className="px-3 text-[1.15rem] leading-relaxed">{m.content}</p>}
                       <div className={`mt-2 px-3 flex items-center justify-end gap-1 text-[0.8rem] ${isMe ? "text-white/70" : "text-foreground/50"}`}>
                         {formatTime(m.created_at)}
                         <CheckCheck className="h-5 w-5" />
