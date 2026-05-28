@@ -1,58 +1,27 @@
 import { useEffect, useRef, useState } from "react";
 import "leaflet/dist/leaflet.css";
 
-// 1. ADDED MARGINS: You will need to adjust these pixel values for each sheet 
-// to perfectly crop out the legends and white paper borders.
-const SHEETS = [
-  { 
-    label: "Sheet 1", 
-    tileUrl: "/tiles/sheet1", 
-    imageWidth: 13315, 
-    imageHeight: 13248,
-    margins: { top: 800, right: 800, bottom: 1200, left: 800 } 
-  },
-  { 
-    label: "Sheet 2", 
-    tileUrl: "/tiles/sheet2", 
-    imageWidth: 13777, 
-    imageHeight: 12283,
-    margins: { top: 800, right: 800, bottom: 1200, left: 800 }
-  },
-  { 
-    label: "Sheet 3", 
-    tileUrl: "/tiles/sheet3", 
-    imageWidth: 13343, 
-    imageHeight: 15074,
-    margins: { top: 800, right: 800, bottom: 2500, left: 800 } // Example: larger bottom margin for the legend
-  },
-];
-
+const SHEET = { tileUrl: "/tiles1/fullmap", imageWidth: 3851, imageHeight: 11353 };
 const TILE_SIZE = 256;
-// Slightly adjusted fit options so it doesn't force you out of the new tight bounds
-const FIT_OPTS = { paddingTopLeft: [0, 0], paddingBottomRight: [200, 0] };
+const TILE_EXT = "jpg"; // change to "png" if your files are .png
+const FIT_OPTS = { paddingTopLeft: [20, 20], paddingBottomRight: [20, 20] };
 
 function getMaxNativeZoom(w, h) {
   return Math.ceil(Math.log2(Math.max(w, h) / TILE_SIZE));
 }
 
-// 2. UPDATED BOUNDS CALCULATION: Now factor in the margins to shrink the viewable area
-function getSheetBounds(L, map, sheet) {
-  const z = getMaxNativeZoom(sheet.imageWidth, sheet.imageHeight);
-  const m = sheet.margins || { top: 0, right: 0, bottom: 0, left: 0 };
-  
-  // Calculate new corners based on the cropped pixel values
-  const sw = map.unproject([m.left, sheet.imageHeight - m.bottom], z);
-  const ne = map.unproject([sheet.imageWidth - m.right, m.top], z);
-  
-  return L.latLngBounds(sw, ne);
+function getImageBounds(L, w, h) {
+  const z = getMaxNativeZoom(w, h);
+  const scale = Math.pow(2, z);
+  return L.latLngBounds(
+    L.latLng(-h / scale, 0),
+    L.latLng(0, w / scale)
+  );
 }
 
 export default function HistoricalMap() {
-  const [activeIndex, setActiveIndex] = useState(0);
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
-  const tileLayerRef = useRef(null);
-  const leafletRef = useRef(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -60,7 +29,6 @@ export default function HistoricalMap() {
 
     (async () => {
       const L = (await import("leaflet")).default;
-      leafletRef.current = L;
 
       if (cancelled || !mapRef.current || mapInstance.current) return;
 
@@ -68,9 +36,9 @@ export default function HistoricalMap() {
         crs: L.CRS.Simple,
         zoomControl: false,
         attributionControl: false,
-        minZoom: -2,
-        maxZoom: 8,
-        maxBoundsViscosity: 1.0, // This keeps the map strictly inside the bounds
+        minZoom: 3,
+        maxZoom: 6,
+        maxBoundsViscosity: 1.0,
         fadeAnimation: true,
         zoomAnimation: true,
         markerZoomAnimation: true,
@@ -80,22 +48,30 @@ export default function HistoricalMap() {
       L.control.zoom({ position: "bottomright" }).addTo(map);
       mapInstance.current = map;
 
-      const sheet = SHEETS[0];
-      const bounds = getSheetBounds(L, map, sheet);
-      const maxNativeZoom = getMaxNativeZoom(sheet.imageWidth, sheet.imageHeight);
+      const { tileUrl, imageWidth, imageHeight } = SHEET;
+      const maxNativeZoom = getMaxNativeZoom(imageWidth, imageHeight);
+      const bounds = getImageBounds(L, imageWidth, imageHeight);
 
-      tileLayerRef.current = L.tileLayer(`${sheet.tileUrl}/{z}/{y}/{x}.jpg`, {
+      // FIX 1: Swapped {x} and {y} to match your file structure
+      L.tileLayer(`${tileUrl}/{z}/{y}/{x}.${TILE_EXT}`, {
         tileSize: TILE_SIZE,
         maxNativeZoom,
         maxZoom: maxNativeZoom + 2,
-        minZoom: -2,
-        bounds, 
         noWrap: true,
-        keepBuffer: 2,
+        
       }).addTo(map);
 
-      // 3. REMOVED EXTRA PADDING: Lock the map strictly to the cropped bounds
-      map.setMaxBounds(bounds);
+      const southWest = bounds.getSouthWest();
+      const northEast = bounds.getNorthEast();
+
+      // 2. Calculate a bit of extra space based on your map's width
+      const extraRightSpace = (imageWidth / Math.pow(2, maxNativeZoom)) * 0.001; // Change 0.3 to push it even further
+
+      // 3. Create a new Top-Right corner that is pushed further to the right (East)
+      const newNorthEast = L.latLng(northEast.lat, northEast.lng + extraRightSpace);
+
+    // 4. Set the new bounds
+    map.setMaxBounds(L.latLngBounds(southWest, newNorthEast));
 
       setTimeout(() => {
         map.invalidateSize();
@@ -109,74 +85,36 @@ export default function HistoricalMap() {
       if (mapInstance.current) {
         mapInstance.current.remove();
         mapInstance.current = null;
-        tileLayerRef.current = null;
-        leafletRef.current = null;
       }
     };
   }, []);
 
-  useEffect(() => {
-    const map = mapInstance.current;
-    const L = leafletRef.current;
-    if (!map || !L) return;
-
-    const sheet = SHEETS[activeIndex];
-    const bounds = getSheetBounds(L, map, sheet);
-    const maxNativeZoom = getMaxNativeZoom(sheet.imageWidth, sheet.imageHeight);
-
-    if (tileLayerRef.current) tileLayerRef.current.remove();
-
-    tileLayerRef.current = L.tileLayer(`${sheet.tileUrl}/{z}/{y}/{x}.jpg`, {
-      tileSize: TILE_SIZE,
-      maxNativeZoom,
-      maxZoom: maxNativeZoom + 2,
-      minZoom: -2,
-      bounds, 
-      noWrap: true,
-      keepBuffer: 2,
-    }).addTo(map);
-
-    // 3. REMOVED EXTRA PADDING: Lock the map strictly to the cropped bounds
-    map.setMaxBounds(bounds);
-
-    setTimeout(() => {
-      map.invalidateSize();
-      map.fitBounds(bounds, FIT_OPTS);
-    }, 0);
-  }, [activeIndex]);
-
   return (
-    <div className="relative flex w-full h-screen overflow-hidden">
+    <div className="relative flex w-full h-full overflow-hidden">
+      
+      {/* FIX 2: Added back the CSS injection to kill the white grid lines */}
+      <style>{`
+        .leaflet-tile-container img {
+          width: 257px !important;
+          height: 257px !important;
+          margin-top: -0.5px !important;
+          margin-left: -0.5px !important;
+          -webkit-backface-visibility: hidden;
+          backface-visibility: hidden;
+        }
+        .leaflet-container {
+          background: transparent !important;
+        }
+      `}</style>
+
       <div
         ref={mapRef}
         className="flex-1 h-full z-0"
         style={{ background: "#1a1a1a" }}
       />
 
-      <aside className="relative z-10 flex flex-col justify-center gap-3 w-52 shrink-0 h-full px-4 bg-background/80 backdrop-blur-sm border-l border-border">
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-2">
-          Map Sheets
-        </p>
-        {SHEETS.map((sheet, i) => (
-          <button
-            key={i}
-            onClick={() => setActiveIndex(i)}
-            className={`flex flex-col gap-0.5 px-4 py-3 rounded-xl border text-left transition-all ${
-              i === activeIndex
-                ? "bg-foreground text-background border-foreground"
-                : "border-border text-muted-foreground hover:text-foreground hover:border-foreground/30"
-            }`}
-          >
-            <span className="text-sm font-medium">{sheet.label}</span>
-            <span className={`text-xs ${i === activeIndex ? "opacity-60" : "opacity-50"}`}>
-              {sheet.imageWidth.toLocaleString()} × {sheet.imageHeight.toLocaleString()}
-            </span>
-          </button>
-        ))}
-      </aside>
-
       {loading && (
-        <div className="absolute inset-0 z-2 flex items-center justify-center bg-background/60 backdrop-blur-sm pointer-events-none">
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/60 backdrop-blur-sm pointer-events-none">
           <span className="text-sm text-muted-foreground">Loading map…</span>
         </div>
       )}
