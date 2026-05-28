@@ -105,7 +105,7 @@ export default function Messages() {
 
         <div className="flex-1 overflow-y-auto px-4 pb-5 custom-scrollbar">
           {filtered.map((c) => {
-            const conversationMessages = allMessages.filter((m) => m.conversation_id === c.id);
+            const conversationMessages = allMessages.filter((m) => m.chat_id === c.id);
             const lastMessage = conversationMessages[conversationMessages.length - 1];
             return (
               <button
