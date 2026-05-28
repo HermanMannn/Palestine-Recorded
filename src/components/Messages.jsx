@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, Plus, Mic, CheckCheck, Users, ArrowLeft } from "lucide-react";
+import { Search, Mic, CheckCheck, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import ProfilePage from "./Profilepage";
 
+// Stable UUIDs per seeded conversation (chat_id is uuid in DB)
 const conversations = [
-  { id: "hamza",  name: "Hamza",         initial: "H", color: "bg-orange-400", time: "11:35 am", preview: "😅",                        unread: true,  seedKey: "hamza"  },
-  { id: "palrec", name: "PalRec Devs",   initial: null, color: "bg-red-500",   time: "9:50 am",  preview: "You: Good morning!!",       unread: false, seedKey: "palrec", isGroup: true },
-  { id: "amr",    name: "Amr Bu-Gazala", initial: "A", color: "bg-blue-500",   time: "Yesterday", preview: "Thank you for sharing that photo.", unread: false, seedKey: "amr" },
-  { id: "layla",  name: "Layla Haddad",  initial: "L", color: "bg-purple-500", time: "Tuesday",   preview: "I'll send the archive tomorrow.",   unread: false, seedKey: "layla" },
+  { id: "11111111-1111-1111-1111-111111111111", name: "Hamza",         initial: "H",  color: "bg-orange-400", time: "11:35 am",  preview: "😅",                                      unread: true,  seedKey: "hamza"  },
+  { id: "22222222-2222-2222-2222-222222222222", name: "PalRec Devs",   initial: null, color: "bg-red-500",    time: "9:50 am",   preview: "You: Good morning!!",                     unread: false, seedKey: "palrec", isGroup: true },
+  { id: "33333333-3333-3333-3333-333333333333", name: "Amr Bu-Gazala", initial: "A",  color: "bg-blue-500",   time: "Yesterday", preview: "Thank you for sharing that photo.",       unread: false, seedKey: "amr" },
+  { id: "44444444-4444-4444-4444-444444444444", name: "Layla Haddad",  initial: "L",  color: "bg-purple-500", time: "Tuesday",   preview: "I'll send the archive tomorrow.",         unread: false, seedKey: "layla" },
 ];
 
 const formatTime = (iso) =>
@@ -23,22 +24,24 @@ function ConvoAvatar({ convo, size = "md" }) {
 }
 
 export default function Messages() {
-  const [activeId, setActiveId] = useState("hamza");
+  const [activeId, setActiveId] = useState(conversations[0].id);
   const [search, setSearch] = useState("");
   const [allMessages, setAllMessages] = useState([]);
   const [draft, setDraft] = useState("");
   const [userId, setUserId] = useState(null);
-  // Profile panel: { seedKey } for sidebar contacts (all seed for now)
   const [profileView, setProfileView] = useState(null);
 
   const scrollRef = useRef(null);
-  const fileInputRef = useRef(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id || null));
 
     const load = async () => {
-      const { data } = await supabase.from("messages").select("*").order("created_at", { ascending: true });
+      const { data, error } = await supabase
+        .from("messages")
+        .select("*")
+        .order("created_at", { ascending: true });
+      if (error) console.error("Load failed:", error);
       setAllMessages(data || []);
     };
     load();
@@ -58,41 +61,29 @@ export default function Messages() {
   }, [allMessages, activeId]);
 
   const active = conversations.find((c) => c.id === activeId);
-  const thread = allMessages.filter((m) => m.conversation_id === activeId);
+  const thread = allMessages.filter((m) => m.chat_id === activeId);
   const filtered = conversations.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const insertMessage = async (payload) => {
-    if (!userId) return;
-    const { error } = await supabase.from("messages").insert({
-      conversation_id: activeId,
-      sender_id: userId,
-      ...payload,
-    });
-    if (error) console.error("Send failed:", error);
-  };
-
   const sendMessage = async (e) => {
     e.preventDefault();
-    if (!draft.trim()) return;
-    await insertMessage({ text: draft.trim() });
+    const text = draft.trim();
+    if (!text || !userId) return;
     setDraft("");
-  };
-
-  const handleImageUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file || !userId) return;
-    const path = `${userId}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
-    const { error } = await supabase.storage.from("message-images").upload(path, file);
-    if (error) return console.error(error);
-    const { data } = supabase.storage.from("message-images").getPublicUrl(path);
-    await insertMessage({ image_url: data.publicUrl });
+    const { error } = await supabase.from("messages").insert({
+      chat_id: activeId,
+      sender_id: userId,
+      content: text,
+      is_read: false,
+    });
+    if (error) console.error("Send failed:", error);
   };
 
   const openProfile = (convo) => {
     setProfileView({ seedKey: convo.seedKey });
   };
+
 
   return (
     <div className="flex h-full text-[1.15rem] dark:bg-slate-900/40 dark:backdrop-blur-xl overflow-hidden">
@@ -114,7 +105,7 @@ export default function Messages() {
 
         <div className="flex-1 overflow-y-auto px-4 pb-5 custom-scrollbar">
           {filtered.map((c) => {
-            const conversationMessages = allMessages.filter((m) => m.conversation_id === c.id);
+            const conversationMessages = allMessages.filter((m) => m.chat_id === c.id);
             const lastMessage = conversationMessages[conversationMessages.length - 1];
             return (
               <button
@@ -136,7 +127,7 @@ export default function Messages() {
                   </div>
                   <p className="truncate text-base text-foreground/70">
                     {lastMessage
-                      ? `${lastMessage.sender_id === userId ? "You: " : ""}${lastMessage.text || "📷 Image"}`
+                      ? `${lastMessage.sender_id === userId ? "You: " : ""}${lastMessage.content || ""}`
                       : c.preview}
                   </p>
                 </div>
@@ -186,10 +177,7 @@ export default function Messages() {
                         ? "bg-[oklch(0.85_0.12_145/0.85)] dark:bg-emerald-700/60 dark:text-emerald-50"
                         : "bg-[oklch(0.88_0.1_25/0.85)] dark:bg-slate-800/80 dark:text-slate-100 dark:border dark:border-white/5"
                     }`}>
-                      {m.image_url && (
-                        <img src={m.image_url} alt="upload" className="mb-2 max-h-96 w-full rounded-2xl object-cover shadow-inner" />
-                      )}
-                      {m.text && <p className="px-3 text-[1.15rem] leading-relaxed">{m.text}</p>}
+                      {m.content && <p className="px-3 text-[1.15rem] leading-relaxed">{m.content}</p>}
                       <div className={`mt-2 px-3 flex items-center justify-end gap-1 text-[0.8rem] ${isMe ? "text-white/70" : "text-foreground/50"}`}>
                         {formatTime(m.created_at)}
                         <CheckCheck className="h-5 w-5" />
@@ -202,22 +190,15 @@ export default function Messages() {
 
             {/* Composer */}
             <form onSubmit={sendMessage} className="shrink-0 flex items-center gap-4 border-t border-border px-6 py-5 dark:bg-slate-900/40 backdrop-blur-md">
-              <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="flex h-14 w-14 items-center justify-center rounded-full bg-card/80 dark:bg-slate-800 text-foreground hover:bg-muted shadow-sm active:scale-95"
-              >
-                <Plus className="h-8 w-8" />
-              </button>
               <input
                 type="text"
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
-                placeholder="Type a message..."
-                className="flex-1 rounded-full bg-card/70 dark:bg-slate-800/80 px-6 py-4 text-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                placeholder={userId ? "Type a message..." : "Sign in to send messages"}
+                disabled={!userId}
+                className="flex-1 rounded-full bg-card/70 dark:bg-slate-800/80 px-6 py-4 text-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/50 disabled:opacity-60"
               />
-              <button type="submit" className="flex h-14 w-14 items-center justify-center rounded-full bg-card/80 dark:bg-slate-800 text-foreground hover:bg-muted shadow-sm active:scale-95">
+              <button type="submit" disabled={!userId || !draft.trim()} className="flex h-14 w-14 items-center justify-center rounded-full bg-card/80 dark:bg-slate-800 text-foreground hover:bg-muted shadow-sm active:scale-95 disabled:opacity-50">
                 <Mic className="h-8 w-8" />
               </button>
             </form>
