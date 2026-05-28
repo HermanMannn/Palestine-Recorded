@@ -16,28 +16,28 @@ export type Database = {
     Tables: {
       messages: {
         Row: {
-          conversation_id: string
+          chat_id: string
+          content: string | null
           created_at: string
           id: string
-          image_url: string | null
+          is_read: boolean
           sender_id: string
-          text: string | null
         }
         Insert: {
-          conversation_id: string
+          chat_id: string
+          content?: string | null
           created_at?: string
           id?: string
-          image_url?: string | null
+          is_read?: boolean
           sender_id: string
-          text?: string | null
         }
         Update: {
-          conversation_id?: string
+          chat_id?: string
+          content?: string | null
           created_at?: string
           id?: string
-          image_url?: string | null
+          is_read?: boolean
           sender_id?: string
-          text?: string | null
         }
         Relationships: []
       }
