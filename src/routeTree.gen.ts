@@ -16,6 +16,7 @@ import { Route as Sheet3RouteImport } from './routes/sheet3'
 import { Route as Sheet2RouteImport } from './routes/sheet2'
 import { Route as Sheet1RouteImport } from './routes/sheet1'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PalgridRouteImport } from './routes/palgrid'
 import { Route as MessagesRouteImport } from './routes/messages'
 import { Route as DonateRouteImport } from './routes/donate'
@@ -57,6 +58,11 @@ const Sheet1Route = Sheet1RouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PalgridRoute = PalgridRouteImport.update({
@@ -103,6 +109,7 @@ export interface FileRoutesByFullPath {
   '/donate': typeof DonateRoute
   '/messages': typeof MessagesRoute
   '/palgrid': typeof PalgridRoute
+  '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
   '/sheet1': typeof Sheet1Route
   '/sheet2': typeof Sheet2Route
@@ -119,6 +126,7 @@ export interface FileRoutesByTo {
   '/donate': typeof DonateRoute
   '/messages': typeof MessagesRoute
   '/palgrid': typeof PalgridRoute
+  '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
   '/sheet1': typeof Sheet1Route
   '/sheet2': typeof Sheet2Route
@@ -136,6 +144,7 @@ export interface FileRoutesById {
   '/donate': typeof DonateRoute
   '/messages': typeof MessagesRoute
   '/palgrid': typeof PalgridRoute
+  '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
   '/sheet1': typeof Sheet1Route
   '/sheet2': typeof Sheet2Route
@@ -154,6 +163,7 @@ export interface FileRouteTypes {
     | '/donate'
     | '/messages'
     | '/palgrid'
+    | '/privacy'
     | '/settings'
     | '/sheet1'
     | '/sheet2'
@@ -170,6 +180,7 @@ export interface FileRouteTypes {
     | '/donate'
     | '/messages'
     | '/palgrid'
+    | '/privacy'
     | '/settings'
     | '/sheet1'
     | '/sheet2'
@@ -186,6 +197,7 @@ export interface FileRouteTypes {
     | '/donate'
     | '/messages'
     | '/palgrid'
+    | '/privacy'
     | '/settings'
     | '/sheet1'
     | '/sheet2'
@@ -203,6 +215,7 @@ export interface RootRouteChildren {
   DonateRoute: typeof DonateRoute
   MessagesRoute: typeof MessagesRoute
   PalgridRoute: typeof PalgridRoute
+  PrivacyRoute: typeof PrivacyRoute
   SettingsRoute: typeof SettingsRoute
   Sheet1Route: typeof Sheet1Route
   Sheet2Route: typeof Sheet2Route
@@ -261,6 +274,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/palgrid': {
@@ -323,6 +343,7 @@ const rootRouteChildren: RootRouteChildren = {
   DonateRoute: DonateRoute,
   MessagesRoute: MessagesRoute,
   PalgridRoute: PalgridRoute,
+  PrivacyRoute: PrivacyRoute,
   SettingsRoute: SettingsRoute,
   Sheet1Route: Sheet1Route,
   Sheet2Route: Sheet2Route,

@@ -62,54 +62,56 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="relative z-20 flex items-center justify-between px-6 py-5 bg-card/90 backdrop-blur-sm border-b border-border">
-        <Link to="/timeline" className="flex items-center gap-3">
-          <img src={isDarkMode ? logoDark : logoLight} alt="Palestine Recorded logo" className="h-11 w-auto" />
-          <span className="text-xl sm:text-2xl font-bold tracking-tight text-foreground hidden sm:block">
+      <header className="relative z-20 flex items-center justify-between px-6 py-4 bg-card/90 backdrop-blur-sm border-b border-border">
+        <Link to="/timeline" className="flex items-center gap-2">
+          <img src={isDarkMode ? logoDark : logoLight} alt="Palestine Recorded logo" className="h-9 w-auto" />
+          <span className="text-base sm:text-lg font-bold tracking-tight text-foreground hidden sm:block">
             Palestine Recorded
           </span>
         </Link>
 
         {/* Desktop Tools - Hidden on Mobile */}
-        <div className="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-2">
+        <div className="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-1">
           {tools.map((tool) => (
             <Link
               key={tool.label}
               to={tool.to}
               title={tool.label}
-              className="flex h-11 w-11 items-center justify-center rounded-md text-foreground hover:bg-accent/40 hover:text-primary transition-colors"
+              className="flex h-9 w-9 items-center justify-center rounded-md text-foreground hover:bg-accent/40 hover:text-primary transition-colors"
               activeProps={{ className: "bg-accent/40 text-primary" }}
             >
-              <tool.icon className="h-5 w-5" />
+              <tool.icon className="h-4 w-4" />
             </Link>
           ))}
           <button
             onClick={handleLogout}
             title="Logout"
-            className="flex h-11 w-11 items-center justify-center rounded-md text-foreground hover:bg-accent/40 hover:text-primary transition-colors"
+            className="flex h-9 w-9 items-center justify-center rounded-md text-foreground hover:bg-accent/40 hover:text-primary transition-colors"
           >
-            <LogOut className="h-5 w-5" />
+            <LogOut className="h-4 w-4" />
           </button>
         </div>
 
-        <nav className="flex items-center gap-6">
-          <Link to="/about" className="text-base font-medium text-foreground hover:text-primary hidden md:block">About</Link>
-          <Link to="/donate" className="text-base font-medium text-foreground hover:text-primary hidden md:block">Donate</Link>
-          <Link to="/contact" className="text-base font-medium text-foreground hover:text-primary hidden md:block">Contact Us</Link>
+        <nav className="flex items-center gap-4">
+          <Link to="/about" className="text-sm font-medium text-foreground hover:text-primary hidden md:block">About</Link>
+          <Link to="/donate" className="text-sm font-medium text-foreground hover:text-primary hidden md:block">Donate</Link>
+          <Link to="/contact" className="text-sm font-medium text-foreground hover:text-primary hidden md:block">Contact</Link>
+          <Link to="/privacy" className="text-sm font-medium text-foreground hover:text-primary hidden md:block">Privacy</Link>
 
           <Link
             to="/settings"
             title="Profile Settings"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 overflow-hidden ml-2"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 overflow-hidden ml-1"
           >
             {profilePic ? (
               <img src={profilePic} alt="User Profile" className="h-full w-full object-cover" />
             ) : (
-              <User className="h-5 w-5" />
+              <User className="h-4 w-4" />
             )}
           </Link>
         </nav>
       </header>
+
 
       {/* Mobile Bottom Navigation Bar */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around bg-card border-t border-border px-2 py-3 pb-safe">
