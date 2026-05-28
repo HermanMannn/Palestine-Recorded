@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, Plus, Mic, CheckCheck, Users, ArrowLeft } from "lucide-react";
+import { Search, Mic, CheckCheck, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import ProfilePage from "./Profilepage";
 
+// Stable UUIDs per seeded conversation (chat_id is uuid in DB)
 const conversations = [
-  { id: "hamza",  name: "Hamza",         initial: "H", color: "bg-orange-400", time: "11:35 am", preview: "😅",                        unread: true,  seedKey: "hamza"  },
-  { id: "palrec", name: "PalRec Devs",   initial: null, color: "bg-red-500",   time: "9:50 am",  preview: "You: Good morning!!",       unread: false, seedKey: "palrec", isGroup: true },
-  { id: "amr",    name: "Amr Bu-Gazala", initial: "A", color: "bg-blue-500",   time: "Yesterday", preview: "Thank you for sharing that photo.", unread: false, seedKey: "amr" },
-  { id: "layla",  name: "Layla Haddad",  initial: "L", color: "bg-purple-500", time: "Tuesday",   preview: "I'll send the archive tomorrow.",   unread: false, seedKey: "layla" },
+  { id: "11111111-1111-1111-1111-111111111111", name: "Hamza",         initial: "H",  color: "bg-orange-400", time: "11:35 am",  preview: "😅",                                      unread: true,  seedKey: "hamza"  },
+  { id: "22222222-2222-2222-2222-222222222222", name: "PalRec Devs",   initial: null, color: "bg-red-500",    time: "9:50 am",   preview: "You: Good morning!!",                     unread: false, seedKey: "palrec", isGroup: true },
+  { id: "33333333-3333-3333-3333-333333333333", name: "Amr Bu-Gazala", initial: "A",  color: "bg-blue-500",   time: "Yesterday", preview: "Thank you for sharing that photo.",       unread: false, seedKey: "amr" },
+  { id: "44444444-4444-4444-4444-444444444444", name: "Layla Haddad",  initial: "L",  color: "bg-purple-500", time: "Tuesday",   preview: "I'll send the archive tomorrow.",         unread: false, seedKey: "layla" },
 ];
 
 const formatTime = (iso) =>
