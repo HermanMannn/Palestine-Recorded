@@ -3,7 +3,7 @@ import { Search, Mic, CheckCheck, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import ProfilePage from "./Profilepage";
 
-// Stable UUIDs per seeded conversation (chat_id is uuid in DB)
+// Stable UUIDs per seeded conversation (conversation_id is uuid in DB)
 const conversations = [
   { id: "11111111-1111-1111-1111-111111111111", name: "Hamza",         initial: "H",  color: "bg-orange-400", time: "11:35 am",  preview: "😅",                                  unread: true,  seedKey: "hamza"  },
   { id: "22222222-2222-2222-2222-222222222222", name: "PalRec Devs",   initial: null, color: "bg-red-500",    time: "9:50 am",   preview: "You: Good morning!!",                   unread: false, seedKey: "palrec", isGroup: true },
@@ -63,7 +63,7 @@ export default function Messages() {
   }, [allMessages, activeId]);
 
   const active = conversations.find((c) => c.id === activeId);
-  const thread = allMessages.filter((m) => m.chat_id === activeId);
+  const thread = allMessages.filter((m) => m.conversation_id === activeId);
   const filtered = conversations.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase())
   );
@@ -77,7 +77,7 @@ export default function Messages() {
     const { data, error } = await supabase
       .from("messages")
       .insert({
-        chat_id: activeId,
+        conversation_id: activeId,
         sender_id: userId,
         content: text,
         is_read: false,
@@ -120,7 +120,7 @@ export default function Messages() {
 
         <div className="flex-1 overflow-y-auto px-4 pb-5 custom-scrollbar">
           {filtered.map((c) => {
-            const conversationMessages = allMessages.filter((m) => m.chat_id === c.id);
+            const conversationMessages = allMessages.filter((m) => m.conversation_id === c.id);
             const lastMessage = conversationMessages[conversationMessages.length - 1];
             return (
               <button
