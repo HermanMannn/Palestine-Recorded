@@ -140,13 +140,18 @@ export default function Login() {
     >
       <div className="absolute inset-0 transition-colors duration-300 dark:bg-slate-900/40 text-foreground pb-20 overflow-x-hidden custom-scrollbar"></div>
 
-      <div className="relative z-10 w-full max-w-[420px] text-center">
-        <h1 className="font-serif text-[42px] font-bold text-foreground m-0 mb-1.5 tracking-tight">
-          Palestine Recorded
+      <div className="relative z-10 w-full max-w-[440px] text-center">
+        <div className="inline-flex items-center gap-2 mb-5 px-3 py-1 rounded-full bg-card/70 backdrop-blur-md border border-border/60 text-[11px] font-medium tracking-wider uppercase text-muted-foreground">
+          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+          A Living Archive
+        </div>
+        <h1 className="font-serif text-[52px] leading-[1.05] text-foreground m-0 mb-3 tracking-tight">
+          Palestine <span className="italic text-primary">Recorded</span>
         </h1>
-        <p className="font-serif italic text-[15px] text-muted-foreground mb-6">
-          Join a community dedicated to truth and heritage
+        <p className="font-serif italic text-[16px] text-muted-foreground mb-7 max-w-sm mx-auto">
+          A community dedicated to truth, memory, and heritage.
         </p>
+
 
         <div className="bg-card/95 backdrop-blur-md rounded-2xl p-7 shadow-xl border border-border">
           {submittedReview ? (
@@ -280,7 +285,7 @@ export default function Login() {
                   type="button"
                   onClick={() => openApply('researcher')}
                   disabled={isLoading}
-                  className="flex-1 py-2.5 bg-destructive text-destructive-foreground font-semibold rounded-lg text-sm hover:opacity-90 disabled:opacity-50"
+                  className="flex-1 py-2.5 bg-secondary text-secondary-foreground border border-border font-medium rounded-lg text-sm hover:bg-accent/20 hover:border-accent transition-colors disabled:opacity-50"
                 >
                   Institute
                 </button>
@@ -288,21 +293,22 @@ export default function Login() {
                   type="button"
                   onClick={() => openApply('government')}
                   disabled={isLoading}
-                  className="flex-1 py-2.5 bg-destructive text-destructive-foreground font-semibold rounded-lg text-sm hover:opacity-90 disabled:opacity-50"
+                  className="flex-1 py-2.5 bg-secondary text-secondary-foreground border border-border font-medium rounded-lg text-sm hover:bg-accent/20 hover:border-accent transition-colors disabled:opacity-50"
                 >
                   Government
                 </button>
               </div>
 
-              <p className="text-sm text-foreground m-0">
+              <p className="text-sm text-muted-foreground m-0">
                 Don't have an account?{' '}
                 <a
                   onClick={() => !isLoading && navigate({ to: '/signup' })}
-                  className={`font-bold text-destructive decoration-2 underline-offset-2 ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:underline'}`}
+                  className={`font-semibold text-primary decoration-2 underline-offset-2 ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:underline'}`}
                 >
                   Sign up here
                 </a>
               </p>
+
             </>
           )}
         </div>
