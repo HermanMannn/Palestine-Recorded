@@ -285,7 +285,7 @@ export default function Login() {
                   type="button"
                   onClick={() => openApply('researcher')}
                   disabled={isLoading}
-                  className="flex-1 py-2.5 bg-destructive text-destructive-foreground font-semibold rounded-lg text-sm hover:opacity-90 disabled:opacity-50"
+                  className="flex-1 py-2.5 bg-secondary text-secondary-foreground border border-border font-medium rounded-lg text-sm hover:bg-accent/20 hover:border-accent transition-colors disabled:opacity-50"
                 >
                   Institute
                 </button>
@@ -293,11 +293,22 @@ export default function Login() {
                   type="button"
                   onClick={() => openApply('government')}
                   disabled={isLoading}
-                  className="flex-1 py-2.5 bg-destructive text-destructive-foreground font-semibold rounded-lg text-sm hover:opacity-90 disabled:opacity-50"
+                  className="flex-1 py-2.5 bg-secondary text-secondary-foreground border border-border font-medium rounded-lg text-sm hover:bg-accent/20 hover:border-accent transition-colors disabled:opacity-50"
                 >
                   Government
                 </button>
               </div>
+
+              <p className="text-sm text-muted-foreground m-0">
+                Don't have an account?{' '}
+                <a
+                  onClick={() => !isLoading && navigate({ to: '/signup' })}
+                  className={`font-semibold text-primary decoration-2 underline-offset-2 ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:underline'}`}
+                >
+                  Sign up here
+                </a>
+              </p>
+
 
               <p className="text-sm text-foreground m-0">
                 Don't have an account?{' '}
