@@ -309,16 +309,6 @@ export default function Login() {
                 </a>
               </p>
 
-
-              <p className="text-sm text-foreground m-0">
-                Don't have an account?{' '}
-                <a
-                  onClick={() => !isLoading && navigate({ to: '/signup' })}
-                  className={`font-bold text-destructive decoration-2 underline-offset-2 ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:underline'}`}
-                >
-                  Sign up here
-                </a>
-              </p>
             </>
           )}
         </div>
