@@ -36,23 +36,51 @@ function getTagClass(tag) {
   return "bg-muted text-muted-foreground";
 }
 
-export default function EventDetails({ event, onClose }) {
+export default function EventDetails({ event, onClose, onPrev, onNext, canGoPrev, canGoNext }) {
   return (
     <aside className="absolute top-0 left-0 z-[1100] h-full w-96 max-w-full overflow-y-auto bg-card/95 backdrop-blur-md border-r border-border shadow-2xl animate-in slide-in-from-left duration-200">
-      <div className="sticky top-0 bg-card/95 backdrop-blur-sm p-4 border-b border-border flex items-start justify-between gap-3">
-        <h2 className="text-lg font-bold text-foreground leading-tight">
+      <div className="sticky top-0 bg-card/95 backdrop-blur-sm p-4 border-b border-border flex items-start justify-between gap-2">
+        <h2 className="text-lg font-bold text-foreground leading-tight flex-1 min-w-0">
           {event.title}
         </h2>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close details"
-          className="shrink-0 rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
-        >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+        <div className="flex items-center gap-1 shrink-0">
+          {onPrev && (
+            <button
+              type="button"
+              onClick={onPrev}
+              disabled={!canGoPrev}
+              aria-label="Previous event"
+              className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+          )}
+          {onNext && (
+            <button
+              type="button"
+              onClick={onNext}
+              disabled={!canGoNext}
+              aria-label="Next event"
+              className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close details"
+            className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {event.image && (

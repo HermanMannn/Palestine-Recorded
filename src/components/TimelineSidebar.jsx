@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { mapEvents } from "../lib/mapEvents";
 import EventDetails from "@/components/EventDetails";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ChevronLeft, ChevronRight } from "lucide-react";
 
 const DEFAULT = { lat: 31.9, lng: 35.2, zoom: 9 };
 
@@ -556,9 +556,23 @@ function getEventDotClass(type) {
 export default function TimelineSidebar() {
   const [search, setSearch] = useState("");
   const [selectedEvent, setSelectedEvent] = useState(null);
-  
-  const [isOpen, setIsOpen] = useState(false); 
-  const isMobile = useIsMobile(); 
+  const [currentEventIndex, setCurrentEventIndex] = useState(-1);
+
+  const [isOpen, setIsOpen] = useState(false);
+  const isMobile = useIsMobile();
+
+  // Flatten all events for sequential navigation
+  const allEvents = useMemo(() => {
+    const flat = [];
+    timelineData.forEach((year) => {
+      year.months.forEach((month) => {
+        month.events.forEach((event) => {
+          flat.push(event);
+        });
+      });
+    });
+    return flat;
+  }, []);
 
   const filtered = timelineData
     .map((year) => ({
@@ -577,8 +591,40 @@ export default function TimelineSidebar() {
   const handleSelect = (event) => {
     mapEvents.flyTo(event.coords ?? DEFAULT);
     setSelectedEvent(event);
-    if (isMobile) setIsOpen(false); 
+    setCurrentEventIndex(allEvents.findIndex((e) => e.title === event.title));
+    if (isMobile) setIsOpen(false);
   };
+
+  const navigateToEvent = (index) => {
+    if (index >= 0 && index < allEvents.length) {
+      const event = allEvents[index];
+      handleSelect(event);
+    }
+  };
+
+  const handlePrevEvent = () => {
+    navigateToEvent(currentEventIndex - 1);
+  };
+
+  const handleNextEvent = () => {
+    navigateToEvent(currentEventIndex + 1);
+  };
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        handlePrevEvent();
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        handleNextEvent();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [currentEventIndex]);
 
   return (
     <>
@@ -665,6 +711,10 @@ export default function TimelineSidebar() {
         <EventDetails
           event={selectedEvent}
           onClose={() => setSelectedEvent(null)}
+          onPrev={handlePrevEvent}
+          onNext={handleNextEvent}
+          canGoPrev={currentEventIndex > 0}
+          canGoNext={currentEventIndex < allEvents.length - 1}
         />
       )}
     </>
