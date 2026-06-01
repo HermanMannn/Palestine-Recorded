@@ -610,9 +610,13 @@ export default function TimelineSidebar() {
     navigateToEvent(currentEventIndex + 1);
   };
 
-  // Keyboard navigation
+  // Keyboard navigation (skip if user is in an input field)
   useEffect(() => {
     const handleKeyDown = (e) => {
+      const target = e.target;
+      const isInput = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
+      if (isInput) return; // Don't interfere with input field navigation
+
       if (e.key === "ArrowLeft") {
         e.preventDefault();
         handlePrevEvent();
