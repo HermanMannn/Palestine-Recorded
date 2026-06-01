@@ -39,8 +39,8 @@ export default function About() {
             className="h-24 w-auto mx-auto mb-8 animate-in fade-in zoom-in duration-700" 
           />
           <h1 className="text-5xl font-bold mb-6 tracking-tight">Preserving Identity, One Story at a Time</h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            For decades, the narrative surrounding Palestine has been dominated by conflict. 
+          <p className="text-xl text-foreground/90 max-w-3xl mx-auto leading-relaxed">
+            For decades, the narrative surrounding Palestine has been dominated by conflict.
             <span className="text-foreground font-medium"> Palestine Recorded (PalRec)</span> is a web-based platform dedicated to preserving the rich tapestry of Palestinian heritage, culture, and traditions.
           </p>
         </section>

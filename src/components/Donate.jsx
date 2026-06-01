@@ -113,7 +113,7 @@ export default function Donate() {
       <main className="max-w-5xl mx-auto px-6 py-10">
         <div className="text-center mb-10">
           <h1 className="text-4xl font-bold mb-3">Support Palestine</h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-foreground/90 max-w-2xl mx-auto">
             Choose a verified charity below and contribute any amount. This is a mock checkout —
             no payment will be processed.
           </p>
