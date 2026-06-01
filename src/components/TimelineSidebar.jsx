@@ -690,16 +690,23 @@ export default function TimelineSidebar() {
                           type="button"
                           key={event.title}
                           onClick={() => handleSelect(event)}
-                          className={`w-full text-left flex items-center gap-1.5 cursor-pointer rounded px-1 py-0.5 transition-colors ${
-                            isActive ? "bg-accent/50" : "hover:bg-accent/30"
+                          className={`group w-full text-left flex items-center gap-2 cursor-pointer rounded-lg px-2.5 py-2 transition-all duration-200 border ${
+                            isActive
+                              ? "bg-primary/20 border-primary/40 text-primary font-medium"
+                              : "bg-foreground/5 border-foreground/10 hover:bg-primary/10 hover:border-primary/30"
                           }`}
                         >
                           <span
                             className={`h-2 w-2 rounded-full shrink-0 ${getEventDotClass(event.type)}`}
                           />
-                          <span className="text-xs text-foreground leading-tight truncate">
+                          <span className="text-xs leading-tight truncate flex-1">
                             {event.title}
                           </span>
+                          <svg className={`h-3.5 w-3.5 shrink-0 transition-all duration-200 ${
+                            isActive ? "text-primary" : "text-foreground/40 group-hover:text-primary/60"
+                          }`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                          </svg>
                         </button>
                       );
                     })}
