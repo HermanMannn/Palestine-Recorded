@@ -264,7 +264,7 @@ export default function PalGrid() {
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center p-4 dark:bg-slate-900/40 backdrop-blur-m transition-colors duration-300 custom-scrollbar overflow-y-auto">
+    <div className="fixed inset-0 flex items-center justify-center p-4 pt-[70px] dark:bg-slate-900/40 backdrop-blur-m transition-colors duration-300 custom-scrollbar overflow-y-auto">
       <div className="bg-zinc-700/40 backdrop-blur-md p-6 sm:p-8 rounded-[2.5rem] shadow-2xl flex flex-col items-center gap-5 border border-white/20 w-full max-w-md my-auto">
         
         <div className="flex flex-col items-center gap-1 w-full">
