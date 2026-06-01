@@ -84,7 +84,7 @@ export default function Messages() {
       })
       .select()
       .single();
-      
+      console.log("insert result:", data, error); // add this
     if (error) {
       console.error("Send failed:", error);
       alert(`Couldn't send message: ${error.message}`);
