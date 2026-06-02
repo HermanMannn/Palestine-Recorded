@@ -22,11 +22,11 @@ function getImageBounds(L, w, h) {
   );
 }
 
-export default function HistoricalMap() {
+export default function HistoricalMap({ sidebarOpen, onToggleSidebar }) {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const [loading, setLoading] = useState(true);
-  const [mapMode, setMapMode] = useState("api"); // 'api' or 'historical'
+  const [mapMode, setMapMode] = useState("api");
 
   useEffect(() => {
     let map;
@@ -194,7 +194,7 @@ export default function HistoricalMap() {
 
   return (
     <div className="relative flex w-full h-full overflow-hidden">
-      
+
       {/* Dynamic CSS injection only needed for the historical map */}
       {mapMode === "historical" && (
         <style>{`
@@ -212,32 +212,60 @@ export default function HistoricalMap() {
         `}</style>
       )}
 
-      {/* Toggle UI */}
-      <div className="absolute top-4 left-4 z-[1000] flex gap-2 bg-background/80 backdrop-blur-sm p-1 rounded-md shadow-md">
-        <button
-          onClick={() => setMapMode("api")}
-          className={`px-4 py-2 text-sm font-medium rounded-sm transition-colors ${
-            mapMode === "api" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
-          }`}
-        >
-          Live Map API
-        </button>
-        <button
-          onClick={() => setMapMode("historical")}
-          className={`px-4 py-2 text-sm font-medium rounded-sm transition-colors ${
-            mapMode === "historical" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
-          }`}
-        >
-          Historical Map
-        </button>
-      </div>
-
       {/* Map Container */}
       <div
         ref={mapRef}
         className="flex-1 h-full z-0"
         style={{ background: mapMode === "historical" ? "#1a1a1a" : undefined }}
       />
+
+      {/* Collapse/Expand Arrow (pushed by sidebar) */}
+      <button
+        onClick={onToggleSidebar}
+        className="absolute top-1/2 -translate-y-1/2 z-40 p-3 text-muted-foreground hover:text-foreground transition-all duration-300 ease-in-out"
+        style={{
+          left: sidebarOpen ? "292px" : "16px"
+        }}
+        title={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+      >
+        <svg
+          className={`w-5 h-5 transition-transform duration-300 ease-in-out ${sidebarOpen ? "rotate-180" : ""}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2.5}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+
+      {/* Map Mode Toggle (pushed by sidebar) */}
+      <button
+        onClick={() => setMapMode(mapMode === "api" ? "historical" : "api")}
+        className="absolute top-4 z-40 transition-all duration-300 ease-in-out inline-flex items-center gap-1 p-1 bg-card/90 backdrop-blur-sm border border-border rounded-lg shadow-sm hover:bg-card cursor-pointer"
+        style={{
+          left: sidebarOpen ? "292px" : "16px"
+        }}
+      >
+        <span
+          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+            mapMode === "api"
+              ? "bg-primary text-primary-foreground shadow-md"
+              : "text-foreground/60"
+          }`}
+        >
+          Live
+        </span>
+        <span
+          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+            mapMode === "historical"
+              ? "bg-primary text-primary-foreground shadow-md"
+              : "text-foreground/60"
+          }`}
+        >
+          Historical
+        </span>
+      </button>
 
       {/* Loading Overlay */}
       {loading && (

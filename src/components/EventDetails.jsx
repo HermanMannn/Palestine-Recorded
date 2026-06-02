@@ -38,7 +38,23 @@ function getTagClass(tag) {
 
 export default function EventDetails({ event, onClose, onPrev, onNext, canGoPrev, canGoNext }) {
   return (
-    <aside className="absolute top-0 left-0 z-[1100] h-full w-96 max-w-full overflow-y-auto bg-card/95 backdrop-blur-md border-r border-border shadow-2xl animate-in slide-in-from-left duration-200">
+    <>
+      <style>{`
+        .event-details-scroll::-webkit-scrollbar {
+          width: 6px;
+        }
+        .event-details-scroll::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .event-details-scroll::-webkit-scrollbar-thumb {
+          background: rgba(148, 163, 184, 0.3);
+          border-radius: 3px;
+        }
+        .event-details-scroll::-webkit-scrollbar-thumb:hover {
+          background: rgba(148, 163, 184, 0.5);
+        }
+      `}</style>
+      <aside className="event-details-scroll absolute top-0 left-0 z-[1100] h-full w-72 max-w-full overflow-y-auto bg-card/95 backdrop-blur-md border-r border-border shadow-2xl animate-in slide-in-from-left duration-200">
       <div className="sticky top-0 bg-card/95 backdrop-blur-sm p-4 border-b border-border flex items-start justify-between gap-2">
         <h2 className="text-lg font-bold text-foreground leading-tight flex-1 min-w-0">
           {event.title}
@@ -170,5 +186,6 @@ export default function EventDetails({ event, onClose, onPrev, onNext, canGoPrev
         )}
       </div>
     </aside>
+    </>
   );
 }
