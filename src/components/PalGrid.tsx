@@ -253,6 +253,7 @@ export default function PalGrid() {
   const [hintCooldown, setHintCooldown] = useState(0);
   const [hintedLetters, setHintedLetters] = useState<Set<string>>(new Set());
 
+  // Route reads and writes through the active mode so Daily and Random keep separate progress.
   const guesses = mode === "daily" ? dailyGuesses : randomGuesses;
   const status = mode === "daily" ? dailyStatus : randomStatus;
   const setGuesses = mode === "daily" ? setDailyGuesses : setRandomGuesses;
@@ -260,21 +261,28 @@ export default function PalGrid() {
 
   const startRandom = () => { setTargetData(getRandomWord()); setRandomGuesses([]); setRandomStatus("playing"); setCurrent(""); setError(""); setMode("random"); };
   const goDaily = () => { setTargetData(getDailyWord()); setCurrent(""); setError(""); setMode("daily"); };
+  // Daily resets the same daily puzzle, while Random resets by choosing a fresh practice word.
   const resetGame = () => { setCurrent(""); setError(""); setHintedLetters(new Set()); setHintCooldown(0); if (mode === "daily") { setDailyGuesses([]); setDailyStatus("playing"); } else { setTargetData(getRandomWord()); setRandomGuesses([]); setRandomStatus("playing"); } };
 
   const giveHint = () => {
     if (hintCooldown > 0 || status !== "playing") return;
 
-    // Get all letters A-Z
     const allLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-    // Filter out letters that are in the answer
     const answerLetters = new Set(answer.split(""));
-    const wrongLetters = allLetters.filter((letter) => !answerLetters.has(letter) && !hintedLetters.has(letter));
+    // A hint should reveal something new, not repeat a letter the player already tested.
+    const guessedLetters = new Set([...guesses.join(""), ...current]);
+    const wrongLetters = allLetters.filter(
+      (letter) => !answerLetters.has(letter) && !hintedLetters.has(letter) && !guessedLetters.has(letter),
+    );
 
-    if (wrongLetters.length === 0) return; // No more hints available
+    // If every wrong letter is already known, keep the button from feeling broken.
+    if (wrongLetters.length === 0) {
+      setError("No more hints available");
+      return;
+    }
 
-    // Pick a random wrong letter
     const hintLetter = wrongLetters[Math.floor(Math.random() * wrongLetters.length)];
+    setError("");
     setHintedLetters((prev) => new Set([...prev, hintLetter]));
     setHintCooldown(30);
   };
@@ -293,7 +301,7 @@ export default function PalGrid() {
         else if (existing === "present" && cellStatus === "correct") map[letter] = cellStatus;
       }
     }
-    // Add hinted letters as absent
+    // Hinted letters behave like known misses, but never downgrade letters proven by guesses.
     for (const letter of hintedLetters) {
       if (!map[letter]) map[letter] = "absent";
     }
@@ -346,6 +354,7 @@ export default function PalGrid() {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const target = e.target;
+      // Do not steal typing from form fields elsewhere on the page.
       if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) return;
       const k = e.key.toUpperCase();
       if (k === "ENTER" || k === "BACKSPACE" || /^[A-Z]$/.test(k)) { e.preventDefault(); handleKey(k === "BACKSPACE" ? "BACK" : k); }
