@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Home, Calendar, Grid3X3, MessageSquare, Settings, LogOut, User } from "lucide-react";
+import { Home, Calendar, Grid3X3, MessageSquare, Settings, LogOut, User, LogIn } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 import logoLight from "@/assets/PalRecLogo.png";
@@ -18,6 +18,7 @@ export default function Navbar() {
   const navigate = useNavigate();
   const [profilePic, setProfilePic] = useState(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     const checkTheme = () => setIsDarkMode(document.documentElement.classList.contains("dark"));
@@ -37,6 +38,7 @@ export default function Navbar() {
     };
 
     supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user || null);
       const uid = data.user?.id;
       if (!uid) return;
       loadProfile(uid);
@@ -72,24 +74,38 @@ export default function Navbar() {
 
         {/* Desktop Tools - Hidden on Mobile */}
         <div className="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-1">
-          {tools.map((tool) => (
-            <Link
-              key={tool.label}
-              to={tool.to}
-              title={tool.label}
+          {tools.map((tool) => {
+            // Hide Settings for guests
+            if (tool.label === "Settings" && !user) return null;
+            return (
+              <Link
+                key={tool.label}
+                to={tool.to}
+                title={tool.label}
+                className="flex h-9 w-9 items-center justify-center rounded-md text-foreground hover:bg-accent/40 hover:text-primary transition-colors"
+                activeProps={{ className: "bg-accent/40 text-primary" }}
+              >
+                <tool.icon className="h-4 w-4" />
+              </Link>
+            );
+          })}
+          {user ? (
+            <button
+              onClick={handleLogout}
+              title="Logout"
               className="flex h-9 w-9 items-center justify-center rounded-md text-foreground hover:bg-accent/40 hover:text-primary transition-colors"
-              activeProps={{ className: "bg-accent/40 text-primary" }}
             >
-              <tool.icon className="h-4 w-4" />
+              <LogOut className="h-4 w-4" />
+            </button>
+          ) : (
+            <Link
+              to="/"
+              title="Sign In"
+              className="flex h-9 w-9 items-center justify-center rounded-md text-foreground hover:bg-accent/40 hover:text-primary transition-colors"
+            >
+              <LogIn className="h-4 w-4" />
             </Link>
-          ))}
-          <button
-            onClick={handleLogout}
-            title="Logout"
-            className="flex h-9 w-9 items-center justify-center rounded-md text-foreground hover:bg-accent/40 hover:text-primary transition-colors"
-          >
-            <LogOut className="h-4 w-4" />
-          </button>
+          )}
         </div>
 
         <nav className="flex items-center gap-4">
@@ -98,34 +114,57 @@ export default function Navbar() {
           <Link to="/contact" className="text-sm font-medium text-foreground hover:text-primary hidden md:block">Contact</Link>
           <Link to="/privacy" className="text-sm font-medium text-foreground hover:text-primary hidden md:block">Privacy</Link>
 
-          <Link
-            to="/settings"
-            title="Profile Settings"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 overflow-hidden ml-1"
-          >
-            {profilePic ? (
-              <img src={profilePic} alt="User Profile" className="h-full w-full object-cover" />
-            ) : (
-              <User className="h-4 w-4" />
-            )}
-          </Link>
+          {user ? (
+            <Link
+              to="/settings"
+              title="Profile Settings"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 overflow-hidden ml-1"
+            >
+              {profilePic ? (
+                <img src={profilePic} alt="User Profile" className="h-full w-full object-cover" />
+              ) : (
+                <User className="h-4 w-4" />
+              )}
+            </Link>
+          ) : (
+            <Link
+              to="/"
+              title="Sign In"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 ml-1 transition-colors"
+            >
+              <LogIn className="h-4 w-4" />
+            </Link>
+          )}
         </nav>
       </header>
 
 
       {/* Mobile Bottom Navigation Bar */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around bg-card border-t border-border px-2 py-3 pb-safe">
-        {tools.map((tool) => (
+        {tools.map((tool) => {
+          // Hide Settings for guests
+          if (tool.label === "Settings" && !user) return null;
+          return (
+            <Link
+              key={tool.label}
+              to={tool.to}
+              className="flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary transition-colors"
+              activeProps={{ className: "text-primary" }}
+            >
+              <tool.icon className="h-6 w-6" />
+              <span className="text-[10px]">{tool.label}</span>
+            </Link>
+          );
+        })}
+        {!user && (
           <Link
-            key={tool.label}
-            to={tool.to}
+            to="/"
             className="flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary transition-colors"
-            activeProps={{ className: "text-primary" }}
           >
-            <tool.icon className="h-6 w-6" />
-            <span className="text-[10px]">{tool.label}</span>
+            <LogIn className="h-6 w-6" />
+            <span className="text-[10px]">Sign In</span>
           </Link>
-        ))}
+        )}
       </div>
     </>
   );

@@ -231,7 +231,29 @@ export default function Login() {
             </form>
           ) : (
             <>
-              <form onSubmit={handleLogin}>
+              <div className="mb-6">
+                <h2 className="text-lg font-bold text-foreground mb-2">Browse as Guest</h2>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Explore our timeline and community content without an account.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => navigate({ to: '/timeline' })}
+                  disabled={isLoading}
+                  className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-lg hover:opacity-90 disabled:opacity-50 mb-4"
+                >
+                  Continue as Guest
+                </button>
+              </div>
+
+              <div className="flex items-center gap-3 mb-6">
+                <div className="flex-1 h-px bg-border" />
+                <span className="text-[11px] font-semibold text-muted-foreground tracking-wider uppercase">OR</span>
+                <div className="flex-1 h-px bg-border" />
+              </div>
+
+              <form onSubmit={handleLogin} className="mb-6">
+                <h2 className="text-lg font-bold text-foreground mb-4">Sign In</h2>
                 <div className="text-left mb-4">
                   <label className="block text-sm font-medium text-foreground mb-1.5">Email</label>
                   <input
@@ -263,15 +285,15 @@ export default function Login() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed mb-5"
+                  className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isLoading ? 'Logging in...' : 'Login'}
+                  {isLoading ? 'Signing in...' : 'Sign In'}
                 </button>
               </form>
 
-              <div className="flex items-center gap-3 mb-5">
+              <div className="flex items-center gap-3 mb-6">
                 <div className="flex-1 h-px bg-border" />
-                <span className="text-[11px] font-semibold text-muted-foreground tracking-wider uppercase">OR APPLY AS</span>
+                <span className="text-[11px] font-semibold text-muted-foreground tracking-wider uppercase">APPLY AS VERIFIED</span>
                 <div className="flex-1 h-px bg-border" />
               </div>
 

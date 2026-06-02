@@ -6,6 +6,16 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import ProfilePage from "./Profilepage";
 
+const GuestPrompt = ({ onClose }) => (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div className="bg-card border border-border rounded-lg p-6 max-w-sm shadow-2xl">
+      <h3 className="font-bold text-lg mb-2">Sign up to interact</h3>
+      <p className="text-sm text-muted-foreground mb-4">Create an account to comment, like, and share posts.</p>
+      <button onClick={onClose} className="w-full bg-primary text-white py-2 rounded-lg font-medium hover:opacity-90">Got it</button>
+    </div>
+  </div>
+);
+
 const seedPosts = [
   {
     id: "seed-1", author: "Amr Bu-Gazala", role: "Former Palestinian Official",
@@ -108,21 +118,27 @@ function PostCard({ post, onClick, onAuthorClick, liked, onToggleLike, isSelecte
       <div className="flex items-center justify-around border-t border-border px-2 py-1">
         <button
           onClick={(e) => { e.stopPropagation(); onToggleLike(post.id); }}
-          className={`flex flex-1 items-center justify-center gap-2 rounded-md py-2 text-sm font-medium transition-colors hover:bg-accent/40 ${
-            liked ? "text-red-500" : "text-muted-foreground hover:text-primary"
+          title={!post.isGuest ? "" : "Sign up to like"}
+          disabled={post.isGuest}
+          className={`flex flex-1 items-center justify-center gap-2 rounded-md py-2 text-sm font-medium transition-colors hover:bg-accent/40 disabled:opacity-50 disabled:cursor-not-allowed ${
+            liked ? "text-red-500" : "text-muted-foreground hover:text-primary disabled:hover:bg-transparent"
           }`}
         >
           <Heart className="h-4 w-4" fill={liked ? "currentColor" : "none"} /> Like
         </button>
         <button
           onClick={(e) => e.stopPropagation()}
-          className="flex flex-1 items-center justify-center gap-2 rounded-md py-2 text-sm font-medium text-muted-foreground hover:bg-accent/40 hover:text-primary"
+          title={!post.isGuest ? "" : "Sign up to comment"}
+          disabled={post.isGuest}
+          className="flex flex-1 items-center justify-center gap-2 rounded-md py-2 text-sm font-medium text-muted-foreground hover:bg-accent/40 hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
         >
           <MessageCircle className="h-4 w-4" /> Comment
         </button>
         <button
           onClick={(e) => e.stopPropagation()}
-          className="flex flex-1 items-center justify-center gap-2 rounded-md py-2 text-sm font-medium text-muted-foreground hover:bg-accent/40 hover:text-primary"
+          title={!post.isGuest ? "" : "Sign up to share"}
+          disabled={post.isGuest}
+          className="flex flex-1 items-center justify-center gap-2 rounded-md py-2 text-sm font-medium text-muted-foreground hover:bg-accent/40 hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
         >
           <Share2 className="h-4 w-4" /> Share
         </button>
@@ -139,7 +155,8 @@ function PostDetail({ post, liked, onToggleLike, onClose, onAuthorClick, user, p
   const submitComment = async (e) => {
     e.preventDefault();
     const text = commentDraft.trim();
-    if (!text || !user) return;
+    if (!user) return;
+    if (!text) return;
     setSubmitting(true);
     const prof = profiles[user.id];
     const newComment = {
@@ -300,8 +317,16 @@ export default function SocialFeed() {
   const fileInputRef = useRef(null);
   const [activeTab, setActiveTab] = useState("For you");
   const [selectedPost, setSelectedPost] = useState(null);
-  // { userId?, seedKey? } — drives the left panel content
   const [profileView, setProfileView] = useState(null);
+  const [showGuestPrompt, setShowGuestPrompt] = useState(false);
+
+  const requireAuth = (callback) => {
+    if (!user) {
+      setShowGuestPrompt(true);
+      return;
+    }
+    callback();
+  };
 
   useEffect(() => {
     let profileChannel;
@@ -582,11 +607,11 @@ export default function SocialFeed() {
             {filteredPosts.map((post) => (
               <PostCard
                 key={post.id}
-                post={post}
+                post={{ ...post, isGuest: !user }}
                 onClick={setSelectedPost}
                 onAuthorClick={openAuthorProfile}
                 liked={!!liked[post.id]}
-                onToggleLike={toggleLike}
+                onToggleLike={() => requireAuth(() => toggleLike(post.id))}
                 isSelected={selectedPost?.id === post.id}
               />
             ))}
@@ -596,6 +621,8 @@ export default function SocialFeed() {
           </div>
         </div>
       </div>
+
+      {showGuestPrompt && <GuestPrompt onClose={() => setShowGuestPrompt(false)} />}
     </div>
   );
 }
