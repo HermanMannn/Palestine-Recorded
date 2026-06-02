@@ -36,7 +36,7 @@ function getTagClass(tag) {
   return "bg-muted text-muted-foreground";
 }
 
-export default function EventDetails({ event, onClose, onPrev, onNext, canGoPrev, canGoNext }) {
+export default function EventDetails({ event, onClose, onPrev, onNext, canGoPrev, canGoNext, onAskAI }) {
   return (
     <>
       <style>{`
@@ -184,6 +184,16 @@ export default function EventDetails({ event, onClose, onPrev, onNext, canGoPrev
             </ul>
           </div>
         )}
+
+        <button
+          onClick={() => onAskAI?.(event)}
+          className="w-full mt-4 py-2.5 rounded-lg bg-emerald-600/40 hover:bg-emerald-600/60 border border-emerald-500/40 text-emerald-300 hover:text-emerald-100 text-sm font-semibold transition-all active:scale-95 flex items-center justify-center gap-2"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5.36 4.64l-.707.707M9 19.071A9.003 9.003 0 0012 20.07m0 0A9.003 9.003 0 0015 19.07" />
+          </svg>
+          Ask AI
+        </button>
       </div>
     </aside>
     </>

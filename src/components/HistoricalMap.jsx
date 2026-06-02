@@ -108,7 +108,7 @@ export default function HistoricalMap({ sidebarOpen, onToggleSidebar }) {
           }).addTo(map);
         }
 
-        L.control.zoom({ position: "bottomright" }).addTo(map);
+        L.control.zoom({ position: "topright" }).addTo(map);
         L.control.attribution({ position: "bottomleft", prefix: false }).addTo(map);
 
         let marker = null;
@@ -145,7 +145,7 @@ export default function HistoricalMap({ sidebarOpen, onToggleSidebar }) {
           bounceAtZoomLimits: false,
         });
 
-        L.control.zoom({ position: "bottomright" }).addTo(map);
+        L.control.zoom({ position: "topright" }).addTo(map);
 
         const { tileUrl, imageWidth, imageHeight } = SHEET;
         const maxNativeZoom = getMaxNativeZoom(imageWidth, imageHeight);

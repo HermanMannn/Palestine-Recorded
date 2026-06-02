@@ -5,7 +5,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 const DEFAULT = { lat: 31.9, lng: 35.2, zoom: 9 };
 
-const timelineData = [
+export const timelineData = [
   {
     year: 1516,
     months: [
@@ -552,7 +552,7 @@ function getEventDotClass(type) {
   }
 }
 
-export default function TimelineSidebar({ isOpen, setIsOpen }) {
+export default function TimelineSidebar({ isOpen, setIsOpen, onAskAI }) {
   const [search, setSearch] = useState("");
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [currentEventIndex, setCurrentEventIndex] = useState(-1);
@@ -731,6 +731,7 @@ export default function TimelineSidebar({ isOpen, setIsOpen }) {
           onNext={handleNextEvent}
           canGoPrev={currentEventIndex > 0}
           canGoNext={currentEventIndex < allEvents.length - 1}
+          onAskAI={onAskAI}
         />
       )}
     </>
