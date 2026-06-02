@@ -548,13 +548,20 @@ export default function SocialFeed() {
             <div className="p-4">
               <div className="flex gap-3">
                 <Avatar post={currentUserAvatarPost} />
-                <textarea
-                  value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
-                  placeholder={user ? "Share a story, photo, or memory..." : "Log in to share..."}
-                  disabled={!user}
-                  className="min-h-[60px] flex-1 resize-none rounded-lg border border-input bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-60"
-                />
+                <div className="flex-1 space-y-2">
+                  <textarea
+                    value={draft}
+                    onChange={(e) => {
+                      const text = e.target.value;
+                      if (text.length <= 500) setDraft(text);
+                    }}
+                    maxLength={500}
+                    placeholder={user ? "Share a story, photo, or memory..." : "Log in to share..."}
+                    disabled={!user}
+                    className="min-h-[60px] w-full resize-none rounded-lg border border-input bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-60"
+                  />
+                  <div className="text-xs text-muted-foreground text-right">{draft.length}/500</div>
+                </div>
               </div>
               {imagePreview && (
                 <div className="relative mt-3 overflow-hidden rounded-lg border border-border">

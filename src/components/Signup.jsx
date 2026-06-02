@@ -52,6 +52,19 @@ export default function Signup() {
     }
 
     try {
+      // Check if email already exists in profiles table
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', formData.email.toLowerCase())
+        .maybeSingle()
+
+      if (existingProfile) {
+        setError('This email is already registered. Please login or use a different email.')
+        setIsLoading(false)
+        return
+      }
+
       const { error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -62,7 +75,7 @@ export default function Signup() {
            },
         },
       })
-      
+
       if (error) throw error
 
       // Instead of redirecting, we switch the UI to the "Verify Email" screen

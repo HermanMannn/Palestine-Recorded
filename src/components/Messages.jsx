@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, Mic, CheckCheck, Users } from "lucide-react";
+import { Search, Mic, CheckCheck, Users, Paperclip, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import ProfilePage from "./Profilepage";
 
@@ -30,6 +30,9 @@ export default function Messages() {
   const [draft, setDraft] = useState("");
   const [userId, setUserId] = useState(null);
   const [profileView, setProfileView] = useState(null);
+  const [attachedFile, setAttachedFile] = useState(null);
+  const [uploadError, setUploadError] = useState("");
+  const fileInputRef = useRef(null);
 
   const scrollRef = useRef(null);
 
@@ -97,6 +100,29 @@ export default function Messages() {
 
   const openProfile = (convo) => {
     setProfileView({ seedKey: convo.seedKey });
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadError("");
+
+    // Validate file size - max 50MB for attachments
+    const MAX_SIZE = 50_000_000; // 50MB
+    if (file.size > MAX_SIZE) {
+      setUploadError(`File too large (max 50MB). Your file is ${(file.size / 1_000_000).toFixed(1)}MB.`);
+      setAttachedFile(null);
+      return;
+    }
+
+    setAttachedFile(file);
+  };
+
+  const removeAttachment = () => {
+    setAttachedFile(null);
+    setUploadError("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
 
@@ -204,19 +230,72 @@ export default function Messages() {
             </div>
 
             {/* Composer */}
-            <form onSubmit={sendMessage} className="shrink-0 flex items-center gap-4 border-t border-border px-6 py-5 dark:bg-slate-900/40 backdrop-blur-md">
-              <input
-                type="text"
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                placeholder={userId ? "Type a message..." : "Sign in to send messages"}
-                disabled={!userId}
-                className="flex-1 rounded-full bg-card/70 dark:bg-slate-800/80 px-6 py-4 text-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/50 disabled:opacity-60"
-              />
-              <button type="submit" disabled={!userId || !draft.trim()} className="flex h-14 w-14 items-center justify-center rounded-full bg-card/80 dark:bg-slate-800 text-foreground hover:bg-muted shadow-sm active:scale-95 disabled:opacity-50">
-                <Mic className="h-8 w-8" />
-              </button>
-            </form>
+            <div className="shrink-0 border-t border-border px-6 py-5 dark:bg-slate-900/40 backdrop-blur-md space-y-3">
+              {/* File attachment display */}
+              {attachedFile && (
+                <div className="flex items-center justify-between bg-primary/10 border border-primary/30 rounded-lg px-3 py-2">
+                  <div className="flex items-center gap-2 text-sm text-foreground">
+                    <Paperclip className="h-4 w-4" />
+                    <span className="truncate">{attachedFile.name}</span>
+                    <span className="text-xs text-muted-foreground">({(attachedFile.size / 1_000_000).toFixed(1)}MB)</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={removeAttachment}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+
+              {/* Upload error */}
+              {uploadError && (
+                <div className="bg-destructive/10 border border-destructive/30 rounded-lg px-3 py-2 text-sm text-destructive">
+                  {uploadError}
+                </div>
+              )}
+
+              <form onSubmit={sendMessage} className="flex items-center gap-4">
+                <input
+                  type="text"
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  placeholder={userId ? "Type a message..." : "Sign in to send messages"}
+                  disabled={!userId}
+                  className="flex-1 rounded-full bg-card/70 dark:bg-slate-800/80 px-6 py-4 text-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/50 disabled:opacity-60"
+                />
+
+                {/* File input (hidden) */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  disabled={!userId}
+                />
+
+                {/* File attachment button */}
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={!userId}
+                  title="Attach file (max 50MB)"
+                  className="flex h-14 w-14 items-center justify-center rounded-full bg-card/80 dark:bg-slate-800 text-foreground hover:bg-muted shadow-sm active:scale-95 disabled:opacity-50 transition-all"
+                >
+                  <Paperclip className="h-6 w-6" />
+                </button>
+
+                {/* Send button */}
+                <button
+                  type="submit"
+                  disabled={!userId || (!draft.trim() && !attachedFile)}
+                  className="flex h-14 w-14 items-center justify-center rounded-full bg-card/80 dark:bg-slate-800 text-foreground hover:bg-muted shadow-sm active:scale-95 disabled:opacity-50 transition-all"
+                >
+                  <Mic className="h-6 w-6" />
+                </button>
+              </form>
+            </div>
           </>
         )}
       </main>

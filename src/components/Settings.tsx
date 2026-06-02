@@ -92,7 +92,18 @@ export default function Settings() {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5_000_000) return showToast("Image too large (Max 5MB)", "error");
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      return showToast("Only image files are allowed", "error");
+    }
+
+    // Validate file size - max 2MB for avatars
+    const MAX_SIZE = 2_000_000; // 2MB
+    if (file.size > MAX_SIZE) {
+      return showToast("Image too large (Max 2MB)", "error");
+    }
+
     setPendingFile(file);
     setProfilePic(URL.createObjectURL(file));
     showToast("Picture selected! Save changes to apply.");
