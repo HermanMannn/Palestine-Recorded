@@ -22,14 +22,13 @@ export const Route = createFileRoute("/timeline")({
 function TimelinePage() {
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
-  const chatBotRef = useRef(null);
+  const chatBotRef = useRef<{ askAboutEvent: (event: any) => void } | null>(null);
 
   useEffect(() => {
     if (isMobile) setSidebarOpen(false);
   }, [isMobile]);
 
-  const handleAskAI = (event) => {
-    // Send event data to ChatBot
+  const handleAskAI = (event: any) => {
     if (chatBotRef.current) {
       chatBotRef.current.askAboutEvent(event);
     }

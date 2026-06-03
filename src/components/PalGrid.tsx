@@ -129,7 +129,7 @@ const ModeButton = ({ label, isActive, onClick, color }: { label: string; isActi
   </button>
 );
 
-const IconButton = ({ onClick, title, icon: Icon, hoverColor = "text-white" }: { onClick: () => void; title: string; icon: () => JSX.Element; hoverColor?: string }) => (
+const IconButton = ({ onClick, title, icon: Icon, hoverColor = "text-white" }: { onClick: () => void; title: string; icon: React.ComponentType; hoverColor?: string }) => (
   <button
     onPointerDown={(e) => { e.preventDefault(); onClick(); }}
     className={`flex items-center justify-center px-2 py-1 rounded-full transition-all duration-150 select-none touch-manipulation text-zinc-400 hover:${hoverColor} hover:bg-white/10`}
