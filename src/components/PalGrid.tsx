@@ -264,6 +264,19 @@ export default function PalGrid() {
   // Daily resets the same daily puzzle, while Random resets by choosing a fresh practice word.
   const resetGame = () => { setCurrent(""); setError(""); setHintedLetters(new Set()); setHintCooldown(0); if (mode === "daily") { setDailyGuesses([]); setDailyStatus("playing"); } else { setTargetData(getRandomWord()); setRandomGuesses([]); setRandomStatus("playing"); } };
 
+  const resetDailyPuzzle = useCallback(() => {
+    const nextDateStr = getPalestineDateStr();
+    setTargetData(getDailyWord());
+    setDailyGuesses([]);
+    setDailyStatus("playing");
+    setCurrent("");
+    setError("");
+    setHintedLetters(new Set());
+    setHintCooldown(0);
+    setTimeLeft(0);
+    localStorage.setItem("palgrid-state", JSON.stringify({ date: nextDateStr, guesses: [], status: "playing" }));
+  }, []);
+
   const giveHint = () => {
     if (hintCooldown > 0 || status !== "playing") return;
 
@@ -322,11 +335,14 @@ export default function PalGrid() {
       timer = window.setInterval(() => {
         const remaining = getSecondsUntilMidnightPalestine();
         setTimeLeft(remaining);
-        if (remaining <= 0) window.location.reload();
+        if (remaining <= 0) {
+          resetDailyPuzzle();
+          clearInterval(timer);
+        }
       }, 1000);
     }
     return () => clearInterval(timer);
-  }, [dailyStatus, mode]);
+  }, [dailyStatus, mode, resetDailyPuzzle]);
 
   const handleKey = useCallback(
     (key: string) => {
