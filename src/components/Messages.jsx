@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, Mic, CheckCheck, Users, Paperclip, X } from "lucide-react";
+import { Search, Send, CheckCheck, Users, Paperclip, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import ProfilePage from "./Profilepage";
 
@@ -291,8 +291,9 @@ export default function Messages() {
                   type="submit"
                   disabled={!userId || (!draft.trim() && !attachedFile)}
                   className="flex h-14 w-14 items-center justify-center rounded-full bg-card/80 dark:bg-slate-800 text-foreground hover:bg-muted shadow-sm active:scale-95 disabled:opacity-50 transition-all"
+                  title="Send message"
                 >
-                  <Mic className="h-6 w-6" />
+                  <Send className="h-6 w-6" />
                 </button>
               </form>
             </div>
