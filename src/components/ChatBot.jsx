@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
-import { callDeepSeek } from "../services/deepseekService";
+import { callDeepSeek, MISSING_DEEPSEEK_API_KEY_ERROR } from "../services/deepseekService";
 import { searchWikipedia } from "../services/wikipediaService";
 import { renderMarkdown } from "../utils/markdownParser.jsx";
 import { timelineData } from "./TimelineSidebar.jsx";
@@ -101,6 +101,11 @@ const getTimelineSources = (query) => {
 
 // Merge and deduplicate source arrays
 const mergeSources = (...sourceGroups) => [...new Set(sourceGroups.flat().filter(Boolean))];
+
+const getDeepSeekErrorMessage = (error, fallback) =>
+  error?.message === MISSING_DEEPSEEK_API_KEY_ERROR
+    ? "AI is not configured yet. Add VITE_DEEPSEEK_API_KEY to your .env file, then restart the dev server."
+    : fallback;
 
 // Format source URL for display
 const getSourceDisplayName = (source) => {
@@ -237,11 +242,15 @@ const ChatBot = forwardRef(function ChatBot(props, ref) {
           },
         ]);
       } catch (error) {
+        const errorMessage = getDeepSeekErrorMessage(
+          error,
+          "Sorry, I encountered an error summarizing this event. Please try asking about it directly.",
+        );
         setMessages([
           ...newMessages,
           {
             id: newMessages.length + 1,
-            text: "Sorry, I encountered an error summarizing this event. Please try asking about it directly.",
+            text: errorMessage,
             sender: "bot",
             sources: [],
           },
@@ -331,11 +340,15 @@ const ChatBot = forwardRef(function ChatBot(props, ref) {
         },
       ]);
     } catch (error) {
+      const errorMessage = getDeepSeekErrorMessage(
+        error,
+        "Sorry, I encountered an error. Please try again.",
+      );
       setMessages([
         ...newMessages,
         {
           id: newMessages.length + 1,
-          text: "Sorry, I encountered an error. Please try again.",
+          text: errorMessage,
           sender: "bot",
           sources: [],
         },

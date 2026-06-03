@@ -1,6 +1,7 @@
 // DeepSeek API configuration
 const DEEPSEEK_API_KEY = import.meta.env.VITE_DEEPSEEK_API_KEY;
 const DEEPSEEK_API_URL = "https://api.deepseek.com/chat/completions";
+export const MISSING_DEEPSEEK_API_KEY_ERROR = "MISSING_DEEPSEEK_API_KEY";
 
 /**
  * Call the DeepSeek chat API with a conversation history
@@ -11,7 +12,7 @@ const DEEPSEEK_API_URL = "https://api.deepseek.com/chat/completions";
 export const callDeepSeek = async (messages: Array<{ role: string; content: string }>) => {
   try {
     if (!DEEPSEEK_API_KEY) {
-      throw new Error("Missing VITE_DEEPSEEK_API_KEY environment variable");
+      throw new Error(MISSING_DEEPSEEK_API_KEY_ERROR);
     }
 
     const response = await fetch(DEEPSEEK_API_URL, {
