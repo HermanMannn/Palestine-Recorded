@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Search, Send, CheckCheck, Users, Paperclip, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import ProfilePage from "./Profilepage";
+import { useTranslation } from "@/hooks/useTranslation";
 
 // Stable UUIDs per seeded conversation (conversation_id is uuid in DB)
 const conversations = [
@@ -24,6 +25,7 @@ function ConvoAvatar({ convo, size = "md" }) {
 }
 
 export default function Messages() {
+  const { t, get } = useTranslation();
   const [activeId, setActiveId] = useState(conversations[0].id);
   const [search, setSearch] = useState("");
   const [allMessages, setAllMessages] = useState([]);
@@ -65,9 +67,13 @@ export default function Messages() {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [allMessages, activeId]);
 
-  const active = conversations.find((c) => c.id === activeId);
+  const translatedConversations = conversations.map((conversation, index) => ({
+    ...conversation,
+    ...(get("messages.conversations")[index] || {}),
+  }));
+  const active = translatedConversations.find((c) => c.id === activeId);
   const thread = allMessages.filter((m) => m.conversation_id === activeId);
-  const filtered = conversations.filter((c) =>
+  const filtered = translatedConversations.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -90,7 +96,7 @@ export default function Messages() {
       console.log("insert result:", data, error); // add this
     if (error) {
       console.error("Send failed:", error);
-      alert(`Couldn't send message: ${error.message}`);
+      alert(`${t("messages.couldNotSend")} ${error.message}`);
       setDraft(text);
       return;
     }
@@ -111,7 +117,7 @@ export default function Messages() {
     // Validate file size - max 50MB for attachments
     const MAX_SIZE = 50_000_000; // 50MB
     if (file.size > MAX_SIZE) {
-      setUploadError(`File too large (max 50MB). Your file is ${(file.size / 1_000_000).toFixed(1)}MB.`);
+      setUploadError(`${t("messages.fileTooLarge")} ${(file.size / 1_000_000).toFixed(1)}MB.`);
       setAttachedFile(null);
       return;
     }
@@ -137,7 +143,7 @@ export default function Messages() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search..."
+              placeholder={t("messages.searchPlaceholder")}
               className="w-full rounded-full border border-border bg-card/70 px-6 py-4 pr-14 text-lg focus:outline-none focus:ring-2 focus:ring-primary"
             />
             <Search className="absolute right-5 top-1/2 h-6 w-6 -translate-y-1/2 text-muted-foreground" />
@@ -168,7 +174,7 @@ export default function Messages() {
                   </div>
                   <p className="truncate text-base text-foreground/70">
                     {lastMessage
-                      ? `${lastMessage.sender_id === userId ? "You: " : ""}${lastMessage.content || ""}`
+                      ? `${lastMessage.sender_id === userId ? `${t("common.you")}: ` : ""}${lastMessage.content || ""}`
                       : c.preview}
                   </p>
                 </div>
@@ -201,7 +207,7 @@ export default function Messages() {
                     {active?.name}
                   </div>
                   <div className="text-sm text-muted-foreground font-medium">
-                    Click to view profile
+                    {t("messages.clickToViewProfile")}
                   </div>
                 </div>
               </button>
@@ -261,7 +267,7 @@ export default function Messages() {
                   type="text"
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
-                  placeholder={userId ? "Type a message..." : "Sign in to send messages"}
+                  placeholder={userId ? t("messages.typeMessage") : t("messages.signInToSend")}
                   disabled={!userId}
                   className="flex-1 rounded-full bg-card/70 dark:bg-slate-800/80 px-6 py-4 text-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/50 disabled:opacity-60"
                 />
@@ -280,7 +286,7 @@ export default function Messages() {
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={!userId}
-                  title="Attach file (max 50MB)"
+                  title={t("messages.attachFile")}
                   className="flex h-14 w-14 items-center justify-center rounded-full bg-card/80 dark:bg-slate-800 text-foreground hover:bg-muted shadow-sm active:scale-95 disabled:opacity-50 transition-all"
                 >
                   <Paperclip className="h-6 w-6" />
@@ -291,7 +297,7 @@ export default function Messages() {
                   type="submit"
                   disabled={!userId || (!draft.trim() && !attachedFile)}
                   className="flex h-14 w-14 items-center justify-center rounded-full bg-card/80 dark:bg-slate-800 text-foreground hover:bg-muted shadow-sm active:scale-95 disabled:opacity-50 transition-all"
-                  title="Send message"
+                  title={t("messages.sendMessage")}
                 >
                   <Send className="h-6 w-6" />
                 </button>

@@ -1,17 +1,18 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft, Globe, Heart, MessageCircle, Share2, Users, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from "@/hooks/useTranslation";
 
-function timeAgo(ts) {
-  if (!ts) return "just now";
-  const t = typeof ts === "string" ? new Date(ts).getTime() : ts;
-  const diff = Math.max(0, Date.now() - t);
+function timeAgo(ts, t) {
+  if (!ts) return t("socialFeed.justNow");
+  const time = typeof ts === "string" ? new Date(ts).getTime() : ts;
+  const diff = Math.max(0, Date.now() - time);
   const m = Math.floor(diff / 60000);
-  if (m < 1) return "just now";
-  if (m < 60) return `${m}m ago`;
+  if (m < 1) return t("socialFeed.justNow");
+  if (m < 60) return `${m}${t("socialFeed.minutesAgo")}`;
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
+  if (h < 24) return `${h}${t("socialFeed.hoursAgo")}`;
+  return `${Math.floor(h / 24)}${t("socialFeed.daysAgo")}`;
 }
 
 // For seed / non-Supabase profiles (e.g. from the messages sidebar)
@@ -83,6 +84,7 @@ const SEED_POSTS = [
  *   onBack      — callback to close/go back.
  */
 export default function ProfilePage({ userId, seedKey, onBack }) {
+  const { t, get, language } = useTranslation();
   const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -103,14 +105,14 @@ export default function ProfilePage({ userId, seedKey, onBack }) {
 
         if (prof) {
           setProfile({
-            username: prof.username || "Member",
+            username: prof.username || t("common.member"),
             bio: prof.bio || "",
             avatar_url: prof.avatar_url || null,
             initial: (prof.username || "M")[0].toUpperCase(),
             color: "bg-emerald-500",
             joined: prof.created_at
               ? new Date(prof.created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" })
-              : "Unknown",
+              : t("common.loading"),
           });
         }
 
@@ -122,7 +124,9 @@ export default function ProfilePage({ userId, seedKey, onBack }) {
         setPosts(userPosts || []);
       } else if (seedKey) {
         // Seed / demo profile
-        const seed = SEED_PROFILES[seedKey];
+        const translatedSeedProfiles = get("profile.seedProfiles");
+        const translatedSeed = translatedSeedProfiles.find((item) => item.key === seedKey);
+        const seed = SEED_PROFILES[seedKey] ? { ...SEED_PROFILES[seedKey], ...translatedSeed } : null;
         setProfile(seed || null);
         setPosts(SEED_POSTS.filter((p) => p.author_key === seedKey));
       }
@@ -131,7 +135,7 @@ export default function ProfilePage({ userId, seedKey, onBack }) {
     };
 
     load();
-  }, [userId, seedKey]);
+  }, [userId, seedKey, language]);
 
   const toggleLike = (id) => {
     setLiked((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -146,7 +150,7 @@ export default function ProfilePage({ userId, seedKey, onBack }) {
     return (
       <div className="flex flex-col h-full items-center justify-center gap-3 text-muted-foreground">
         <div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-        <span className="text-sm">Loading profile…</span>
+        <span className="text-sm">{t("profile.loading")}</span>
       </div>
     );
   }
@@ -154,8 +158,8 @@ export default function ProfilePage({ userId, seedKey, onBack }) {
   if (!profile) {
     return (
       <div className="flex flex-col h-full items-center justify-center gap-4">
-        <p className="text-muted-foreground">Profile not found.</p>
-        <button onClick={onBack} className="text-sm text-primary hover:underline">← Go back</button>
+        <p className="text-muted-foreground">{t("profile.notFound")}</p>
+        <button onClick={onBack} className="text-sm text-primary hover:underline">{t("profile.goBack")}</button>
       </div>
     );
   }
@@ -208,11 +212,11 @@ export default function ProfilePage({ userId, seedKey, onBack }) {
           <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">
               <Calendar className="h-3.5 w-3.5" />
-              Joined {profile.joined}
+              {t("profile.joined")} {profile.joined}
             </span>
             <span className="flex items-center gap-1">
               <Globe className="h-3.5 w-3.5" />
-              Public
+              {t("profile.public")}
             </span>
           </div>
 
@@ -228,7 +232,7 @@ export default function ProfilePage({ userId, seedKey, onBack }) {
         <div className="divide-y divide-border">
           {posts.length === 0 && (
             <div className="py-16 text-center text-sm text-muted-foreground">
-              No posts yet.
+              {t("profile.noPostsYet")}
             </div>
           )}
 
@@ -246,7 +250,7 @@ export default function ProfilePage({ userId, seedKey, onBack }) {
                 <div>
                   <span className="text-sm font-semibold text-foreground">{profile.username}</span>
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <span>{timeAgo(post.created_at)}</span>
+                    <span>{timeAgo(post.created_at, t)}</span>
                     <span>·</span>
                     <Globe className="h-3 w-3" />
                   </div>
@@ -268,8 +272,8 @@ export default function ProfilePage({ userId, seedKey, onBack }) {
 
               {/* Stats */}
               <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-                <span>{post.likes ?? 0} likes</span>
-                <span>{post.comments_count ?? 0} comments · {post.shares_count ?? 0} shares</span>
+                <span>{post.likes ?? 0} {t("socialFeed.likes")}</span>
+                <span>{post.comments_count ?? 0} {t("socialFeed.comments")} · {post.shares_count ?? 0} {t("socialFeed.shares")}</span>
               </div>
 
               {/* Actions */}
@@ -281,15 +285,15 @@ export default function ProfilePage({ userId, seedKey, onBack }) {
                   }`}
                 >
                   <Heart className="h-3.5 w-3.5" fill={liked[post.id] ? "currentColor" : "none"} />
-                  Like
+                  {t("socialFeed.like")}
                 </button>
                 <button className="flex flex-1 items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent/40 hover:text-primary">
                   <MessageCircle className="h-3.5 w-3.5" />
-                  Comment
+                  {t("socialFeed.comment")}
                 </button>
                 <button className="flex flex-1 items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent/40 hover:text-primary">
                   <Share2 className="h-3.5 w-3.5" />
-                  Share
+                  {t("socialFeed.share")}
                 </button>
               </div>
             </article>

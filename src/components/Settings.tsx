@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { User, Lock, Save, Camera, Palette, CheckCircle2, XCircle, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function Settings() {
+  const { t } = useTranslation();
   const [userId, setUserId] = useState<string | null>(null);
 
   // Profile State
@@ -64,7 +66,7 @@ export default function Settings() {
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userId) return showToast("Not logged in", "error");
+    if (!userId) return showToast(t("settingsPage.notLoggedIn"), "error");
     try {
       let avatar_url = profilePic;
       if (pendingFile) {
@@ -83,7 +85,7 @@ export default function Settings() {
       if (error) throw error;
       setProfilePic(avatar_url);
       setPendingFile(null);
-      showToast("Profile updated!");
+      showToast(t("settingsPage.profileUpdated"));
     } catch (err: any) {
       showToast(err.message, "error");
     }
@@ -95,27 +97,27 @@ export default function Settings() {
 
     // Validate file type
     if (!file.type.startsWith("image/")) {
-      return showToast("Only image files are allowed", "error");
+      return showToast(t("settingsPage.onlyImages"), "error");
     }
 
     // Validate file size - max 2MB for avatars
     const MAX_SIZE = 2_000_000; // 2MB
     if (file.size > MAX_SIZE) {
-      return showToast("Image too large (Max 2MB)", "error");
+      return showToast(t("settingsPage.imageTooLarge"), "error");
     }
 
     setPendingFile(file);
     setProfilePic(URL.createObjectURL(file));
-    showToast("Picture selected! Save changes to apply.");
+    showToast(t("settingsPage.pictureSelected"));
   };
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newPassword !== confirmPassword) return showToast("Passwords do not match", "error");
-    if (newPassword.length < 6) return showToast("Password must be at least 6 characters", "error");
+    if (newPassword !== confirmPassword) return showToast(t("settingsPage.passwordsMismatch"), "error");
+    if (newPassword.length < 6) return showToast(t("settingsPage.passwordTooShort"), "error");
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     if (error) return showToast(error.message, "error");
-    showToast("Password updated!");
+    showToast(t("settingsPage.passwordUpdated"));
     setNewPassword(""); setConfirmPassword("");
   };
 
@@ -128,21 +130,21 @@ export default function Settings() {
     <div className="min-h-screen bg-background/85 backdrop-blur-sm text-foreground pb-20 overflow-x-hidden">
       <main className="max-w-4xl mx-auto px-6 py-10">
         <div className="mb-10">
-          <h1 className="text-4xl font-bold mb-3">Account Settings</h1>
-          <p className="text-muted-foreground">Manage your profile, preferences, and security.</p>
+          <h1 className="text-4xl font-bold mb-3">{t("settingsPage.title")}</h1>
+          <p className="text-muted-foreground">{t("settingsPage.description")}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <aside className="md:col-span-1">
             <div className="sticky top-24 space-y-2">
               <a href="#profile" onClick={(e) => scrollToSection(e, "profile")} className="flex items-center gap-3 p-3 rounded-lg hover:bg-card border border-transparent hover:border-border text-muted-foreground hover:text-foreground font-medium">
-                <User className="h-5 w-5" /> Public Profile
+                <User className="h-5 w-5" /> {t("settingsPage.publicProfile")}
               </a>
               <a href="#appearance" onClick={(e) => scrollToSection(e, "appearance")} className="flex items-center gap-3 p-3 rounded-lg hover:bg-card border border-transparent hover:border-border text-muted-foreground hover:text-foreground font-medium">
-                <Palette className="h-5 w-5" /> Appearance
+                <Palette className="h-5 w-5" /> {t("settingsPage.appearance")}
               </a>
               <a href="#security" onClick={(e) => scrollToSection(e, "security")} className="flex items-center gap-3 p-3 rounded-lg hover:bg-card border border-transparent hover:border-border text-muted-foreground hover:text-foreground font-medium">
-                <Lock className="h-5 w-5" /> Security & Password
+                <Lock className="h-5 w-5" /> {t("settingsPage.securityPassword")}
               </a>
             </div>
           </aside>
@@ -150,7 +152,7 @@ export default function Settings() {
           <div className="md:col-span-3 space-y-12">
             <section id="profile" className="rounded-2xl border border-border bg-card/95 p-6 shadow-sm scroll-mt-24">
               <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-                <User className="h-5 w-5 text-primary" /> Profile Manager
+                <User className="h-5 w-5 text-primary" /> {t("settingsPage.profileManager")}
               </h2>
               <form onSubmit={handleProfileUpdate} className="space-y-6">
                 <div className="flex items-center gap-6">
@@ -160,44 +162,44 @@ export default function Settings() {
                   <div>
                     <input type="file" id="avatar-upload" accept="image/*" className="hidden" onChange={handleImageUpload} />
                     <label htmlFor="avatar-upload" className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground border border-border rounded-md text-sm font-medium hover:bg-accent cursor-pointer">
-                      <Camera className="h-4 w-4" /> Upload New Picture
+                      <Camera className="h-4 w-4" /> {t("settingsPage.uploadNewPicture")}
                     </label>
-                    <p className="text-xs text-muted-foreground mt-2">Recommended: Square image, max 5MB.</p>
+                    <p className="text-xs text-muted-foreground mt-2">{t("settingsPage.recommendedImage")}</p>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-1.5 text-muted-foreground">Display Name</label>
+                  <label className="block text-sm font-medium mb-1.5 text-muted-foreground">{t("settingsPage.displayName")}</label>
                   <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm outline-none focus:border-primary" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1.5 text-muted-foreground">Bio / About Me</label>
-                  <textarea rows={4} value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Tell the community about yourself..." className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm outline-none focus:border-primary resize-none" />
+                  <label className="block text-sm font-medium mb-1.5 text-muted-foreground">{t("settingsPage.bioAboutMe")}</label>
+                  <textarea rows={4} value={bio} onChange={(e) => setBio(e.target.value)} placeholder={t("settingsPage.bioPlaceholder")} className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm outline-none focus:border-primary resize-none" />
                 </div>
                 <button type="submit" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md font-medium hover:opacity-90">
-                  <Save className="h-4 w-4" /> Save Changes
+                  <Save className="h-4 w-4" /> {t("settingsPage.saveChanges")}
                 </button>
               </form>
             </section>
 
             <section id="appearance" className="rounded-2xl border border-border bg-card/95 p-6 shadow-sm scroll-mt-24">
               <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                <Palette className="h-5 w-5 text-primary" /> Appearance
+                <Palette className="h-5 w-5 text-primary" /> {t("settingsPage.appearance")}
               </h2>
               <div className="space-y-4">
-                <p className="text-sm text-muted-foreground mb-4">Customize how Palestine Recorded looks on your device.</p>
+                <p className="text-sm text-muted-foreground mb-4">{t("settingsPage.appearanceDescription")}</p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <button type="button" onClick={() => { setTheme("light"); showToast("Theme changed to Light"); }} className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 ${theme === 'light' ? 'border-primary bg-primary/5' : 'border-border bg-background hover:border-primary/50'}`}>
+                  <button type="button" onClick={() => { setTheme("light"); showToast(t("settingsPage.themeLight")); }} className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 ${theme === 'light' ? 'border-primary bg-primary/5' : 'border-border bg-background hover:border-primary/50'}`}>
                     <div className="h-10 w-10 rounded-full bg-slate-100 border border-slate-300"></div>
-                    <span className="font-medium text-sm">Light</span>
+                    <span className="font-medium text-sm">{t("settingsPage.light")}</span>
                   </button>
-                  <button type="button" onClick={() => { setTheme("dark"); showToast("Theme changed to Dark"); }} className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 ${theme === 'dark' ? 'border-primary bg-primary/5' : 'border-border bg-background hover:border-primary/50'}`}>
+                  <button type="button" onClick={() => { setTheme("dark"); showToast(t("settingsPage.themeDark")); }} className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 ${theme === 'dark' ? 'border-primary bg-primary/5' : 'border-border bg-background hover:border-primary/50'}`}>
                     <div className="h-10 w-10 rounded-full bg-slate-900 border border-slate-700"></div>
-                    <span className="font-medium text-sm">Dark</span>
+                    <span className="font-medium text-sm">{t("settingsPage.dark")}</span>
                   </button>
-                  <button type="button" onClick={() => { setTheme("system"); showToast("Theme synced with Device"); }} className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 ${theme === 'system' ? 'border-primary bg-primary/5' : 'border-border bg-background hover:border-primary/50'}`}>
+                  <button type="button" onClick={() => { setTheme("system"); showToast(t("settingsPage.themeSystem")); }} className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 ${theme === 'system' ? 'border-primary bg-primary/5' : 'border-border bg-background hover:border-primary/50'}`}>
                     <div className="h-10 w-10 rounded-full bg-gradient-to-br from-slate-100 to-slate-900 border border-slate-400"></div>
-                    <span className="font-medium text-sm">Device Default</span>
+                    <span className="font-medium text-sm">{t("settingsPage.deviceDefault")}</span>
                   </button>
                 </div>
               </div>
@@ -205,12 +207,12 @@ export default function Settings() {
 
             <section id="security" className="rounded-2xl border border-border bg-card/95 p-6 shadow-sm scroll-mt-24">
               <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                <Lock className="h-5 w-5 text-primary" /> Change Password
+                <Lock className="h-5 w-5 text-primary" /> {t("settingsPage.changePassword")}
               </h2>
               <form onSubmit={handlePasswordChange} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1.5 text-muted-foreground">New Password</label>
+                    <label className="block text-sm font-medium mb-1.5 text-muted-foreground">{t("settingsPage.newPassword")}</label>
                     <div className="relative">
                       <input type={showPasswords ? "text" : "password"} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full px-3 py-2 pr-10 rounded-md border border-border bg-background text-sm outline-none focus:border-primary" required />
                       <button type="button" onClick={() => setShowPasswords(!showPasswords)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
@@ -219,12 +221,12 @@ export default function Settings() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1.5 text-muted-foreground">Confirm New Password</label>
+                    <label className="block text-sm font-medium mb-1.5 text-muted-foreground">{t("settingsPage.confirmNewPassword")}</label>
                     <input type={showPasswords ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm outline-none focus:border-primary" required />
                   </div>
                 </div>
                 <button type="submit" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md font-medium hover:opacity-90">
-                  <Lock className="h-4 w-4" /> Update Password
+                  <Lock className="h-4 w-4" /> {t("settingsPage.updatePassword")}
                 </button>
               </form>
             </section>

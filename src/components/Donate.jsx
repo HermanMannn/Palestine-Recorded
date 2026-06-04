@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "@/hooks/useTranslation";
 import Navbar from "./Navbar.jsx";
 
 const CHARITIES = [
@@ -90,12 +91,27 @@ const CHARITIES = [
 ];
 
 const PRESET_AMOUNTS = [10, 25, 50, 100, 250];
+const CATEGORY_TRANSLATION_KEYS = {
+  "Medical & Emergency Aid": "donate.categories.medicalEmergencyAid",
+  "Food & Essential Supplies": "donate.categories.foodEssentialSupplies",
+  "Refugee & General Support": "donate.categories.refugeeGeneralSupport",
+  "Other Initiatives": "donate.categories.otherInitiatives",
+};
 
 export default function Donate() {
+  const { t, get } = useTranslation();
   const [selectedCharity, setSelectedCharity] = useState(null);
   const [amount, setAmount] = useState(25);
   const [customAmount, setCustomAmount] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const localeCharities = get("donate.charities");
+  const charityGroups = CHARITIES.map((group) => ({
+    ...group,
+    items: group.items.map((item) => {
+      const translated = localeCharities.find((charity) => charity.url === item.url);
+      return translated || item;
+    }),
+  }));
 
   const handleDonate = (e) => {
     e.preventDefault();
@@ -112,19 +128,20 @@ export default function Donate() {
 
       <main className="max-w-5xl mx-auto px-6 py-10">
         <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold mb-3">Support Palestine</h1>
+          <h1 className="text-4xl font-bold mb-3">{t('donate.title')}</h1>
           <p className="text-foreground/90 max-w-2xl mx-auto">
-            Choose a verified charity below and contribute any amount. This is a mock checkout —
-            no payment will be processed.
+            {t('donate.description')}
           </p>
         </div>
 
         <form onSubmit={handleDonate} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Charity list */}
           <div className="lg:col-span-2 space-y-6">
-            {CHARITIES.map((group) => (
+            {charityGroups.map((group) => (
               <section key={group.category}>
-                <h2 className="text-lg font-semibold mb-3 text-primary">{group.category}</h2>
+                <h2 className="text-lg font-semibold mb-3 text-primary">
+                  {t(CATEGORY_TRANSLATION_KEYS[group.category])}
+                </h2>
                 <div className="space-y-3">
                   {group.items.map((c) => {
                     const active = selectedCharity === c.name;
@@ -155,7 +172,7 @@ export default function Donate() {
                               onClick={(e) => e.stopPropagation()}
                               className="text-xs text-primary hover:underline"
                             >
-                              Visit ↗
+                              {t('donate.visit')}
                             </a>
                           </div>
                           <p className="text-sm text-muted-foreground mt-1">{c.desc}</p>
@@ -170,10 +187,10 @@ export default function Donate() {
 
           {/* Donation panel */}
           <aside className="lg:sticky lg:top-6 h-fit bg-card border border-border rounded-xl p-6 space-y-5">
-            <h3 className="text-xl font-semibold">Your Donation</h3>
+            <h3 className="text-xl font-semibold">{t('donate.donateTitle')}</h3>
 
             <div>
-              <label className="text-sm font-medium block mb-2">Amount (USD)</label>
+              <label className="text-sm font-medium block mb-2">{t('donate.amount')}</label>
               <div className="grid grid-cols-3 gap-2 mb-3">
                 {PRESET_AMOUNTS.map((a) => (
                   <button
@@ -196,7 +213,7 @@ export default function Donate() {
               <input
                 type="number"
                 min="1"
-                placeholder="Custom amount"
+                placeholder={t('donate.customAmount')}
                 value={customAmount}
                 onChange={(e) => setCustomAmount(e.target.value)}
                 className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm outline-none focus:border-primary"
@@ -205,13 +222,13 @@ export default function Donate() {
 
             <div className="text-sm">
               <div className="flex justify-between py-1">
-                <span className="text-muted-foreground">Charity</span>
+                <span className="text-muted-foreground">{t('donate.charity')}</span>
                 <span className="font-medium text-right max-w-[60%] truncate">
-                  {selectedCharity || "— Select one —"}
+                  {selectedCharity || t('donate.selectOne')}
                 </span>
               </div>
               <div className="flex justify-between py-1">
-                <span className="text-muted-foreground">Total</span>
+                <span className="text-muted-foreground">{t('donate.total')}</span>
                 <span className="font-semibold">${finalAmount || 0}</span>
               </div>
             </div>
@@ -221,18 +238,17 @@ export default function Donate() {
               disabled={!selectedCharity || !finalAmount}
               className="w-full py-3 rounded-md bg-primary text-primary-foreground font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-opacity"
             >
-              Donate ${finalAmount || 0}
+              {t('donate.submitDonate')}{finalAmount || 0}
             </button>
 
             {submitted && (
               <div className="text-sm bg-primary/10 text-primary border border-primary/30 rounded-md p-3">
-                ✓ Thank you! Your mock donation of ${finalAmount} to {selectedCharity} was recorded.
+                {t('donate.thankYou')} ${finalAmount} {t('donate.toCharity')} {selectedCharity} {t('donate.wasRecorded')}
               </div>
             )}
 
             <p className="text-xs text-muted-foreground">
-              This is a demo page. No real payment is processed. Use the "Visit ↗" link to donate
-              directly on the charity's website.
+              {t('donate.demoMessage')}
             </p>
           </aside>
         </form>
