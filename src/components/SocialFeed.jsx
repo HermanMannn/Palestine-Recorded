@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import ProfilePage from "./Profilepage";
+import { Link, useNavigate } from "@tanstack/react-router";
 
 const GuestPrompt = ({ onClose }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -721,7 +722,7 @@ export default function SocialFeed() {
               <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold text-foreground text-sm">Upcoming Events</h3>
-                  <button className="text-xs font-medium text-primary hover:underline">See all</button>
+                  <Link to="/calendar" className="mt-3 text-xs font-medium text-primary hover:underline">See all </Link>
                 </div>
                 <ul className="space-y-4">
                   {EVENTS.map((ev) => (

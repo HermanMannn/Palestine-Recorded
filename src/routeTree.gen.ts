@@ -8,6 +8,8 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
+import { createFileRoute } from '@tanstack/react-router'
+
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TimelineRouteImport } from './routes/timeline'
 import { Route as SocialRouteImport } from './routes/social'
@@ -25,6 +27,13 @@ import { Route as AuthcontextRouteImport } from './routes/authcontext'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 
+const CalendarLazyRouteImport = createFileRoute('/calendar')()
+
+const CalendarLazyRoute = CalendarLazyRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() => import('./routes/calendar.lazy').then((d) => d.Route))
 const TimelineRoute = TimelineRouteImport.update({
   id: '/timeline',
   path: '/timeline',
@@ -117,6 +126,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/social': typeof SocialRoute
   '/timeline': typeof TimelineRoute
+  '/calendar': typeof CalendarLazyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -134,6 +144,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/social': typeof SocialRoute
   '/timeline': typeof TimelineRoute
+  '/calendar': typeof CalendarLazyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -152,6 +163,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/social': typeof SocialRoute
   '/timeline': typeof TimelineRoute
+  '/calendar': typeof CalendarLazyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -171,6 +183,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/social'
     | '/timeline'
+    | '/calendar'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -188,6 +201,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/social'
     | '/timeline'
+    | '/calendar'
   id:
     | '__root__'
     | '/'
@@ -205,6 +219,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/social'
     | '/timeline'
+    | '/calendar'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -223,10 +238,18 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   SocialRoute: typeof SocialRoute
   TimelineRoute: typeof TimelineRoute
+  CalendarLazyRoute: typeof CalendarLazyRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/calendar': {
+      id: '/calendar'
+      path: '/calendar'
+      fullPath: '/calendar'
+      preLoaderRoute: typeof CalendarLazyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/timeline': {
       id: '/timeline'
       path: '/timeline'
@@ -351,7 +374,17 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   SocialRoute: SocialRoute,
   TimelineRoute: TimelineRoute,
+  CalendarLazyRoute: CalendarLazyRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
