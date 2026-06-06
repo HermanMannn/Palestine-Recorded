@@ -248,6 +248,43 @@ export default function EventDetails({ event, onClose, onPrev, onNext, canGoPrev
           </svg>
           Ask AI
         </button>
+
+        {submitted ? (
+          <div className="mt-3 p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-center space-y-2">
+            <svg className="w-10 h-10 mx-auto text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            <p className="text-sm font-semibold text-foreground">Submission received</p>
+            <p className="text-xs text-muted-foreground">Your media will be reviewed by a moderator.</p>
+            <button
+              onClick={() => setSubmitted(false)}
+              className="text-xs text-primary hover:underline"
+            >
+              Submit another
+            </button>
+          </div>
+        ) : (
+          <>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,video/*"
+              onChange={handleUpload}
+              className="hidden"
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="w-full mt-3 py-2.5 rounded-lg bg-primary/20 hover:bg-primary/30 border border-primary/40 text-foreground text-sm font-semibold transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 12V4m0 0l-4 4m4-4l4 4" />
+              </svg>
+              {uploading ? "Uploading..." : "Submit Media"}
+            </button>
+            {error && <p className="mt-2 text-xs text-destructive">{error}</p>}
+          </>
+        )}
       </div>
     </aside>
     </>
