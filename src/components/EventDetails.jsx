@@ -1,3 +1,6 @@
+import { useRef, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+
 function getStatusClass(status) {
   switch (status) {
     case "Ongoing":
