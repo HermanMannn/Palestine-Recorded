@@ -84,7 +84,7 @@ const SEED_POSTS = [
  *   onBack      — callback to close/go back.
  */
 export default function ProfilePage({ userId, seedKey, onBack }) {
-  const { t, get, language } = useTranslation();
+  const { t } = useTranslation();
   const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -124,9 +124,7 @@ export default function ProfilePage({ userId, seedKey, onBack }) {
         setPosts(userPosts || []);
       } else if (seedKey) {
         // Seed / demo profile
-        const translatedSeedProfiles = get("profile.seedProfiles");
-        const translatedSeed = translatedSeedProfiles.find((item) => item.key === seedKey);
-        const seed = SEED_PROFILES[seedKey] ? { ...SEED_PROFILES[seedKey], ...translatedSeed } : null;
+        const seed = SEED_PROFILES[seedKey] || null;
         setProfile(seed || null);
         setPosts(SEED_POSTS.filter((p) => p.author_key === seedKey));
       }
@@ -135,7 +133,7 @@ export default function ProfilePage({ userId, seedKey, onBack }) {
     };
 
     load();
-  }, [userId, seedKey, language]);
+  }, [userId, seedKey]);
 
   const toggleLike = (id) => {
     setLiked((prev) => ({ ...prev, [id]: !prev[id] }));

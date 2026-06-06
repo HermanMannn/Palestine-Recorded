@@ -1,4 +1,10 @@
 {
+  "404": {
+    "title": "404",
+    "heading": "الصفحة غير موجودة",
+    "description": "الصفحة التي تبحث عنها غير موجودة أو تم نقلها.",
+    "goHome": "العودة للرئيسية"
+  },
   "common": {
     "home": "الرئيسية",
     "community": "المجتمع",
@@ -25,22 +31,22 @@
     "video": "فيديو"
   },
   "metadata": {
-    "loginTitle": "فلسطين المسجلة — تسجيل الدخول",
+    "loginTitle": "فلسطين المسجلة - تسجيل الدخول",
     "loginDescription": "سجل الدخول إلى فلسطين المسجلة لاستكشاف الجدول الزمني التاريخي.",
     "aboutTitle": "صفحة حول",
     "aboutDescription": "صفحة حول الموقع",
     "contactTitle": "صفحة الاتصال",
     "contactDescription": "صفحة الاتصال بالموقع",
-    "donateTitle": "تبرع — فلسطين المسجلة",
-    "donateDescription": "ادعم جمعيات موثوقة تقدم المساعدات الطبية والغذائية والإنسانية للفلسطينيين.",
-    "messagesTitle": "فلسطين المسجلة — الرسائل المباشرة",
+    "donateTitle": "تبرع - فلسطين المسجلة",
+    "donateDescription": "ادعم جمعيات موثوقة تقدم مساعدات طبية وغذائية وإنسانية للفلسطينيين.",
+    "messagesTitle": "فلسطين المسجلة - الرسائل المباشرة",
     "messagesDescription": "تواصل وتحدث مع مجتمع فلسطين المسجلة.",
-    "settingsTitle": "الإعدادات — الخريطة التفاعلية",
+    "settingsTitle": "الإعدادات - الخريطة التفاعلية",
     "settingsDescription": "عدّل تفضيلاتك لتجربة الخريطة التفاعلية.",
-    "privacyTitle": "سياسة الخصوصية — فلسطين المسجلة",
+    "privacyTitle": "سياسة الخصوصية - فلسطين المسجلة",
     "privacyDescription": "كيف تجمع فلسطين المسجلة معلوماتك وتستخدمها وتحميها.",
-    "palgridTitle": "بالغريد — لعبة كلمات",
-    "palgridDescription": "لعبة كلمات بنمط Wordle مبنية على كلمات مرتبطة بفلسطين."
+    "palgridTitle": "PalGrid - لعبة كلمات",
+    "palgridDescription": "لعبة كلمات بأسلوب Wordle مبنية على كلمات مرتبطة بفلسطين."
   },
   "navbar": {
     "title": "فلسطين المسجلة",
@@ -58,7 +64,7 @@
   },
   "about": {
     "title": "حفظ الهوية، قصة تلو الأخرى",
-    "description": "لعقود طويلة، هيمن الصراع على السرد المحيط بفلسطين. فلسطين المسجلة (PalRec) منصة ويب مخصصة لحفظ النسيج الغني من التراث والثقافة والتقاليد الفلسطينية.",
+    "description": "على مدى عقود، هيمن الصراع على السرد المحيط بفلسطين. فلسطين المسجلة (PalRec) هي منصة ويب مخصصة لحفظ النسيج الغني من التراث والثقافة والتقاليد الفلسطينية.",
     "brand": "فلسطين المسجلة (PalRec)",
     "developedBy": "طورتها حلول ميداس البرمجية",
     "verifiedTimeline": "الجدول الزمني الموثق",
@@ -69,11 +75,11 @@
     "communityHub": "مركز المجتمع",
     "communityHubDesc": "شارك المنشورات وتفاعل عبر نظام رسائل مخصص.",
     "reputationPoints": "نقاط السمعة",
-    "reputationPointsDesc": "اكسب نقاطا مقابل المساهمات التي تحافظ على نزاهة المنصة.",
-    "palGrid": "بالغريد",
+    "reputationPointsDesc": "اكسب نقاطا للمساهمات التي تحافظ على نزاهة المنصة.",
+    "palGrid": "PalGrid",
     "palGridDesc": "تعلم الثقافة من خلال لغز كلمات يومي يضم مصطلحات مرتبطة بفلسطين.",
     "strictModeration": "إشراف صارم",
-    "strictModerationDesc": "يضمن المشرفون الآليون والبشريون بقاء التاريخ خاليا من المعلومات المضللة.",
+    "strictModerationDesc": "يساعد الإشراف الآلي والبشري على إبقاء التاريخ خاليا من المعلومات المضللة.",
     "futureTech": "تقنيات مستقبلية",
     "futureTechDesc": "روبوتات محادثة مدعومة بالذكاء الاصطناعي لمساعدة الباحثين والمؤرخين.",
     "blockchain": "سلسلة الكتل",
@@ -81,12 +87,30 @@
     "leadBy": "بقيادة د. منار أبو طالب",
     "universityOfSharjah": "جامعة الشارقة",
     "team": [
-      { "name": "Ahmed Yacine Ahriche", "role": "Chief Technology Officer" },
-      { "name": "EmadEddin Al-Chmri", "role": "Chief Design Officer" },
-      { "name": "Isa Al-Khanous", "role": "Chief Information Officer" },
-      { "name": "Mohammad Aziz Khodahafez", "role": "Chief Product Officer" },
-      { "name": "Moheeb Suliman Musa", "role": "Chief Operations Officer" },
-      { "name": "Nader Zamrawi", "role": "Chief Communications Officer" }
+      {
+        "name": "Ahmed Yacine Ahriche",
+        "role": "الرئيس التقني"
+      },
+      {
+        "name": "EmadEddin Al-Chmri",
+        "role": "رئيس التصميم"
+      },
+      {
+        "name": "Isa Al-Khanous",
+        "role": "رئيس المعلومات"
+      },
+      {
+        "name": "Mohammad Aziz Khodahafez",
+        "role": "رئيس المنتج"
+      },
+      {
+        "name": "Moheeb Suliman Musa",
+        "role": "رئيس العمليات"
+      },
+      {
+        "name": "Nader Zamrawi",
+        "role": "رئيس الاتصالات"
+      }
     ]
   },
   "contact": {
@@ -100,7 +124,7 @@
     "sending": "جار الإرسال...",
     "required": "هذا الحقل مطلوب",
     "invalidEmail": "يرجى إدخال بريد إلكتروني صحيح",
-    "messageTooShort": "يجب أن تتكون الرسالة من 10 أحرف على الأقل",
+    "messageTooShort": "يجب أن تكون الرسالة 10 أحرف على الأقل",
     "successMessage": "تم إرسال الرسالة بنجاح! سنعود إليك قريبا.",
     "errorMessage": "فشل إرسال الرسالة. يرجى المحاولة مرة أخرى."
   },
@@ -122,7 +146,7 @@
     "signingIn": "جار تسجيل الدخول...",
     "creatingAccount": "جار إنشاء الحساب...",
     "allFieldsRequired": "جميع الحقول مطلوبة",
-    "passwordMismatch": "كلمات المرور غير متطابقة",
+    "passwordMismatch": "كلمتا المرور غير متطابقتين",
     "loginFailed": "فشل تسجيل الدخول",
     "signupFailed": "فشل إنشاء الحساب",
     "submissionFailed": "فشل الإرسال",
@@ -144,7 +168,7 @@
     "signUp": "سجل من هنا",
     "applicationSubmittedTitle": "تم إرسال الطلب",
     "applicationSubmitted": "أرسلنا رسالة تحقق إلى",
-    "applicationReview": "سيتم مراجعة طلبك من قبل مشرف. سيتم توجيهك إلى الجدول الزمني بعد لحظات.",
+    "applicationReview": "ستتم مراجعة طلبك من قبل مشرف. سيتم توجيهك إلى الجدول الزمني بعد لحظات.",
     "browseGuest": "تصفح كضيف",
     "signIn": "تسجيل الدخول",
     "applyAsVerified": "التقديم كحساب موثق",
@@ -152,14 +176,14 @@
     "government": "حكومة",
     "governmentApplication": "طلب حكومي",
     "researcherApplication": "طلب باحث",
-    "applicationReviewed": "سيتم مراجعة طلبك من قبل مشرف.",
+    "applicationReviewed": "ستتم مراجعة طلبك من قبل مشرف.",
     "submitting": "جار الإرسال...",
     "submitApplication": "إرسال الطلب",
     "cancel": "إلغاء"
   },
   "donate": {
     "title": "ادعم فلسطين",
-    "description": "اختر جمعية موثوقة أدناه وساهم بأي مبلغ. هذه صفحة دفع تجريبية - لن تتم معالجة أي دفعة.",
+    "description": "اختر جمعية موثوقة أدناه وساهم بأي مبلغ. هذه صفحة دفع تجريبية ولن تتم معالجة أي دفعة.",
     "donateTitle": "تبرعك",
     "amount": "المبلغ (دولار أمريكي)",
     "customAmount": "مبلغ مخصص",
@@ -179,19 +203,84 @@
       "otherInitiatives": "مبادرات أخرى"
     },
     "charities": [
-      { "category": "Medical & Emergency Aid", "name": "Medical Aid for Palestinians (MAP)", "desc": "توفر مستلزمات طبية وخدمات صحية للفلسطينيين المحتاجين.", "url": "https://www.map.org.uk/donate" },
-      { "category": "Medical & Emergency Aid", "name": "Palestine Children's Relief Fund (PCRF)", "desc": "تركز على الرعاية الطبية والإغاثة الإنسانية للأطفال.", "url": "https://www.pcrf.net/" },
-      { "category": "Medical & Emergency Aid", "name": "Tarahum for Gaza (International Charity Organization)", "desc": "تقدم مساعدات طارئة وجهود إغاثة في غزة.", "url": "https://ico.org.ae/en/tarahum-for-gaza" },
-      { "category": "Medical & Emergency Aid", "name": "Dubai Charity Association", "desc": "تشارك في مبادرة طيور الخير لإسقاط المساعدات إلى غزة.", "url": "https://www.dubaicharity.ae/" },
-      { "category": "Medical & Emergency Aid", "name": "Emirates Red Crescent", "desc": "تقدم مساعدات متنوعة تشمل السكن والدعم الطبي.", "url": "https://www.emiratesrc.ae/" },
-      { "category": "Food & Essential Supplies", "name": "Muslims Around The World (MATW)", "desc": "توفر طرودا غذائية ووجبات وبطانيات عبر مخازن محلية في غزة.", "url": "https://matwproject.org/" },
-      { "category": "Food & Essential Supplies", "name": "Palestine Aid", "desc": "تركز على الدعم النفسي الاجتماعي والمساعدات الإنسانية، خصوصا للأيتام.", "url": "https://palestineaid.org/" },
-      { "category": "Refugee & General Support", "name": "UNRWA", "desc": "تقدم خدمات أساسية للاجئين الفلسطينيين في أنحاء المنطقة.", "url": "https://donate.unrwa.org/" },
-      { "category": "Refugee & General Support", "name": "Save the Children", "desc": "تقدم الدعم والمأوى والتعليم للأطفال المتأثرين بالصراع.", "url": "https://www.savethechildren.org/us/where-we-work/west-bank-gaza" },
-      { "category": "Refugee & General Support", "name": "Together For Palestine Fund (Choose Love)", "desc": "توفر مساعدات حيوية للنازحين في غزة والضفة الغربية.", "url": "https://choose.love/" },
-      { "category": "Other Initiatives", "name": "War Child UK", "desc": "تركز على حماية الأطفال في مناطق الصراع.", "url": "https://www.warchild.org.uk/" },
-      { "category": "Other Initiatives", "name": "PaliRoots", "desc": "علامة تجارية تدعم مبادرات خيرية في فلسطين.", "url": "https://www.paliroots.com/" },
-      { "category": "Other Initiatives", "name": "Wear The Peace", "desc": "علامة تجارية تدعم مبادرات خيرية في فلسطين.", "url": "https://wearthepeace.com/" }
+      {
+        "category": "Medical & Emergency Aid",
+        "name": "Medical Aid for Palestinians (MAP)",
+        "desc": "توفر مستلزمات طبية وخدمات رعاية صحية للفلسطينيين المحتاجين.",
+        "url": "https://www.map.org.uk/donate"
+      },
+      {
+        "category": "Medical & Emergency Aid",
+        "name": "Palestine Children's Relief Fund (PCRF)",
+        "desc": "تركز على الرعاية الطبية والإغاثة الإنسانية للأطفال.",
+        "url": "https://www.pcrf.net/"
+      },
+      {
+        "category": "Medical & Emergency Aid",
+        "name": "Tarahum for Gaza (International Charity Organization)",
+        "desc": "تقدم مساعدات طارئة وجهود إغاثة في غزة.",
+        "url": "https://ico.org.ae/en/tarahum-for-gaza"
+      },
+      {
+        "category": "Medical & Emergency Aid",
+        "name": "Dubai Charity Association",
+        "desc": "تشارك في مبادرة طيور الخير لإسقاط المساعدات إلى غزة.",
+        "url": "https://www.dubaicharity.ae/"
+      },
+      {
+        "category": "Medical & Emergency Aid",
+        "name": "Emirates Red Crescent",
+        "desc": "تقدم مساعدات متنوعة تشمل السكن والدعم الطبي.",
+        "url": "https://www.emiratesrc.ae/"
+      },
+      {
+        "category": "Food & Essential Supplies",
+        "name": "Muslims Around The World (MATW)",
+        "desc": "توفر طرودا غذائية ووجبات وبطانيات عبر مخازن محلية في غزة.",
+        "url": "https://matwproject.org/"
+      },
+      {
+        "category": "Food & Essential Supplies",
+        "name": "Palestine Aid",
+        "desc": "تركز على الدعم النفسي الاجتماعي والمساعدات الإنسانية، خاصة للأيتام.",
+        "url": "https://palestineaid.org/"
+      },
+      {
+        "category": "Refugee & General Support",
+        "name": "UNRWA",
+        "desc": "تقدم خدمات أساسية للاجئين الفلسطينيين في أنحاء المنطقة.",
+        "url": "https://donate.unrwa.org/"
+      },
+      {
+        "category": "Refugee & General Support",
+        "name": "Save the Children",
+        "desc": "تقدم الدعم والمأوى والتعليم للأطفال المتأثرين بالصراع.",
+        "url": "https://www.savethechildren.org/us/where-we-work/west-bank-gaza"
+      },
+      {
+        "category": "Refugee & General Support",
+        "name": "Together For Palestine Fund (Choose Love)",
+        "desc": "توفر مساعدات حيوية للنازحين في غزة والضفة الغربية.",
+        "url": "https://choose.love/"
+      },
+      {
+        "category": "Other Initiatives",
+        "name": "War Child UK",
+        "desc": "تركز على حماية الأطفال في مناطق الصراع.",
+        "url": "https://www.warchild.org.uk/"
+      },
+      {
+        "category": "Other Initiatives",
+        "name": "PaliRoots",
+        "desc": "علامة تجارية تدعم مبادرات خيرية في فلسطين.",
+        "url": "https://www.paliroots.com/"
+      },
+      {
+        "category": "Other Initiatives",
+        "name": "Wear The Peace",
+        "desc": "علامة تجارية تدعم مبادرات خيرية في فلسطين.",
+        "url": "https://wearthepeace.com/"
+      }
     ]
   },
   "socialFeed": {
@@ -234,26 +323,7 @@
     "failedToPost": "فشل النشر:",
     "deletePost": "حذف المنشور",
     "editPost": "تعديل المنشور",
-    "reportPost": "الإبلاغ عن المنشور",
-    "seedPosts": [
-      {
-        "author": "Amr Bu-Gazala",
-        "role": "مسؤول فلسطيني سابق",
-        "time": "منذ ساعتين",
-        "text": "أشارك صورة من أرشيف عائلتي - يافا، 1946. بستان البرتقال الخاص بجدي قبل أن يتغير كل شيء. يجب أن نحافظ على هذه الذكريات حية للجيل القادم."
-      },
-      {
-        "author": "Rawda Asfur",
-        "role": "صحفية فلسطينية",
-        "time": "منذ 5 ساعات",
-        "text": "زرت اليوم القرية التي ولدت فيها جدتي. أشجار اللوز التي كانت تتحدث عنها ما زالت هناك. بعض الجذور لا تمحى."
-      }
-    ],
-    "seedComments": [
-      { "author": "Layla Hassan", "time": "منذ ساعة", "text": "شكرا لمشاركتك هذا. يجب ألا ينسى التاريخ." },
-      { "author": "Omar Nasser", "time": "منذ 45 دقيقة", "text": "كانت بساتين البرتقال هذه مشهورة في أنحاء العالم العربي. أرشيف جميل." },
-      { "author": "Sara Al-Khalidi", "time": "منذ 3 ساعات", "text": "أشجار اللوز تبقى دائما. رمز قوي." }
-    ]
+    "reportPost": "الإبلاغ عن المنشور"
   },
   "messages": {
     "searchPlaceholder": "بحث...",
@@ -263,13 +333,7 @@
     "attachFile": "إرفاق ملف (50 ميغابايت كحد أقصى)",
     "sendMessage": "إرسال الرسالة",
     "fileTooLarge": "الملف كبير جدا (50 ميغابايت كحد أقصى).",
-    "couldNotSend": "تعذر إرسال الرسالة:",
-    "conversations": [
-      { "name": "Hamza", "time": "11:35 ص", "preview": "" },
-      { "name": "PalRec Devs", "time": "9:50 ص", "preview": "أنت: صباح الخير!!" },
-      { "name": "Amr Bu-Gazala", "time": "أمس", "preview": "شكرا لمشاركتك تلك الصورة." },
-      { "name": "Layla Haddad", "time": "الثلاثاء", "preview": "سأرسل الأرشيف غدا." }
-    ]
+    "couldNotSend": "تعذر إرسال الرسالة:"
   },
   "settingsPage": {
     "title": "إعدادات الحساب",
@@ -297,7 +361,7 @@
     "onlyImages": "يسمح بملفات الصور فقط",
     "imageTooLarge": "الصورة كبيرة جدا (2 ميغابايت كحد أقصى)",
     "pictureSelected": "تم اختيار الصورة! احفظ التغييرات لتطبيقها.",
-    "passwordsMismatch": "كلمات المرور غير متطابقة",
+    "passwordsMismatch": "كلمتا المرور غير متطابقتين",
     "passwordTooShort": "يجب أن تكون كلمة المرور 6 أحرف على الأقل",
     "passwordUpdated": "تم تحديث كلمة المرور!",
     "themeLight": "تم تغيير السمة إلى فاتح",
@@ -312,16 +376,10 @@
     "public": "عام",
     "post": "منشور",
     "posts": "منشورات",
-    "noPostsYet": "لا توجد منشورات بعد.",
-    "seedProfiles": [
-      { "key": "hamza", "username": "Hamza", "bio": "يشارك قصصا وذكريات من فلسطين.", "joined": "مارس 2024" },
-      { "key": "palrec", "username": "PalRec Devs", "bio": "الفريق وراء فلسطين المسجلة.", "joined": "يناير 2024" },
-      { "key": "amr", "username": "Amr Bu-Gazala", "bio": "مسؤول فلسطيني سابق وحافظ للذكريات.", "joined": "فبراير 2024" },
-      { "key": "layla", "username": "Layla Haddad", "bio": "أرشيفية ومؤرخة مجتمعية.", "joined": "أبريل 2024" }
-    ]
+    "noPostsYet": "لا توجد منشورات بعد."
   },
   "palgrid": {
-    "title": "بالغريد",
+    "title": "PalGrid",
     "daily": "يومي",
     "random": "عشوائي",
     "resetGame": "إعادة اللعبة",
@@ -347,10 +405,30 @@
     "loadMore": "تحميل المزيد من الأحداث",
     "noEvents": "لا توجد أحداث",
     "searchPlaceholder": "بحث...",
-    "months": ["يناير", "أبريل", "مايو", "يونيو", "يوليو", "نوفمبر", "ديسمبر"],
+    "months": [
+      "يناير",
+      "فبراير",
+      "مارس",
+      "أبريل",
+      "مايو",
+      "يونيو",
+      "يوليو",
+      "أغسطس",
+      "سبتمبر",
+      "أكتوبر",
+      "نوفمبر",
+      "ديسمبر"
+    ],
     "statuses": ["جار", "منته"],
     "categories": ["عسكري", "سياسي", "دبلوماسي", "اجتماعي"],
     "tags": ["تأثير كبير", "إقليمي", "محلي", "وطني", "صراع", "إصلاح", "ثورة", "أزمة"]
+  },
+  "mapControls": {
+    "liveMap": "مباشر",
+    "historicalMap": "تاريخية",
+    "loadingMap": "جار تحميل الخريطة...",
+    "collapseSidebar": "طي الشريط الجانبي",
+    "expandSidebar": "توسيع الشريط الجانبي"
   },
   "eventDetails": {
     "previousEvent": "الحدث السابق",
@@ -369,7 +447,12 @@
     "noticeOwner": "Midas Software",
     "website": "https://palrec.lovable.app/",
     "email": "zamrawi.nader@gmail.com",
-    "address": ["Midas Software", "جامعة الشارقة", "المدينة الجامعية، الشارقة", "الإمارات العربية المتحدة"],
+    "address": [
+      "Midas Software",
+      "جامعة الشارقة",
+      "المدينة الجامعية، الشارقة",
+      "الإمارات العربية المتحدة"
+    ],
     "sections": [
       "ملخص النقاط الرئيسية",
       "ما المعلومات التي نجمعها؟",
@@ -384,11 +467,5 @@
       "كيف يمكنك التواصل معنا بخصوص هذا الإشعار؟",
       "كيف يمكنك مراجعة أو تحديث أو حذف البيانات التي نجمعها منك؟"
     ]
-  },
-  "404": {
-    "title": "404",
-    "heading": "الصفحة غير موجودة",
-    "description": "الصفحة التي تبحث عنها غير موجودة أو تم نقلها.",
-    "goHome": "العودة للرئيسية"
   }
 }

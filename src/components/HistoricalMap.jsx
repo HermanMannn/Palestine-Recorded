@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import "leaflet/dist/leaflet.css";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { mapEvents } from "../lib/mapEvents";
+import { useTranslation } from "@/hooks/useTranslation";
 
 // --- Historical Map Constants & Helpers ---
 const SHEET = { tileUrl: "/tiles1/fullmap", imageWidth: 3851, imageHeight: 11353 };
@@ -23,6 +24,7 @@ function getImageBounds(L, w, h) {
 }
 
 export default function HistoricalMap({ sidebarOpen, onToggleSidebar }) {
+  const { t } = useTranslation();
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const [loading, setLoading] = useState(true);
@@ -226,7 +228,7 @@ export default function HistoricalMap({ sidebarOpen, onToggleSidebar }) {
         style={{
           left: sidebarOpen ? "292px" : "16px"
         }}
-        title={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+        title={sidebarOpen ? t("mapControls.collapseSidebar") : t("mapControls.expandSidebar")}
       >
         <svg
           className={`w-5 h-5 transition-transform duration-300 ease-in-out ${sidebarOpen ? "rotate-180" : ""}`}
@@ -254,7 +256,7 @@ export default function HistoricalMap({ sidebarOpen, onToggleSidebar }) {
               : "text-foreground/60"
           }`}
         >
-          Live
+          {t("mapControls.liveMap")}
         </span>
         <span
           className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
@@ -263,14 +265,14 @@ export default function HistoricalMap({ sidebarOpen, onToggleSidebar }) {
               : "text-foreground/60"
           }`}
         >
-          Historical
+          {t("mapControls.historicalMap")}
         </span>
       </button>
 
       {/* Loading Overlay */}
       {loading && (
         <div className="absolute inset-0 z-[2000] flex items-center justify-center bg-background/60 backdrop-blur-sm pointer-events-none">
-          <span className="text-sm text-muted-foreground">Loading map...</span>
+          <span className="text-sm text-muted-foreground">{t("mapControls.loadingMap")}</span>
         </div>
       )}
     </div>

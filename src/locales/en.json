@@ -1,4 +1,10 @@
 {
+  "404": {
+    "title": "404",
+    "heading": "Page not found",
+    "description": "The page you're looking for doesn't exist or has been moved.",
+    "goHome": "Go home"
+  },
   "common": {
     "home": "Home",
     "community": "Community",
@@ -25,21 +31,21 @@
     "video": "Video"
   },
   "metadata": {
-    "loginTitle": "Palestine Recorded — Login",
+    "loginTitle": "Palestine Recorded - Login",
     "loginDescription": "Login to Palestine Recorded to explore the historical timeline.",
     "aboutTitle": "About Page",
     "aboutDescription": "About page of the Website",
     "contactTitle": "Contact Page",
     "contactDescription": "Contact page of the Website",
-    "donateTitle": "Donate — Palestine Recorded",
+    "donateTitle": "Donate - Palestine Recorded",
     "donateDescription": "Support verified charities providing medical, food, and humanitarian aid to Palestinians.",
-    "messagesTitle": "Palestine Recorded — Direct Messages",
+    "messagesTitle": "Palestine Recorded - Direct Messages",
     "messagesDescription": "Connect and chat with the Palestine Recorded community.",
-    "settingsTitle": "Settings — Interactive Map",
+    "settingsTitle": "Settings - Interactive Map",
     "settingsDescription": "Adjust your preferences for the interactive map experience.",
-    "privacyTitle": "Privacy Policy — Palestine Recorded",
+    "privacyTitle": "Privacy Policy - Palestine Recorded",
     "privacyDescription": "How Palestine Recorded collects, uses, and protects your information.",
-    "palgridTitle": "PalGrid — Word Game",
+    "palgridTitle": "PalGrid - Word Game",
     "palgridDescription": "A Wordle-style game built for Palestine-themed words."
   },
   "navbar": {
@@ -81,12 +87,30 @@
     "leadBy": "Lead by Dr. Manar Abu Talib",
     "universityOfSharjah": "University of Sharjah",
     "team": [
-      { "name": "Ahmed Yacine Ahriche", "role": "Chief Technology Officer" },
-      { "name": "EmadEddin Al-Chmri", "role": "Chief Design Officer" },
-      { "name": "Isa Al-Khanous", "role": "Chief Information Officer" },
-      { "name": "Mohammad Aziz Khodahafez", "role": "Chief Product Officer" },
-      { "name": "Moheeb Suliman Musa", "role": "Chief Operations Officer" },
-      { "name": "Nader Zamrawi", "role": "Chief Communications Officer" }
+      {
+        "name": "Ahmed Yacine Ahriche",
+        "role": "Chief Technology Officer"
+      },
+      {
+        "name": "EmadEddin Al-Chmri",
+        "role": "Chief Design Officer"
+      },
+      {
+        "name": "Isa Al-Khanous",
+        "role": "Chief Information Officer"
+      },
+      {
+        "name": "Mohammad Aziz Khodahafez",
+        "role": "Chief Product Officer"
+      },
+      {
+        "name": "Moheeb Suliman Musa",
+        "role": "Chief Operations Officer"
+      },
+      {
+        "name": "Nader Zamrawi",
+        "role": "Chief Communications Officer"
+      }
     ]
   },
   "contact": {
@@ -179,19 +203,84 @@
       "otherInitiatives": "Other Initiatives"
     },
     "charities": [
-      { "category": "Medical & Emergency Aid", "name": "Medical Aid for Palestinians (MAP)", "desc": "Provides medical supplies and healthcare services to Palestinians in need.", "url": "https://www.map.org.uk/donate" },
-      { "category": "Medical & Emergency Aid", "name": "Palestine Children's Relief Fund (PCRF)", "desc": "Focuses on medical care and humanitarian relief for children.", "url": "https://www.pcrf.net/" },
-      { "category": "Medical & Emergency Aid", "name": "Tarahum for Gaza (International Charity Organization)", "desc": "Delivers emergency aid and relief efforts in Gaza.", "url": "https://ico.org.ae/en/tarahum-for-gaza" },
-      { "category": "Medical & Emergency Aid", "name": "Dubai Charity Association", "desc": "Involved in 'Birds of Goodness' for airdropping aid into Gaza.", "url": "https://www.dubaicharity.ae/" },
-      { "category": "Medical & Emergency Aid", "name": "Emirates Red Crescent", "desc": "Provides diverse aid including housing and medical support.", "url": "https://www.emiratesrc.ae/" },
-      { "category": "Food & Essential Supplies", "name": "Muslims Around The World (MATW)", "desc": "Supplies food packs, meals, and blankets via local Gaza warehouses.", "url": "https://matwproject.org/" },
-      { "category": "Food & Essential Supplies", "name": "Palestine Aid", "desc": "Focuses on psycho-social support and humanitarian aid, particularly for orphans.", "url": "https://palestineaid.org/" },
-      { "category": "Refugee & General Support", "name": "UNRWA", "desc": "Provides essential services to Palestinian refugees across the region.", "url": "https://donate.unrwa.org/" },
-      { "category": "Refugee & General Support", "name": "Save the Children", "desc": "Provides support, shelter, and education for children affected by conflict.", "url": "https://www.savethechildren.org/us/where-we-work/west-bank-gaza" },
-      { "category": "Refugee & General Support", "name": "Together For Palestine Fund (Choose Love)", "desc": "Supplies vital aid to displaced people in Gaza and the West Bank.", "url": "https://choose.love/" },
-      { "category": "Other Initiatives", "name": "War Child UK", "desc": "Focuses on protecting children in conflict zones.", "url": "https://www.warchild.org.uk/" },
-      { "category": "Other Initiatives", "name": "PaliRoots", "desc": "Brand that supports charity initiatives in Palestine.", "url": "https://www.paliroots.com/" },
-      { "category": "Other Initiatives", "name": "Wear The Peace", "desc": "Brand that supports charity initiatives in Palestine.", "url": "https://wearthepeace.com/" }
+      {
+        "category": "Medical & Emergency Aid",
+        "name": "Medical Aid for Palestinians (MAP)",
+        "desc": "Provides medical supplies and healthcare services to Palestinians in need.",
+        "url": "https://www.map.org.uk/donate"
+      },
+      {
+        "category": "Medical & Emergency Aid",
+        "name": "Palestine Children's Relief Fund (PCRF)",
+        "desc": "Focuses on medical care and humanitarian relief for children.",
+        "url": "https://www.pcrf.net/"
+      },
+      {
+        "category": "Medical & Emergency Aid",
+        "name": "Tarahum for Gaza (International Charity Organization)",
+        "desc": "Delivers emergency aid and relief efforts in Gaza.",
+        "url": "https://ico.org.ae/en/tarahum-for-gaza"
+      },
+      {
+        "category": "Medical & Emergency Aid",
+        "name": "Dubai Charity Association",
+        "desc": "Involved in 'Birds of Goodness' for airdropping aid into Gaza.",
+        "url": "https://www.dubaicharity.ae/"
+      },
+      {
+        "category": "Medical & Emergency Aid",
+        "name": "Emirates Red Crescent",
+        "desc": "Provides diverse aid including housing and medical support.",
+        "url": "https://www.emiratesrc.ae/"
+      },
+      {
+        "category": "Food & Essential Supplies",
+        "name": "Muslims Around The World (MATW)",
+        "desc": "Supplies food packs, meals, and blankets via local Gaza warehouses.",
+        "url": "https://matwproject.org/"
+      },
+      {
+        "category": "Food & Essential Supplies",
+        "name": "Palestine Aid",
+        "desc": "Focuses on psycho-social support and humanitarian aid, particularly for orphans.",
+        "url": "https://palestineaid.org/"
+      },
+      {
+        "category": "Refugee & General Support",
+        "name": "UNRWA",
+        "desc": "Provides essential services to Palestinian refugees across the region.",
+        "url": "https://donate.unrwa.org/"
+      },
+      {
+        "category": "Refugee & General Support",
+        "name": "Save the Children",
+        "desc": "Provides support, shelter, and education for children affected by conflict.",
+        "url": "https://www.savethechildren.org/us/where-we-work/west-bank-gaza"
+      },
+      {
+        "category": "Refugee & General Support",
+        "name": "Together For Palestine Fund (Choose Love)",
+        "desc": "Supplies vital aid to displaced people in Gaza and the West Bank.",
+        "url": "https://choose.love/"
+      },
+      {
+        "category": "Other Initiatives",
+        "name": "War Child UK",
+        "desc": "Focuses on protecting children in conflict zones.",
+        "url": "https://www.warchild.org.uk/"
+      },
+      {
+        "category": "Other Initiatives",
+        "name": "PaliRoots",
+        "desc": "Brand that supports charity initiatives in Palestine.",
+        "url": "https://www.paliroots.com/"
+      },
+      {
+        "category": "Other Initiatives",
+        "name": "Wear The Peace",
+        "desc": "Brand that supports charity initiatives in Palestine.",
+        "url": "https://wearthepeace.com/"
+      }
     ]
   },
   "socialFeed": {
@@ -234,26 +323,7 @@
     "failedToPost": "Failed to post:",
     "deletePost": "Delete Post",
     "editPost": "Edit Post",
-    "reportPost": "Report Post",
-    "seedPosts": [
-      {
-        "author": "Amr Bu-Gazala",
-        "role": "Former Palestinian Official",
-        "time": "2h ago",
-        "text": "Sharing a photograph from my family archive - Jaffa, 1946. My grandfather's orange grove before everything changed. We must keep these memories alive for the next generation."
-      },
-      {
-        "author": "Rawda Asfur",
-        "role": "Palestinian Journalist",
-        "time": "5h ago",
-        "text": "Today I visited the village my grandmother was born in. The almond trees she always spoke about are still there. Some roots cannot be erased."
-      }
-    ],
-    "seedComments": [
-      { "author": "Layla Hassan", "time": "1h ago", "text": "Thank you for sharing this. History must not be forgotten." },
-      { "author": "Omar Nasser", "time": "45m ago", "text": "These orange groves were famous across the Arab world. Beautiful archive." },
-      { "author": "Sara Al-Khalidi", "time": "3h ago", "text": "The almond trees always survive. A powerful symbol." }
-    ]
+    "reportPost": "Report Post"
   },
   "messages": {
     "searchPlaceholder": "Search...",
@@ -263,13 +333,7 @@
     "attachFile": "Attach file (max 50MB)",
     "sendMessage": "Send message",
     "fileTooLarge": "File too large (max 50MB).",
-    "couldNotSend": "Couldn't send message:",
-    "conversations": [
-      { "name": "Hamza", "time": "11:35 am", "preview": "" },
-      { "name": "PalRec Devs", "time": "9:50 am", "preview": "You: Good morning!!" },
-      { "name": "Amr Bu-Gazala", "time": "Yesterday", "preview": "Thank you for sharing that photo." },
-      { "name": "Layla Haddad", "time": "Tuesday", "preview": "I'll send the archive tomorrow." }
-    ]
+    "couldNotSend": "Couldn't send message:"
   },
   "settingsPage": {
     "title": "Account Settings",
@@ -312,13 +376,7 @@
     "public": "Public",
     "post": "post",
     "posts": "posts",
-    "noPostsYet": "No posts yet.",
-    "seedProfiles": [
-      { "key": "hamza", "username": "Hamza", "bio": "Sharing stories and memories from Palestine.", "joined": "March 2024" },
-      { "key": "palrec", "username": "PalRec Devs", "bio": "The team behind Palestine Recorded.", "joined": "January 2024" },
-      { "key": "amr", "username": "Amr Bu-Gazala", "bio": "Former Palestinian Official. Keeper of memories.", "joined": "February 2024" },
-      { "key": "layla", "username": "Layla Haddad", "bio": "Archivist and community historian.", "joined": "April 2024" }
-    ]
+    "noPostsYet": "No posts yet."
   },
   "palgrid": {
     "title": "PALGRID",
@@ -347,10 +405,39 @@
     "loadMore": "Load More Events",
     "noEvents": "No events found",
     "searchPlaceholder": "Search...",
-    "months": ["January", "April", "May", "June", "July", "November", "December"],
+    "months": [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December"
+    ],
     "statuses": ["Ongoing", "Concluded"],
     "categories": ["Military", "Political", "Diplomatic", "Social"],
-    "tags": ["High Impact", "Regional", "Local", "National", "Conflict", "Reform", "Revolution", "Crisis"]
+    "tags": [
+      "High Impact",
+      "Regional",
+      "Local",
+      "National",
+      "Conflict",
+      "Reform",
+      "Revolution",
+      "Crisis"
+    ]
+  },
+  "mapControls": {
+    "liveMap": "Live",
+    "historicalMap": "Historical",
+    "loadingMap": "Loading map...",
+    "collapseSidebar": "Collapse sidebar",
+    "expandSidebar": "Expand sidebar"
   },
   "eventDetails": {
     "previousEvent": "Previous event",
@@ -369,7 +456,12 @@
     "noticeOwner": "Midas Software",
     "website": "https://palrec.lovable.app/",
     "email": "zamrawi.nader@gmail.com",
-    "address": ["Midas Software", "University of Sharjah", "University City, Sharjah", "United Arab Emirates"],
+    "address": [
+      "Midas Software",
+      "University of Sharjah",
+      "University City, Sharjah",
+      "United Arab Emirates"
+    ],
     "sections": [
       "SUMMARY OF KEY POINTS",
       "WHAT INFORMATION DO WE COLLECT?",
@@ -384,11 +476,5 @@
       "HOW CAN YOU CONTACT US ABOUT THIS NOTICE?",
       "HOW CAN YOU REVIEW, UPDATE, OR DELETE THE DATA WE COLLECT FROM YOU?"
     ]
-  },
-  "404": {
-    "title": "404",
-    "heading": "Page not found",
-    "description": "The page you're looking for doesn't exist or has been moved.",
-    "goHome": "Go home"
   }
 }

@@ -2,8 +2,32 @@ import { useState, useEffect, useMemo } from "react";
 import { mapEvents } from "../lib/mapEvents";
 import EventDetails from "@/components/EventDetails";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const DEFAULT = { lat: 31.9, lng: 35.2, zoom: 9 };
+const EN_MONTH_LABELS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+function translateMonth(month, translatedMonths) {
+  const index = EN_MONTH_LABELS.indexOf(month);
+  return index >= 0 ? translatedMonths[index] || month : month;
+}
+
+function getEventDisplay(event, language) {
+  return language === "ar" ? event.translations?.ar || {} : {};
+}
 
 export const timelineData = [
   {
@@ -24,6 +48,18 @@ export const timelineData = [
             status: "Concluded",
             description:
               "At the Battle of Marj Dabiq, Ottoman Sultan Selim I defeated the Mamluk Sultanate, bringing Palestine under Ottoman rule. This began four centuries of Ottoman administration over the region, shaping its governance, demographics, and religious institutions until WWI.",
+            translations: {
+              ar: {
+                title: "الفتح العثماني لفلسطين",
+                location: "مرج دابق، بالقرب من حلب",
+                description:
+                  "في معركة مرج دابق، هزم السلطان العثماني سليم الأول سلطنة المماليك، مما أدخل فلسطين تحت الحكم العثماني. وقد بدأ ذلك أربعة قرون من الإدارة العثمانية للمنطقة، وشكّل أنظمة الحكم والتركيبة السكانية والمؤسسات الدينية فيها حتى الحرب العالمية الأولى.",
+                articles: [
+                  { title: "معركة مرج دابق — ويكيبيديا", url: "https://en.wikipedia.org/wiki/Battle_of_Marj_Dabiq" },
+                  { title: "سوريا العثمانية — ويكيبيديا", url: "https://en.wikipedia.org/wiki/Ottoman_Syria" },
+                ],
+              },
+            },
             articles: [
               { title: "Battle of Marj Dabiq — Wikipedia", url: "https://en.wikipedia.org/wiki/Battle_of_Marj_Dabiq" },
               { title: "Ottoman Syria — Wikipedia", url: "https://en.wikipedia.org/wiki/Ottoman_Syria" },
@@ -553,6 +589,8 @@ function getEventDotClass(type) {
 }
 
 export default function TimelineSidebar({ isOpen, setIsOpen, onAskAI }) {
+  const { t, get, language } = useTranslation();
+  const translatedMonths = get("timeline.months");
   const [search, setSearch] = useState("");
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [currentEventIndex, setCurrentEventIndex] = useState(-1);
@@ -578,9 +616,12 @@ export default function TimelineSidebar({ isOpen, setIsOpen, onAskAI }) {
       months: year.months
         .map((m) => ({
           ...m,
-          events: m.events.filter((e) =>
-            e.title.toLowerCase().includes(search.toLowerCase())
-          ),
+          events: m.events.filter((e) => {
+            const translatedTitle = getEventDisplay(e, language).title || "";
+            return [e.title, translatedTitle].some((title) =>
+              title.toLowerCase().includes(search.toLowerCase())
+            );
+          }),
         }))
         .filter((m) => m.events.length > 0),
     }))
@@ -655,7 +696,7 @@ export default function TimelineSidebar({ isOpen, setIsOpen, onAskAI }) {
           <div className="relative">
             <input
               type="text"
-              placeholder="Search..."
+              placeholder={t("timeline.searchPlaceholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full rounded border border-input bg-background px-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
@@ -685,11 +726,12 @@ export default function TimelineSidebar({ isOpen, setIsOpen, onAskAI }) {
               {year.months.map((month) => (
                 <div key={month.month} className="mt-1.5 ml-1">
                   <h3 className="text-sm font-bold italic text-timeline-month">
-                    {month.month}
+                    {translateMonth(month.month, translatedMonths)}
                   </h3>
                   <div className="ml-1 border-l-2 border-timeline-border pl-2 space-y-0.5">
                     {month.events.map((event) => {
                       const isActive = selectedEvent?.title === event.title;
+                      const displayTitle = getEventDisplay(event, language).title || event.title;
                       return (
                         <button
                           type="button"
@@ -705,7 +747,7 @@ export default function TimelineSidebar({ isOpen, setIsOpen, onAskAI }) {
                             className={`h-2 w-2 rounded-full shrink-0 ${getEventDotClass(event.type)}`}
                           />
                           <span className="text-xs leading-tight truncate flex-1">
-                            {event.title}
+                            {displayTitle}
                           </span>
                           <svg className={`h-3.5 w-3.5 shrink-0 transition-all duration-200 ${
                             isActive ? "text-primary" : "text-foreground/40 group-hover:text-primary/60"

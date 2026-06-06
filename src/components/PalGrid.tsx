@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { WORDS } from "../data/words";
 import { PALESTINE_WORDS } from "../data/palestineWords";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const WORD_LENGTH = 5;
 const MAX_TRIES = 6;
@@ -139,7 +140,7 @@ const IconButton = ({ onClick, title, icon: Icon, hoverColor = "text-white" }: {
   </button>
 );
 
-const HintButton = ({ onClick, cooldown }: { onClick: () => void; cooldown: number }) => {
+const HintButton = ({ onClick, cooldown, title, cooldownLabel }: { onClick: () => void; cooldown: number; title: string; cooldownLabel: string }) => {
   const isOnCooldown = cooldown > 0;
   return (
     <button
@@ -150,7 +151,7 @@ const HintButton = ({ onClick, cooldown }: { onClick: () => void; cooldown: numb
           ? "bg-zinc-700/50 text-zinc-500 cursor-not-allowed"
           : "text-zinc-400 hover:text-white hover:bg-white/10"
       }`}
-      title={isOnCooldown ? `Hint available in ${cooldown}s` : "Get a hint"}
+      title={isOnCooldown ? `${cooldownLabel} ${cooldown}s` : title}
     >
       {isOnCooldown ? (
         <span className="text-xs font-bold">{cooldown}s</span>
@@ -207,7 +208,7 @@ const GridCell = ({ cell, isCurrent }: { cell: Cell; isCurrent: boolean }) => {
   );
 };
 
-const WordInfo = ({ word, category, arabic, meaning, context }: { word: string; category: string; arabic: string; meaning: string; context: string }) => (
+const WordInfo = ({ word, category, arabic, meaning, context, meaningLabel, contextLabel }: { word: string; category: string; arabic: string; meaning: string; context: string; meaningLabel: string; contextLabel: string }) => (
   <div className="bg-zinc-800/80 border border-zinc-600/50 rounded-xl p-5 w-full text-left shadow-inner">
     <div className="flex justify-between items-start mb-3">
       <span className="text-[10px] uppercase font-bold tracking-widest bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded">
@@ -217,17 +218,18 @@ const WordInfo = ({ word, category, arabic, meaning, context }: { word: string; 
     </div>
     <h3 className="text-emerald-400 font-bold text-xl mb-2 tracking-wide">{word}</h3>
     <p className="text-white/90 text-sm mb-3">
-      <span className="font-semibold text-white/60 uppercase text-xs tracking-wider block mb-1">Meaning</span>
+      <span className="font-semibold text-white/60 uppercase text-xs tracking-wider block mb-1">{meaningLabel}</span>
       {meaning}
     </p>
     <div className="border-l-2 border-emerald-500/60 pl-3">
-      <span className="font-semibold text-white/60 uppercase text-xs tracking-wider block mb-1">Context</span>
+      <span className="font-semibold text-white/60 uppercase text-xs tracking-wider block mb-1">{contextLabel}</span>
       <p className="text-white/80 text-sm italic leading-relaxed">{context}</p>
     </div>
   </div>
 );
 
 export default function PalGrid() {
+  const { t } = useTranslation();
   const todayDateStr = getPalestineDateStr();
   const [mode, setMode] = useState<GameMode>("daily");
   const [targetData, setTargetData] = useState(() => getDailyWord());
@@ -290,7 +292,7 @@ export default function PalGrid() {
 
     // If every wrong letter is already known, keep the button from feeling broken.
     if (wrongLetters.length === 0) {
-      setError("No more hints available");
+      setError(t("palgrid.noMoreHints"));
       return;
     }
 
@@ -348,10 +350,10 @@ export default function PalGrid() {
     (key: string) => {
       if (status !== "playing") return;
       if (key === "ENTER") {
-        if (current.length !== WORD_LENGTH) { setError("Not enough letters"); setShake(true); setTimeout(() => setShake(false), 500); return; }
+        if (current.length !== WORD_LENGTH) { setError(t("palgrid.notEnoughLetters")); setShake(true); setTimeout(() => setShake(false), 500); return; }
         const isStandardWord = WORD_SET.has(current) || WORD_SET.has(current.toLowerCase());
         const isPalestineWord = PALESTINE_WORDS.some((w) => w.word.toUpperCase() === current);
-        if (!isStandardWord && !isPalestineWord) { setError("Not in word list"); setShake(true); setTimeout(() => setShake(false), 500); return; }
+        if (!isStandardWord && !isPalestineWord) { setError(t("palgrid.notInWordList")); setShake(true); setTimeout(() => setShake(false), 500); return; }
         setError("");
         const newGuesses = [...guesses, current];
         setGuesses(newGuesses);
@@ -363,7 +365,7 @@ export default function PalGrid() {
       if (key === "BACK") { setCurrent((c) => c.slice(0, -1)); return; }
       if (/^[A-Z]$/.test(key) && current.length < WORD_LENGTH) setCurrent((c) => c + key);
     },
-    [current, guesses, status, answer, setGuesses, setStatus]
+    [current, guesses, status, answer, setGuesses, setStatus, t]
   );
 
   // Physical keyboard listener
@@ -407,13 +409,13 @@ export default function PalGrid() {
       >
         <div className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-8 items-center lg:items-start w-full gap-5">
           <div className="flex flex-col items-center gap-1 w-full order-1 lg:gap-2 lg:col-start-1 lg:row-1">
-            <h1 className="text-4xl lg:text-5xl text-white font-bold tracking-widest drop-shadow-lg">PALGRID</h1>
+            <h1 className="text-4xl lg:text-5xl text-white font-bold tracking-widest drop-shadow-lg">{t("palgrid.title")}</h1>
             <div className="flex gap-1 bg-zinc-800/60 rounded-full p-1 mt-1 border border-white/10">
-              <ModeButton label="Daily" isActive={mode === "daily"} onClick={goDaily} color="emerald" />
-              <ModeButton label="Random" isActive={mode === "random"} onClick={startRandom} color="violet" />
+              <ModeButton label={t("palgrid.daily")} isActive={mode === "daily"} onClick={goDaily} color="emerald" />
+              <ModeButton label={t("palgrid.random")} isActive={mode === "random"} onClick={startRandom} color="violet" />
               <div className="w-px bg-white/20" />
-              <IconButton onClick={resetGame} title="Reset game" icon={ResetIcon} />
-              <HintButton onClick={giveHint} cooldown={hintCooldown} />
+              <IconButton onClick={resetGame} title={t("palgrid.resetGame")} icon={ResetIcon} />
+              <HintButton onClick={giveHint} cooldown={hintCooldown} title={t("palgrid.getHint")} cooldownLabel={t("palgrid.hintAvailableIn")} />
             </div>
           </div>
 
@@ -425,18 +427,18 @@ export default function PalGrid() {
             ) : (
               <div className="flex flex-col items-center gap-4 py-2 animate-in fade-in slide-in-from-bottom-4 w-full lg:max-w-sm">
                 <div className={`text-xl font-bold text-white px-6 py-3 rounded-xl border backdrop-blur-sm w-full text-center shadow-lg ${status === "won" ? "bg-emerald-600/20 border-emerald-500/30" : "bg-red-600/20 border-red-500/30"}`}>
-                  {status === "won" ? "Well Done! 🎉" : `The word was: ${answer}`}
+                  {status === "won" ? t("palgrid.wellDone") : `${t("palgrid.wordWas")} ${answer}`}
                 </div>
-                <WordInfo word={targetData.word} category={targetData.category} arabic={targetData.arabic} meaning={targetData.meaning} context={targetData.context} />
+                <WordInfo word={targetData.word} category={targetData.category} arabic={targetData.arabic} meaning={targetData.meaning} context={targetData.context} meaningLabel={t("palgrid.meaning")} contextLabel={t("palgrid.context")} />
                 {mode === "daily" ? (
                   <div className="text-center mt-2">
-                    <p className="text-zinc-300 text-[10px] uppercase font-bold tracking-widest mb-1 opacity-80">Next Puzzle In</p>
+                    <p className="text-zinc-300 text-[10px] uppercase font-bold tracking-widest mb-1 opacity-80">{t("palgrid.nextPuzzleIn")}</p>
                     <p className="text-3xl font-mono text-white tabular-nums drop-shadow-md">{formatTime(timeLeft)}</p>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-2 mt-2 w-full">
-                    <button onPointerDown={(e) => { e.preventDefault(); startRandom(); }} className="w-full py-3 rounded-xl bg-violet-600/80 hover:bg-violet-500/90 border border-violet-400/30 text-white font-bold uppercase tracking-widest text-sm transition-all duration-150 select-none touch-manipulation active:scale-95 shadow-lg">New Random Word</button>
-                    <button onPointerDown={(e) => { e.preventDefault(); goDaily(); }} className="text-[10px] text-zinc-400 hover:text-white uppercase tracking-widest font-bold transition-colors select-none touch-manipulation">← Back to Daily</button>
+                    <button onPointerDown={(e) => { e.preventDefault(); startRandom(); }} className="w-full py-3 rounded-xl bg-violet-600/80 hover:bg-violet-500/90 border border-violet-400/30 text-white font-bold uppercase tracking-widest text-sm transition-all duration-150 select-none touch-manipulation active:scale-95 shadow-lg">{t("palgrid.newRandomWord")}</button>
+                    <button onPointerDown={(e) => { e.preventDefault(); goDaily(); }} className="text-[10px] text-zinc-400 hover:text-white uppercase tracking-widest font-bold transition-colors select-none touch-manipulation">{t("palgrid.backToDaily")}</button>
                   </div>
                 )}
               </div>
@@ -462,7 +464,7 @@ export default function PalGrid() {
         </div>
 
         <div className="text-sm text-zinc-200 text-center opacity-90 font-medium">
-          {status === "playing" ? "Type or tap • Enter to submit" : mode === "daily" ? "The puzzle resets daily at midnight (Palestine Time)" : "Practice mode — no streak affected"}
+          {status === "playing" ? t("palgrid.playingHelp") : mode === "daily" ? t("palgrid.dailyResetHelp") : t("palgrid.practiceHelp")}
         </div>
       </div>
     </div>

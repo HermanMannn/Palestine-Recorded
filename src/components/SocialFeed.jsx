@@ -305,7 +305,7 @@ function PostDetail({ post, liked, onToggleLike, onClose, onAuthorClick, user, p
 }
 
 export default function SocialFeed() {
-  const { t, get } = useTranslation();
+  const { t } = useTranslation();
   const [dbPosts, setDbPosts] = useState([]);
   const [profiles, setProfiles] = useState({});
   const [liked, setLiked] = useState({});
@@ -400,10 +400,7 @@ export default function SocialFeed() {
         avatar_url: prof?.avatar_url,
       };
     }),
-    ...seedPosts.map((post, index) => ({
-      ...post,
-      ...(get("socialFeed.seedPosts")[index] || {}),
-    })),
+    ...seedPosts,
   ];
 
   const filteredPosts = allPosts.filter((p) => {
