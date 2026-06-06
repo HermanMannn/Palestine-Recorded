@@ -40,6 +40,57 @@ function getTagClass(tag) {
 }
 
 export default function EventDetails({ event, onClose, onPrev, onNext, canGoPrev, canGoNext, onAskAI }) {
+  const fileInputRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setError("");
+
+    if (file.size > 50_000_000) {
+      setError("File too large (max 50MB).");
+      return;
+    }
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setError("Please sign in to submit media.");
+      return;
+    }
+
+    setUploading(true);
+    const ext = file.name.split(".").pop();
+    const path = `${user.id}/${event.id ?? "event"}-${Date.now()}.${ext}`;
+
+    const { error: upErr } = await supabase.storage
+      .from("event-submissions")
+      .upload(path, file, { contentType: file.type });
+
+    if (upErr) {
+      setError(upErr.message);
+      setUploading(false);
+      return;
+    }
+
+    const { error: dbErr } = await supabase.from("event_submissions").insert({
+      event_id: String(event.id ?? event.title),
+      event_title: event.title,
+      user_id: user.id,
+      file_path: path,
+      mime_type: file.type,
+    });
+
+    setUploading(false);
+    if (dbErr) {
+      setError(dbErr.message);
+      return;
+    }
+    setSubmitted(true);
+  };
+
   return (
     <>
       <style>{`
