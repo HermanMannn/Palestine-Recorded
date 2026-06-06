@@ -64,6 +64,39 @@ export type Database = {
         }
         Relationships: []
       }
+      event_submissions: {
+        Row: {
+          created_at: string
+          event_id: string
+          event_title: string | null
+          file_path: string
+          id: string
+          mime_type: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          event_title?: string | null
+          file_path: string
+          id?: string
+          mime_type?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          event_title?: string | null
+          file_path?: string
+          id?: string
+          mime_type?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       follows: {
         Row: {
           created_at: string
