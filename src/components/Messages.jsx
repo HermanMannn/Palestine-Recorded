@@ -12,6 +12,21 @@ const conversations = [
   { id: "44444444-4444-4444-4444-444444444444", name: "Layla Haddad",  initial: "L",  color: "bg-purple-500", time: "Tuesday",   preview: "I'll send the archive tomorrow.",         unread: false, seedKey: "layla" },
 ];
 
+const seededMessages = {
+  "11111111-1111-1111-1111-111111111111": [
+    { id: "seed-hamza-1", conversation_id: "11111111-1111-1111-1111-111111111111", sender_id: "seed-hamza", content: "Hello!", created_at: "2026-06-01T07:35:00Z" },
+  ],
+  "22222222-2222-2222-2222-222222222222": [
+    { id: "seed-palrec-1", conversation_id: "22222222-2222-2222-2222-222222222222", sender_id: "seed-me", content: "Good morning!!", created_at: "2026-06-01T05:50:00Z" },
+  ],
+  "33333333-3333-3333-3333-333333333333": [
+    { id: "seed-amr-1", conversation_id: "33333333-3333-3333-3333-333333333333", sender_id: "seed-amr", content: "Thank you for sharing that photo.", created_at: "2026-05-31T12:00:00Z" },
+  ],
+  "44444444-4444-4444-4444-444444444444": [
+    { id: "seed-layla-1", conversation_id: "44444444-4444-4444-4444-444444444444", sender_id: "seed-layla", content: "I'll send the archive tomorrow.", created_at: "2026-05-30T12:00:00Z" },
+  ],
+};
+
 const formatTime = (iso) =>
   new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }).toLowerCase();
 
@@ -25,7 +40,7 @@ function ConvoAvatar({ convo, size = "md" }) {
 }
 
 export default function Messages() {
-  const { t, get } = useTranslation();
+  const { t } = useTranslation();
   const [activeId, setActiveId] = useState(conversations[0].id);
   const [search, setSearch] = useState("");
   const [allMessages, setAllMessages] = useState([]);
@@ -67,13 +82,10 @@ export default function Messages() {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [allMessages, activeId]);
 
-  const translatedConversations = conversations.map((conversation, index) => ({
-    ...conversation,
-    ...(get("messages.conversations")[index] || {}),
-  }));
-  const active = translatedConversations.find((c) => c.id === activeId);
-  const thread = allMessages.filter((m) => m.conversation_id === activeId);
-  const filtered = translatedConversations.filter((c) =>
+  const active = conversations.find((c) => c.id === activeId);
+  const storedThread = allMessages.filter((m) => m.conversation_id === activeId);
+  const thread = storedThread.length > 0 ? storedThread : seededMessages[activeId] || [];
+  const filtered = conversations.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -172,9 +184,9 @@ export default function Messages() {
                       {lastMessage ? formatTime(lastMessage.created_at) : c.time}
                     </span>
                   </div>
-                  <p className="truncate text-base text-foreground/70">
+                  <p className="truncate text-base text-foreground/70" dir="auto">
                     {lastMessage
-                      ? `${lastMessage.sender_id === userId ? `${t("common.you")}: ` : ""}${lastMessage.content || ""}`
+                      ? `${lastMessage.sender_id === userId || lastMessage.sender_id === "seed-me" ? "You: " : ""}${lastMessage.content || ""}`
                       : c.preview}
                   </p>
                 </div>
@@ -216,7 +228,7 @@ export default function Messages() {
             {/* Messages */}
             <div ref={scrollRef} className="flex-1 space-y-5 overflow-y-auto px-6 py-6 text-lg custom-scrollbar scroll-smooth">
               {thread.map((m) => {
-                const isMe = m.sender_id === userId;
+                const isMe = m.sender_id === userId || m.sender_id === "seed-me";
                 return (
                   <div key={m.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
                     <div className={`max-w-xl rounded-[1.5rem] px-3 py-3 text-foreground shadow-lg backdrop-blur-md ${
@@ -224,7 +236,7 @@ export default function Messages() {
                         ? "bg-[oklch(0.85_0.12_145/0.85)] dark:bg-emerald-700/60 dark:text-emerald-50"
                         : "bg-[oklch(0.88_0.1_25/0.85)] dark:bg-slate-800/80 dark:text-slate-100 dark:border dark:border-white/5"
                     }`}>
-                      {m.content && <p className="px-3 text-[1.15rem] leading-relaxed">{m.content}</p>}
+                      {m.content && <p className="px-3 text-[1.15rem] leading-relaxed" dir="auto">{m.content}</p>}
                       <div className={`mt-2 px-3 flex items-center justify-end gap-1 text-[0.8rem] ${isMe ? "text-white/70" : "text-foreground/50"}`}>
                         {formatTime(m.created_at)}
                         <CheckCheck className="h-5 w-5" />
