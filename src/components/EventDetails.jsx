@@ -1,3 +1,6 @@
+import { useRef, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+
 function getStatusClass(status) {
   switch (status) {
     case "Ongoing":
@@ -37,6 +40,57 @@ function getTagClass(tag) {
 }
 
 export default function EventDetails({ event, onClose, onPrev, onNext, canGoPrev, canGoNext, onAskAI }) {
+  const fileInputRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setError("");
+
+    if (file.size > 50_000_000) {
+      setError("File too large (max 50MB).");
+      return;
+    }
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setError("Please sign in to submit media.");
+      return;
+    }
+
+    setUploading(true);
+    const ext = file.name.split(".").pop();
+    const path = `${user.id}/${event.id ?? "event"}-${Date.now()}.${ext}`;
+
+    const { error: upErr } = await supabase.storage
+      .from("event-submissions")
+      .upload(path, file, { contentType: file.type });
+
+    if (upErr) {
+      setError(upErr.message);
+      setUploading(false);
+      return;
+    }
+
+    const { error: dbErr } = await supabase.from("event_submissions").insert({
+      event_id: String(event.id ?? event.title),
+      event_title: event.title,
+      user_id: user.id,
+      file_path: path,
+      mime_type: file.type,
+    });
+
+    setUploading(false);
+    if (dbErr) {
+      setError(dbErr.message);
+      return;
+    }
+    setSubmitted(true);
+  };
+
   return (
     <>
       <style>{`
@@ -194,6 +248,43 @@ export default function EventDetails({ event, onClose, onPrev, onNext, canGoPrev
           </svg>
           Ask AI
         </button>
+
+        {submitted ? (
+          <div className="mt-3 p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-center space-y-2">
+            <svg className="w-10 h-10 mx-auto text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            <p className="text-sm font-semibold text-foreground">Submission received</p>
+            <p className="text-xs text-muted-foreground">Your media will be reviewed by a moderator.</p>
+            <button
+              onClick={() => setSubmitted(false)}
+              className="text-xs text-primary hover:underline"
+            >
+              Submit another
+            </button>
+          </div>
+        ) : (
+          <>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,video/*"
+              onChange={handleUpload}
+              className="hidden"
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="w-full mt-3 py-2.5 rounded-lg bg-primary/20 hover:bg-primary/30 border border-primary/40 text-foreground text-sm font-semibold transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 12V4m0 0l-4 4m4-4l4 4" />
+              </svg>
+              {uploading ? "Uploading..." : "Submit Media"}
+            </button>
+            {error && <p className="mt-2 text-xs text-destructive">{error}</p>}
+          </>
+        )}
       </div>
     </aside>
     </>
