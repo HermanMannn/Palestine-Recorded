@@ -27,8 +27,14 @@ import { Route as AuthcontextRouteImport } from './routes/authcontext'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 
+const FiguresLazyRouteImport = createFileRoute('/figures')()
 const CalendarLazyRouteImport = createFileRoute('/calendar')()
 
+const FiguresLazyRoute = FiguresLazyRouteImport.update({
+  id: '/figures',
+  path: '/figures',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() => import('./routes/figures.lazy').then((d) => d.Route))
 const CalendarLazyRoute = CalendarLazyRouteImport.update({
   id: '/calendar',
   path: '/calendar',
@@ -127,6 +133,7 @@ export interface FileRoutesByFullPath {
   '/social': typeof SocialRoute
   '/timeline': typeof TimelineRoute
   '/calendar': typeof CalendarLazyRoute
+  '/figures': typeof FiguresLazyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -145,6 +152,7 @@ export interface FileRoutesByTo {
   '/social': typeof SocialRoute
   '/timeline': typeof TimelineRoute
   '/calendar': typeof CalendarLazyRoute
+  '/figures': typeof FiguresLazyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -164,6 +172,7 @@ export interface FileRoutesById {
   '/social': typeof SocialRoute
   '/timeline': typeof TimelineRoute
   '/calendar': typeof CalendarLazyRoute
+  '/figures': typeof FiguresLazyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -184,6 +193,7 @@ export interface FileRouteTypes {
     | '/social'
     | '/timeline'
     | '/calendar'
+    | '/figures'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -202,6 +212,7 @@ export interface FileRouteTypes {
     | '/social'
     | '/timeline'
     | '/calendar'
+    | '/figures'
   id:
     | '__root__'
     | '/'
@@ -220,6 +231,7 @@ export interface FileRouteTypes {
     | '/social'
     | '/timeline'
     | '/calendar'
+    | '/figures'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -239,10 +251,18 @@ export interface RootRouteChildren {
   SocialRoute: typeof SocialRoute
   TimelineRoute: typeof TimelineRoute
   CalendarLazyRoute: typeof CalendarLazyRoute
+  FiguresLazyRoute: typeof FiguresLazyRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/figures': {
+      id: '/figures'
+      path: '/figures'
+      fullPath: '/figures'
+      preLoaderRoute: typeof FiguresLazyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/calendar': {
       id: '/calendar'
       path: '/calendar'
@@ -375,6 +395,7 @@ const rootRouteChildren: RootRouteChildren = {
   SocialRoute: SocialRoute,
   TimelineRoute: TimelineRoute,
   CalendarLazyRoute: CalendarLazyRoute,
+  FiguresLazyRoute: FiguresLazyRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
