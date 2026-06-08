@@ -143,10 +143,22 @@ export default function HistoricalMap({ sidebarOpen, onToggleSidebar }) {
 
         const pinIcon = L.divIcon({
           className: "diaspora-pin",
-          html: `<div style="font-size:28px;line-height:1;filter:drop-shadow(0 2px 3px rgba(0,0,0,.4))">📍</div>`,
-          iconSize: [28, 28],
-          iconAnchor: [14, 26],
-          popupAnchor: [0, -24],
+          html: `
+            <div style="position:relative;width:32px;height:42px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.35))">
+              <svg viewBox="0 0 32 42" width="32" height="42" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="pg" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#f87171"/>
+                    <stop offset="100%" stop-color="#b91c1c"/>
+                  </linearGradient>
+                </defs>
+                <path d="M16 1C8 1 2 7 2 15c0 10 14 26 14 26s14-16 14-26C30 7 24 1 16 1z" fill="url(#pg)" stroke="#7f1d1d" stroke-width="1"/>
+                <circle cx="16" cy="15" r="5.5" fill="#fff"/>
+              </svg>
+            </div>`,
+          iconSize: [32, 42],
+          iconAnchor: [16, 40],
+          popupAnchor: [0, -36],
         });
 
         const renderPinPopup = (pin) => `
