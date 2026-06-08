@@ -130,6 +130,93 @@ export default function HistoricalMap({ sidebarOpen, onToggleSidebar }) {
           }).addTo(map);
         });
 
+        // --- Diaspora origin pins (localStorage) ---
+        const STORAGE_KEY = "diasporaPins";
+        const loadPins = () => {
+          try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }
+          catch { return []; }
+        };
+        const savePins = (pins) => localStorage.setItem(STORAGE_KEY, JSON.stringify(pins));
+
+        const escapeHtml = (s = "") =>
+          s.replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+
+        const pinIcon = L.divIcon({
+          className: "diaspora-pin",
+          html: `<div style="font-size:28px;line-height:1;filter:drop-shadow(0 2px 3px rgba(0,0,0,.4))">📍</div>`,
+          iconSize: [28, 28],
+          iconAnchor: [14, 26],
+          popupAnchor: [0, -24],
+        });
+
+        const renderPinPopup = (pin) => `
+          <div style="min-width:200px;max-width:260px">
+            <div style="font-weight:600;font-size:14px;margin-bottom:4px">${escapeHtml(pin.title)}</div>
+            <div style="font-size:12px;color:#555;white-space:pre-wrap;margin-bottom:6px">${escapeHtml(pin.description || "")}</div>
+            <div style="font-size:10px;color:#888;margin-bottom:6px">${new Date(pin.createdAt).toLocaleString()}</div>
+            <button data-pin-delete="${pin.id}" style="font-size:11px;color:#ef4444;background:none;border:none;padding:0;cursor:pointer;text-decoration:underline">Delete pin</button>
+          </div>`;
+
+        const addPinMarker = (pin) => {
+          const m = L.marker([pin.lat, pin.lng], { icon: pinIcon }).addTo(map);
+          m.bindPopup(renderPinPopup(pin));
+          m.on("popupopen", (e) => {
+            const node = e.popup.getElement();
+            const btn = node?.querySelector(`[data-pin-delete="${pin.id}"]`);
+            if (btn) btn.onclick = () => {
+              savePins(loadPins().filter((p) => p.id !== pin.id));
+              m.remove();
+            };
+          });
+          return m;
+        };
+
+        loadPins().forEach(addPinMarker);
+
+        map.on("click", (e) => {
+          const { lat, lng } = e.latlng;
+          const formId = `pin-form-${Date.now()}`;
+          const popup = L.popup({ closeButton: true, autoClose: true })
+            .setLatLng([lat, lng])
+            .setContent(`
+              <div style="min-width:220px">
+                <div style="font-weight:600;font-size:13px;margin-bottom:6px">Create a pin post here?</div>
+                <div style="font-size:11px;color:#666;margin-bottom:8px">Pin a place tied to your family or story.</div>
+                <div id="${formId}-prompt">
+                  <button id="${formId}-yes" style="font-size:12px;background:#ef4444;color:#fff;border:none;border-radius:4px;padding:6px 10px;cursor:pointer;margin-right:6px">Yes, create</button>
+                  <button id="${formId}-no" style="font-size:12px;background:#eee;color:#333;border:none;border-radius:4px;padding:6px 10px;cursor:pointer">Cancel</button>
+                </div>
+                <div id="${formId}-form" style="display:none">
+                  <input id="${formId}-title" placeholder="Title (e.g. Jaffa, my grandparents' home)" style="width:100%;font-size:12px;padding:6px;border:1px solid #ccc;border-radius:4px;margin-bottom:6px;box-sizing:border-box" />
+                  <textarea id="${formId}-desc" placeholder="Description, memory or story..." rows="3" style="width:100%;font-size:12px;padding:6px;border:1px solid #ccc;border-radius:4px;margin-bottom:6px;box-sizing:border-box;resize:vertical"></textarea>
+                  <button id="${formId}-submit" style="font-size:12px;background:#ef4444;color:#fff;border:none;border-radius:4px;padding:6px 10px;cursor:pointer">Submit</button>
+                </div>
+              </div>
+            `)
+            .openOn(map);
+
+          setTimeout(() => {
+            const yes = document.getElementById(`${formId}-yes`);
+            const no = document.getElementById(`${formId}-no`);
+            const prompt = document.getElementById(`${formId}-prompt`);
+            const form = document.getElementById(`${formId}-form`);
+            const submit = document.getElementById(`${formId}-submit`);
+            if (no) no.onclick = () => map.closePopup(popup);
+            if (yes) yes.onclick = () => { prompt.style.display = "none"; form.style.display = "block"; document.getElementById(`${formId}-title`)?.focus(); };
+            if (submit) submit.onclick = () => {
+              const title = document.getElementById(`${formId}-title`).value.trim();
+              const description = document.getElementById(`${formId}-desc`).value.trim();
+              if (!title) return;
+              const pin = { id: `${Date.now()}-${Math.random().toString(36).slice(2,7)}`, lat, lng, title, description, createdAt: Date.now() };
+              const pins = loadPins();
+              pins.push(pin);
+              savePins(pins);
+              addPinMarker(pin).openPopup();
+              map.closePopup(popup);
+            };
+          }, 0);
+        });
+
       // --- HISTORICAL MAP MODE ---
       } else {
         map = L.map(mapRef.current, {
