@@ -62,6 +62,7 @@ export default function HistoricalMap({ sidebarOpen, onToggleSidebar }) {
           zoom: 8,
           zoomControl: false,
           attributionControl: false,
+          doubleClickZoom: false,
         });
 
         if (typeof L.maplibreGL === "function") {
