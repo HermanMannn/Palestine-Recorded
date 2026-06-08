@@ -163,16 +163,18 @@ export default function HistoricalMap({ sidebarOpen, onToggleSidebar }) {
         });
 
         const renderPinPopup = (pin) => `
-          <div style="min-width:200px;max-width:260px">
-            <div style="font-weight:600;font-size:14px;margin-bottom:4px">${escapeHtml(pin.title)}</div>
-            <div style="font-size:12px;color:#555;white-space:pre-wrap;margin-bottom:6px">${escapeHtml(pin.description || "")}</div>
-            <div style="font-size:10px;color:#888;margin-bottom:6px">${new Date(pin.createdAt).toLocaleString()}</div>
-            <button data-pin-delete="${pin.id}" style="font-size:11px;color:#ef4444;background:none;border:none;padding:0;cursor:pointer;text-decoration:underline">Delete pin</button>
+          <div style="min-width:220px;max-width:280px;font-family:system-ui,-apple-system,'Segoe UI',sans-serif">
+            <div style="font-weight:700;font-size:15px;color:#111;margin-bottom:6px;letter-spacing:-0.01em">${escapeHtml(pin.title)}</div>
+            <div style="font-size:13px;color:#374151;line-height:1.5;white-space:pre-wrap;margin-bottom:10px">${escapeHtml(pin.description || "")}</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding-top:8px;border-top:1px solid #f1f5f9">
+              <div style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.04em">${new Date(pin.createdAt).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}</div>
+              <button data-pin-delete="${pin.id}" style="font-size:11px;color:#ef4444;background:none;border:none;padding:0;cursor:pointer;font-weight:500">Delete</button>
+            </div>
           </div>`;
 
         const addPinMarker = (pin) => {
           const m = L.marker([pin.lat, pin.lng], { icon: pinIcon }).addTo(map);
-          m.bindPopup(renderPinPopup(pin));
+          m.bindPopup(renderPinPopup(pin), { className: "diaspora-popup" });
           m.on("popupopen", (e) => {
             const node = e.popup.getElement();
             const btn = node?.querySelector(`[data-pin-delete="${pin.id}"]`);
@@ -186,27 +188,31 @@ export default function HistoricalMap({ sidebarOpen, onToggleSidebar }) {
 
         loadPins().forEach(addPinMarker);
 
-        map.on("click", (e) => {
+        map.on("dblclick", (e) => {
           const { lat, lng } = e.latlng;
           const formId = `pin-form-${Date.now()}`;
-          const popup = L.popup({ closeButton: true, autoClose: true })
+          const popup = L.popup({ closeButton: true, autoClose: true, className: "diaspora-popup" })
             .setLatLng([lat, lng])
             .setContent(`
-              <div style="min-width:220px">
-                <div style="font-weight:600;font-size:13px;margin-bottom:6px">Create a pin post here?</div>
-                <div style="font-size:11px;color:#666;margin-bottom:8px">Pin a place tied to your family or story.</div>
-                <div id="${formId}-prompt">
-                  <button id="${formId}-yes" style="font-size:12px;background:#ef4444;color:#fff;border:none;border-radius:4px;padding:6px 10px;cursor:pointer;margin-right:6px">Yes, create</button>
-                  <button id="${formId}-no" style="font-size:12px;background:#eee;color:#333;border:none;border-radius:4px;padding:6px 10px;cursor:pointer">Cancel</button>
+              <div style="min-width:240px;font-family:system-ui,-apple-system,'Segoe UI',sans-serif">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+                  <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#f87171,#b91c1c);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px">📍</div>
+                  <div style="font-weight:700;font-size:14px;color:#111;letter-spacing:-0.01em">Drop a memory pin</div>
+                </div>
+                <div style="font-size:12px;color:#6b7280;margin-bottom:12px;line-height:1.4">Mark a place tied to your family or story.</div>
+                <div id="${formId}-prompt" style="display:flex;gap:6px">
+                  <button id="${formId}-yes" style="flex:1;font-size:12px;font-weight:600;background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;border:none;border-radius:8px;padding:8px 12px;cursor:pointer;box-shadow:0 2px 6px rgba(185,28,28,.25)">Create pin</button>
+                  <button id="${formId}-no" style="font-size:12px;background:#f3f4f6;color:#374151;border:none;border-radius:8px;padding:8px 12px;cursor:pointer">Cancel</button>
                 </div>
                 <div id="${formId}-form" style="display:none">
-                  <input id="${formId}-title" placeholder="Title (e.g. Jaffa, my grandparents' home)" style="width:100%;font-size:12px;padding:6px;border:1px solid #ccc;border-radius:4px;margin-bottom:6px;box-sizing:border-box" />
-                  <textarea id="${formId}-desc" placeholder="Description, memory or story..." rows="3" style="width:100%;font-size:12px;padding:6px;border:1px solid #ccc;border-radius:4px;margin-bottom:6px;box-sizing:border-box;resize:vertical"></textarea>
-                  <button id="${formId}-submit" style="font-size:12px;background:#ef4444;color:#fff;border:none;border-radius:4px;padding:6px 10px;cursor:pointer">Submit</button>
+                  <input id="${formId}-title" placeholder="Title (e.g. Jaffa, my grandparents' home)" style="width:100%;font-size:13px;padding:9px 10px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:8px;box-sizing:border-box;outline:none;transition:border-color .15s" onfocus="this.style.borderColor='#ef4444'" onblur="this.style.borderColor='#e5e7eb'" />
+                  <textarea id="${formId}-desc" placeholder="Share a memory or story..." rows="3" style="width:100%;font-size:13px;padding:9px 10px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:10px;box-sizing:border-box;resize:vertical;outline:none;font-family:inherit" onfocus="this.style.borderColor='#ef4444'" onblur="this.style.borderColor='#e5e7eb'"></textarea>
+                  <button id="${formId}-submit" style="width:100%;font-size:12px;font-weight:600;background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;border:none;border-radius:8px;padding:9px 12px;cursor:pointer;box-shadow:0 2px 6px rgba(185,28,28,.25)">Save pin</button>
                 </div>
               </div>
             `)
             .openOn(map);
+
 
           setTimeout(() => {
             const yes = document.getElementById(`${formId}-yes`);
