@@ -300,6 +300,19 @@ export default function HistoricalMap({ sidebarOpen, onToggleSidebar }) {
 
   return (
     <div className="relative flex w-full h-full overflow-hidden">
+      <style>{`
+        .diaspora-popup .leaflet-popup-content-wrapper {
+          border-radius: 14px;
+          box-shadow: 0 10px 30px rgba(0,0,0,.18), 0 2px 6px rgba(0,0,0,.08);
+          padding: 4px;
+          border: 1px solid rgba(0,0,0,.06);
+        }
+        .diaspora-popup .leaflet-popup-content { margin: 12px 14px; }
+        .diaspora-popup .leaflet-popup-tip { box-shadow: 0 4px 10px rgba(0,0,0,.1); }
+        .diaspora-pin { transition: transform .15s ease; }
+        .diaspora-pin:hover { transform: translateY(-2px) scale(1.08); }
+      `}</style>
+
 
       {/* Dynamic CSS injection only needed for the historical map */}
       {mapMode === "historical" && (
