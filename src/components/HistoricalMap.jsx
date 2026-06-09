@@ -62,6 +62,7 @@ export default function HistoricalMap({ sidebarOpen, onToggleSidebar }) {
           zoom: 8,
           zoomControl: false,
           attributionControl: false,
+          doubleClickZoom: false,
         });
 
         if (typeof L.maplibreGL === "function") {
@@ -130,6 +131,111 @@ export default function HistoricalMap({ sidebarOpen, onToggleSidebar }) {
           }).addTo(map);
         });
 
+        // --- Diaspora origin pins (localStorage) ---
+        const STORAGE_KEY = "diasporaPins";
+        const loadPins = () => {
+          try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }
+          catch { return []; }
+        };
+        const savePins = (pins) => localStorage.setItem(STORAGE_KEY, JSON.stringify(pins));
+
+        const escapeHtml = (s = "") =>
+          s.replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+
+        const pinIcon = L.divIcon({
+          className: "diaspora-pin",
+          html: `
+            <div style="position:relative;width:32px;height:42px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.35))">
+              <svg viewBox="0 0 32 42" width="32" height="42" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="pg" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#f87171"/>
+                    <stop offset="100%" stop-color="#b91c1c"/>
+                  </linearGradient>
+                </defs>
+                <path d="M16 1C8 1 2 7 2 15c0 10 14 26 14 26s14-16 14-26C30 7 24 1 16 1z" fill="url(#pg)" stroke="#7f1d1d" stroke-width="1"/>
+                <circle cx="16" cy="15" r="5.5" fill="#fff"/>
+              </svg>
+            </div>`,
+          iconSize: [32, 42],
+          iconAnchor: [16, 40],
+          popupAnchor: [0, -36],
+        });
+
+        const renderPinPopup = (pin) => `
+          <div style="min-width:220px;max-width:280px;font-family:system-ui,-apple-system,'Segoe UI',sans-serif">
+            <div style="font-weight:700;font-size:15px;color:#111;margin-bottom:6px;letter-spacing:-0.01em">${escapeHtml(pin.title)}</div>
+            <div style="font-size:13px;color:#374151;line-height:1.5;white-space:pre-wrap;margin-bottom:10px">${escapeHtml(pin.description || "")}</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding-top:8px;border-top:1px solid #f1f5f9">
+              <div style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.04em">${new Date(pin.createdAt).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}</div>
+              <button data-pin-delete="${pin.id}" style="font-size:11px;color:#ef4444;background:none;border:none;padding:0;cursor:pointer;font-weight:500">Delete</button>
+            </div>
+          </div>`;
+
+        const addPinMarker = (pin) => {
+          const m = L.marker([pin.lat, pin.lng], { icon: pinIcon }).addTo(map);
+          m.bindPopup(renderPinPopup(pin), { className: "diaspora-popup" });
+          m.on("popupopen", (e) => {
+            const node = e.popup.getElement();
+            const btn = node?.querySelector(`[data-pin-delete="${pin.id}"]`);
+            if (btn) btn.onclick = () => {
+              savePins(loadPins().filter((p) => p.id !== pin.id));
+              m.remove();
+            };
+          });
+          return m;
+        };
+
+        loadPins().forEach(addPinMarker);
+
+        map.on("dblclick", (e) => {
+          const { lat, lng } = e.latlng;
+          const formId = `pin-form-${Date.now()}`;
+          const popup = L.popup({ closeButton: true, autoClose: true, className: "diaspora-popup" })
+            .setLatLng([lat, lng])
+            .setContent(`
+              <div style="min-width:240px;font-family:system-ui,-apple-system,'Segoe UI',sans-serif">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+                  <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#f87171,#b91c1c);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px">📍</div>
+                  <div style="font-weight:700;font-size:14px;color:#111;letter-spacing:-0.01em">Drop a memory pin</div>
+                </div>
+                <div style="font-size:12px;color:#6b7280;margin-bottom:12px;line-height:1.4">Mark a place tied to your family or story.</div>
+                <div id="${formId}-prompt" style="display:flex;gap:6px">
+                  <button id="${formId}-yes" style="flex:1;font-size:12px;font-weight:600;background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;border:none;border-radius:8px;padding:8px 12px;cursor:pointer;box-shadow:0 2px 6px rgba(185,28,28,.25)">Create pin</button>
+                  <button id="${formId}-no" style="font-size:12px;background:#f3f4f6;color:#374151;border:none;border-radius:8px;padding:8px 12px;cursor:pointer">Cancel</button>
+                </div>
+                <div id="${formId}-form" style="display:none">
+                  <input id="${formId}-title" placeholder="Title (e.g. Jaffa, my grandparents' home)" style="width:100%;font-size:13px;padding:9px 10px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:8px;box-sizing:border-box;outline:none;transition:border-color .15s" onfocus="this.style.borderColor='#ef4444'" onblur="this.style.borderColor='#e5e7eb'" />
+                  <textarea id="${formId}-desc" placeholder="Share a memory or story..." rows="3" style="width:100%;font-size:13px;padding:9px 10px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:10px;box-sizing:border-box;resize:vertical;outline:none;font-family:inherit" onfocus="this.style.borderColor='#ef4444'" onblur="this.style.borderColor='#e5e7eb'"></textarea>
+                  <button id="${formId}-submit" style="width:100%;font-size:12px;font-weight:600;background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;border:none;border-radius:8px;padding:9px 12px;cursor:pointer;box-shadow:0 2px 6px rgba(185,28,28,.25)">Save pin</button>
+                </div>
+              </div>
+            `)
+            .openOn(map);
+
+
+          setTimeout(() => {
+            const yes = document.getElementById(`${formId}-yes`);
+            const no = document.getElementById(`${formId}-no`);
+            const prompt = document.getElementById(`${formId}-prompt`);
+            const form = document.getElementById(`${formId}-form`);
+            const submit = document.getElementById(`${formId}-submit`);
+            if (no) no.onclick = () => map.closePopup(popup);
+            if (yes) yes.onclick = () => { prompt.style.display = "none"; form.style.display = "block"; document.getElementById(`${formId}-title`)?.focus(); };
+            if (submit) submit.onclick = () => {
+              const title = document.getElementById(`${formId}-title`).value.trim();
+              const description = document.getElementById(`${formId}-desc`).value.trim();
+              if (!title) return;
+              const pin = { id: `${Date.now()}-${Math.random().toString(36).slice(2,7)}`, lat, lng, title, description, createdAt: Date.now() };
+              const pins = loadPins();
+              pins.push(pin);
+              savePins(pins);
+              addPinMarker(pin).openPopup();
+              map.closePopup(popup);
+            };
+          }, 0);
+        });
+
       // --- HISTORICAL MAP MODE ---
       } else {
         map = L.map(mapRef.current, {
@@ -194,6 +300,19 @@ export default function HistoricalMap({ sidebarOpen, onToggleSidebar }) {
 
   return (
     <div className="relative flex w-full h-full overflow-hidden">
+      <style>{`
+        .diaspora-popup .leaflet-popup-content-wrapper {
+          border-radius: 14px;
+          box-shadow: 0 10px 30px rgba(0,0,0,.18), 0 2px 6px rgba(0,0,0,.08);
+          padding: 4px;
+          border: 1px solid rgba(0,0,0,.06);
+        }
+        .diaspora-popup .leaflet-popup-content { margin: 12px 14px; }
+        .diaspora-popup .leaflet-popup-tip { box-shadow: 0 4px 10px rgba(0,0,0,.1); }
+        .diaspora-pin { transition: transform .15s ease; }
+        .diaspora-pin:hover { transform: translateY(-2px) scale(1.08); }
+      `}</style>
+
 
       {/* Dynamic CSS injection only needed for the historical map */}
       {mapMode === "historical" && (
