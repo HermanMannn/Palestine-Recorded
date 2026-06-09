@@ -60,7 +60,10 @@
     "aboutTitle": "About",
     "donateTitle": "Donate",
     "contactUsTitle": "Contact Us",
-    "userProfileAlt": "User Profile"
+    "userProfileAlt": "User Profile",
+    "timelineTitle": "Timeline",
+    "lightMode": "Switch to light mode",
+    "darkMode": "Switch to dark mode"
   },
   "about": {
     "title": "Preserving Identity, One Story at a Time",
@@ -419,8 +422,16 @@
       "November",
       "December"
     ],
-    "statuses": ["Ongoing", "Concluded"],
-    "categories": ["Military", "Political", "Diplomatic", "Social"],
+    "statuses": [
+      "Ongoing",
+      "Concluded"
+    ],
+    "categories": [
+      "Military",
+      "Political",
+      "Diplomatic",
+      "Social"
+    ],
     "tags": [
       "High Impact",
       "Regional",
@@ -476,5 +487,74 @@
       "HOW CAN YOU CONTACT US ABOUT THIS NOTICE?",
       "HOW CAN YOU REVIEW, UPDATE, OR DELETE THE DATA WE COLLECT FROM YOU?"
     ]
+  },
+  "home": {
+    "heroTitle": "Welcome to Palestine Recorded",
+    "heroWelcomeBack": "Welcome back",
+    "heroSubtitle": "A space to share stories, preserve culture, and connect with our community.",
+    "shareStory": "Share a Story",
+    "exploreTimeline": "Explore the Timeline",
+    "viewAll": "View all",
+    "seeAll": "See all",
+    "viewProfile": "View profile",
+    "guestTitle": "Join the community",
+    "guestSubtitle": "Log in to share stories and connect with others.",
+    "mission": "Preserve our stories. Celebrate our culture. Inspire our future.",
+    "quoteTitle": "Daily Inspiration",
+    "months": {
+      "jun": "Jun",
+      "jul": "Jul"
+    },
+    "events": {
+      "title": "Upcoming Events",
+      "embroidery": "Tatreez Embroidery Workshop",
+      "embroideryLocation": "Nablus Cultural Center",
+      "lens": "Palestine Through Our Lens",
+      "recipes": "Traditional Recipes Exchange",
+      "recipesLocation": "Community Kitchen, Ramallah",
+      "oralHistory": "Oral History Recording Day",
+      "onlineEvent": "Online Event"
+    },
+    "feed": {
+      "title": "Community Feed",
+      "empty": "No stories have been shared yet.",
+      "beFirst": "Be the first to share",
+      "justNow": "Just now",
+      "hoursAgo": "h ago",
+      "daysAgo": "d ago"
+    },
+    "trending": {
+      "title": "Trending Topics",
+      "posts": "posts"
+    },
+    "palgrid": {
+      "title": "Play PalGrid",
+      "subtitle": "A daily word game inspired by our words and heritage.",
+      "playNow": "Play Now"
+    },
+    "explore": {
+      "title": "Explore PalRec",
+      "timeline": "Timeline & Map",
+      "timelineDesc": "Navigate history by place and era",
+      "community": "Community",
+      "communityDesc": "Stories from our community",
+      "palgrid": "PalGrid",
+      "palgridDesc": "Daily cultural word puzzle",
+      "messages": "Messages",
+      "messagesDesc": "Chat with other members"
+    },
+    "quickActions": {
+      "title": "Quick Actions",
+      "createPost": "Create a Post",
+      "exploreTimeline": "Explore the Timeline",
+      "playPalgrid": "Play PalGrid",
+      "sendMessage": "Send a Message"
+    },
+    "quotes": {
+      "darwish": "We have on this earth what makes life worth living.",
+      "said": "Humanism is the only resistance we have against the inhuman practices that disfigure human history.",
+      "kanafani": "Everything in this world can be robbed and stolen, except one thing; your identity."
+    },
+    "heroTagline": "Preserving identity, one story at a time"
   }
 }

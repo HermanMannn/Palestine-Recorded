@@ -1,15 +1,26 @@
 import { createFileRoute } from "@tanstack/react-router";
-import Login from "../components/Login.jsx";
+import Navbar from "../components/Navbar.jsx";
+import Home from "../components/Home.jsx";
 
 export const Route = createFileRoute("/")({
-  component: Login,
+  component: HomePage,
   head: () => ({
     meta: [
-      { title: "Palestine Recorded — Login" },
+      { title: "Palestine Recorded — Home" },
       {
         name: "description",
-        content: "Login to Palestine Recorded to explore the historical timeline.",
+        content:
+          "Preserve stories, celebrate culture, and connect with the Palestine Recorded community.",
       },
     ],
   }),
 });
+
+function HomePage() {
+  return (
+    <div className="flex flex-col h-screen overflow-hidden">
+      <Navbar />
+      <Home />
+    </div>
+  );
+}

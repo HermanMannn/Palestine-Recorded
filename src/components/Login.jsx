@@ -50,7 +50,7 @@ export default function Login() {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) throw error
       localStorage.setItem('palrec_user', JSON.stringify({ id: data.user.id, email: data.user.email }))
-      navigate({ to: '/timeline' })
+      navigate({ to: '/' })
     } catch (err) {
       setError(err.message || t('auth.loginFailed'))
     } finally {

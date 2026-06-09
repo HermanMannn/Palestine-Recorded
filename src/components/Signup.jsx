@@ -200,7 +200,7 @@ export default function Signup() {
               <p className="text-sm text-foreground m-0">
                 {t('auth.alreadyHaveAccount')}{' '}
                 <a
-                  onClick={() => !isLoading && navigate({ to: '/' })}
+                  onClick={() => !isLoading && navigate({ to: '/login' })}
                   className={`font-bold text-primary decoration-2 underline-offset-2 ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:underline'}`}
                 >
                   {t('auth.login')}

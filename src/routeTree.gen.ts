@@ -19,6 +19,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PalgridRouteImport } from './routes/palgrid'
 import { Route as MessagesRouteImport } from './routes/messages'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as DonateRouteImport } from './routes/donate'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AuthcontextRouteImport } from './routes/authcontext'
@@ -75,6 +76,11 @@ const MessagesRoute = MessagesRouteImport.update({
   path: '/messages',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DonateRoute = DonateRouteImport.update({
   id: '/donate',
   path: '/donate',
@@ -107,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/authcontext': typeof AuthcontextRoute
   '/contact': typeof ContactRoute
   '/donate': typeof DonateRoute
+  '/login': typeof LoginRoute
   '/messages': typeof MessagesRoute
   '/palgrid': typeof PalgridRoute
   '/privacy': typeof PrivacyRoute
@@ -124,6 +131,7 @@ export interface FileRoutesByTo {
   '/authcontext': typeof AuthcontextRoute
   '/contact': typeof ContactRoute
   '/donate': typeof DonateRoute
+  '/login': typeof LoginRoute
   '/messages': typeof MessagesRoute
   '/palgrid': typeof PalgridRoute
   '/privacy': typeof PrivacyRoute
@@ -142,6 +150,7 @@ export interface FileRoutesById {
   '/authcontext': typeof AuthcontextRoute
   '/contact': typeof ContactRoute
   '/donate': typeof DonateRoute
+  '/login': typeof LoginRoute
   '/messages': typeof MessagesRoute
   '/palgrid': typeof PalgridRoute
   '/privacy': typeof PrivacyRoute
@@ -161,6 +170,7 @@ export interface FileRouteTypes {
     | '/authcontext'
     | '/contact'
     | '/donate'
+    | '/login'
     | '/messages'
     | '/palgrid'
     | '/privacy'
@@ -178,6 +188,7 @@ export interface FileRouteTypes {
     | '/authcontext'
     | '/contact'
     | '/donate'
+    | '/login'
     | '/messages'
     | '/palgrid'
     | '/privacy'
@@ -195,6 +206,7 @@ export interface FileRouteTypes {
     | '/authcontext'
     | '/contact'
     | '/donate'
+    | '/login'
     | '/messages'
     | '/palgrid'
     | '/privacy'
@@ -213,6 +225,7 @@ export interface RootRouteChildren {
   AuthcontextRoute: typeof AuthcontextRoute
   ContactRoute: typeof ContactRoute
   DonateRoute: typeof DonateRoute
+  LoginRoute: typeof LoginRoute
   MessagesRoute: typeof MessagesRoute
   PalgridRoute: typeof PalgridRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -297,6 +310,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MessagesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/donate': {
       id: '/donate'
       path: '/donate'
@@ -341,6 +361,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthcontextRoute: AuthcontextRoute,
   ContactRoute: ContactRoute,
   DonateRoute: DonateRoute,
+  LoginRoute: LoginRoute,
   MessagesRoute: MessagesRoute,
   PalgridRoute: PalgridRoute,
   PrivacyRoute: PrivacyRoute,

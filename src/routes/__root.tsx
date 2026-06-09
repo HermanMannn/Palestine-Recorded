@@ -81,14 +81,8 @@ function RootShell({ children }: { children: React.ReactNode }) {
         {/* Inject the theme script right into the head */}
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body
-        style={{
-          backgroundImage: 'url(/PalRecBG.png)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundAttachment: 'fixed',
-        }}
-      >
+      {/* Background image is applied in styles.css with light/dark overlays */}
+      <body>
         {children}
         <Scripts />
       </body>

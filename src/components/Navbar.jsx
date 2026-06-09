@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Home, Calendar, Grid3X3, MessageSquare, Settings, LogOut, User, LogIn } from "lucide-react";
+import { Home, Map, Calendar, Grid3X3, MessageSquare, Settings, LogOut, User, LogIn, Sun, Moon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "@/hooks/useTranslation";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -16,7 +16,8 @@ export default function Navbar() {
   const [user, setUser] = useState(null);
 
   const tools = [
-    { icon: Home, label: t('navbar.homeTitle'), to: "/timeline" },
+    { icon: Home, label: t('navbar.homeTitle'), to: "/" },
+    { icon: Map, label: t('navbar.timelineTitle'), to: "/timeline" },
     { icon: Calendar, label: t('navbar.communityTitle'), to: "/social" },
     { icon: Grid3X3, label: t('common.grid'), to: "/palgrid" },
     { icon: MessageSquare, label: t('navbar.messagesTitle'), to: "/messages" },
@@ -58,6 +59,14 @@ export default function Navbar() {
     };
   }, []);
 
+  const toggleTheme = () => {
+    const next = isDarkMode ? "light" : "dark";
+    const root = document.documentElement;
+    root.classList.remove("light", "dark");
+    root.classList.add(next);
+    localStorage.setItem("theme", next);
+  };
+
   const handleLogout = async (e) => {
     e.preventDefault();
     await supabase.auth.signOut();
@@ -68,7 +77,7 @@ export default function Navbar() {
   return (
     <>
       <header className="relative z-20 flex items-center justify-between px-6 py-4 bg-card/90 backdrop-blur-sm border-b border-border">
-        <Link to="/timeline" className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2">
           <img src={isDarkMode ? logoDark : logoLight} alt={t('navbar.title')} className="h-9 w-auto" />
           <span className="text-base sm:text-lg font-bold tracking-tight text-foreground hidden sm:block">
             {t('navbar.title')}
@@ -102,7 +111,7 @@ export default function Navbar() {
             </button>
           ) : (
             <Link
-              to="/"
+              to="/login"
               title={t('auth.login')}
               className="flex h-9 w-9 items-center justify-center rounded-md text-foreground hover:bg-accent/40 hover:text-primary transition-colors"
             >
@@ -116,6 +125,15 @@ export default function Navbar() {
           <Link to="/donate" className="text-sm font-medium text-foreground hover:text-primary hidden md:block">{t('navbar.donateTitle')}</Link>
           <Link to="/contact" className="text-sm font-medium text-foreground hover:text-primary hidden md:block">{t('navbar.contactUsTitle')}</Link>
           <Link to="/privacy" className="text-sm font-medium text-foreground hover:text-primary hidden md:block">{t('common.privacy')}</Link>
+
+          <button
+            onClick={toggleTheme}
+            title={isDarkMode ? t('navbar.lightMode') : t('navbar.darkMode')}
+            aria-label={isDarkMode ? t('navbar.lightMode') : t('navbar.darkMode')}
+            className="flex h-9 w-9 items-center justify-center rounded-full text-foreground hover:bg-accent/40 hover:text-primary transition-colors"
+          >
+            {isDarkMode ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
+          </button>
 
           <LanguageSwitcher />
 
@@ -133,7 +151,7 @@ export default function Navbar() {
             </Link>
           ) : (
             <Link
-              to="/"
+              to="/login"
               title={t('auth.login')}
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 ml-1 transition-colors"
             >
@@ -163,7 +181,7 @@ export default function Navbar() {
         })}
         {!user && (
           <Link
-            to="/"
+            to="/login"
             className="flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary transition-colors"
           >
             <LogIn className="h-6 w-6" />
