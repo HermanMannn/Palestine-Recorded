@@ -1,11 +1,33 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
+import { Link } from "@tanstack/react-router";
+import {
+  RotateCcw,
+  Lightbulb,
+  BarChart3,
+  Volume2,
+  VolumeX,
+  X,
+  Share2,
+  Copy,
+  Sparkles,
+  Map,
+  Delete,
+} from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { WORDS } from "../data/words";
 import { PALESTINE_WORDS } from "../data/palestineWords";
+import { timelineData } from "./TimelineSidebar.jsx";
 import { useTranslation } from "@/hooks/useTranslation";
+import ChatBot from "./ChatBot.jsx";
 
-const WORD_LENGTH = 5;
 const MAX_TRIES = 6;
 const WORD_SET = new Set(WORDS);
+const FLIP_MS = 560; // single tile flip duration
+const STAGGER_MS = 160; // delay between tiles in a row
+const SOUND_SRCS = ["/sounds/tile-flip-1.wav", "/sounds/tile-flip-2.wav"];
+const SUCCESS_SOUND = "/sounds/palgrid-success.wav";
+const HINT_SOUND = "/sounds/hint-click.wav";
+const DAILY_EPOCH = Date.UTC(2026, 0, 1); // PalGrid #0
 
 // Standard QWERTY keyboard layout
 const KEYBOARD_ROWS = [
@@ -14,19 +36,20 @@ const KEYBOARD_ROWS = [
   ["ENTER", "Z", "X", "C", "V", "B", "N", "M", "BACK"],
 ];
 
-const KEY_STATUS_COLORS: Record<string, string> = {
-  correct: "bg-emerald-600 border-emerald-500 text-white shadow-[0_0_10px_rgba(16,185,129,0.35)]",
-  present: "bg-amber-500 border-amber-400 text-white shadow-[0_0_10px_rgba(245,158,11,0.25)]",
-  absent: "bg-zinc-800 border-zinc-700 text-zinc-500",
-  unused: "bg-zinc-600/70 border-white/10 text-white hover:bg-zinc-500/80 active:scale-95",
+// Theme-aware status styles (work in both light and dark mode)
+const CELL_STATUS_COLORS: Record<string, string> = {
+  correct: "bg-primary border-primary text-primary-foreground shadow-[0_0_16px] shadow-primary/40",
+  present: "bg-amber-500 border-amber-400 text-white shadow-[0_0_16px] shadow-amber-500/30",
+  absent: "bg-muted border-border text-muted-foreground",
+  empty: "bg-card/60 border-border/70 text-foreground",
+  active: "bg-accent/15 border-primary/60 text-foreground",
 };
 
-const CELL_STATUS_COLORS: Record<string, string> = {
-  correct: "bg-emerald-600 border-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)]",
-  present: "bg-amber-500 border-amber-400 text-white shadow-[0_0_15px_rgba(245,158,11,0.3)]",
-  absent: "bg-zinc-800/80 border-zinc-900 text-zinc-500",
-  empty: "bg-zinc-600/50 border-2 border-white/10 text-white",
-  active: "bg-zinc-500/80 border-white/40 text-white scale-105 shadow-lg",
+const KEY_STATUS_COLORS: Record<string, string> = {
+  correct: "bg-primary border-primary text-primary-foreground shadow-md shadow-primary/25",
+  present: "bg-amber-500 border-amber-400 text-white shadow-md shadow-amber-500/20",
+  absent: "bg-muted/70 border-transparent text-muted-foreground/50",
+  unused: "bg-secondary border-border/60 text-secondary-foreground hover:bg-accent/15",
 };
 
 // Type definitions
@@ -34,30 +57,30 @@ type Cell = { letter: string; status: "correct" | "present" | "absent" | "" };
 type KeyStatus = "correct" | "present" | "absent" | "unused";
 type GameStatus = "playing" | "won" | "lost";
 type GameMode = "daily" | "random";
+type Stats = { played: number; won: number; streak: number; maxStreak: number; dist: number[]; lastIndex: number };
 
-// Palestine Time (Asia/Gaza) utilities
+const EMPTY_STATS: Stats = { played: 0, won: 0, streak: 0, maxStreak: 0, dist: [0, 0, 0, 0, 0, 0], lastIndex: -10 };
+
+// ===== Palestine Time (Asia/Gaza) utilities =====
+
+const getPalestineNow = () => new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Gaza" }));
+
 const getPalestineDateStr = () => {
-  const now = new Date();
-  const tzString = now.toLocaleString("en-US", { timeZone: "Asia/Gaza" });
-  const palestineDate = new Date(tzString);
-  return `${palestineDate.getFullYear()}-${palestineDate.getMonth() + 1}-${palestineDate.getDate()}`;
+  const d = getPalestineNow();
+  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
 };
 
-// Daily word: deterministic hash based on date
-const getDailyWord = () => {
-  const dateString = getPalestineDateStr();
-  let hash = 0;
-  for (let i = 0; i < dateString.length; i++) {
-    hash = dateString.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return PALESTINE_WORDS[Math.abs(hash) % PALESTINE_WORDS.length];
+// Sequential daily index → no word repeats until the full list cycles
+const getDailyIndex = () => {
+  const d = getPalestineNow();
+  const todayUTC = Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
+  return Math.max(0, Math.floor((todayUTC - DAILY_EPOCH) / 86400000));
 };
 
-// Seconds until midnight in Palestine timezone
+const getDailyWord = () => PALESTINE_WORDS[getDailyIndex() % PALESTINE_WORDS.length];
+
 const getSecondsUntilMidnightPalestine = () => {
-  const now = new Date();
-  const tzString = now.toLocaleString("en-US", { timeZone: "Asia/Gaza" });
-  const localTzNow = new Date(tzString);
+  const localTzNow = getPalestineNow();
   const nextMidnight = new Date(localTzNow);
   nextMidnight.setHours(24, 0, 0, 0);
   return Math.floor((nextMidnight.getTime() - localTzNow.getTime()) / 1000);
@@ -65,7 +88,6 @@ const getSecondsUntilMidnightPalestine = () => {
 
 const getRandomWord = () => PALESTINE_WORDS[Math.floor(Math.random() * PALESTINE_WORDS.length)];
 
-// Format seconds as HH:MM:SS
 const formatTime = (seconds: number) => {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
@@ -73,24 +95,24 @@ const formatTime = (seconds: number) => {
   return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
 };
 
-// Wordle-style feedback: correct > present > absent
-const evaluate = (guess: string, ans: string): Cell[] => {
-  const res: Cell[] = Array.from({ length: WORD_LENGTH }, (_, i) => ({
-    letter: guess[i] || "",
-    status: "",
-  }));
-  const answerArr = ans.split("");
-  const used = Array(WORD_LENGTH).fill(false);
+// ===== Game logic =====
 
-  for (let i = 0; i < WORD_LENGTH; i++) {
+// Wordle-style feedback: correct > present > absent (variable word length)
+const evaluate = (guess: string, ans: string): Cell[] => {
+  const len = ans.length;
+  const res: Cell[] = Array.from({ length: len }, (_, i) => ({ letter: guess[i] || "", status: "" }));
+  const answerArr = ans.split("");
+  const used = Array(len).fill(false);
+
+  for (let i = 0; i < len; i++) {
     if (guess[i] === answerArr[i]) {
       res[i].status = "correct";
       used[i] = true;
     }
   }
-  for (let i = 0; i < WORD_LENGTH; i++) {
+  for (let i = 0; i < len; i++) {
     if (res[i].status) continue;
-    for (let j = 0; j < WORD_LENGTH; j++) {
+    for (let j = 0; j < len; j++) {
       if (!used[j] && guess[i] === answerArr[j]) {
         res[i].status = "present";
         used[j] = true;
@@ -102,158 +124,130 @@ const evaluate = (guess: string, ans: string): Cell[] => {
   return res;
 };
 
-// SVG icon components
-const BackIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 mx-auto">
-    <path d="M21 12H7l5-5M7 12l5 5" />
-  </svg>
-);
-
-const ResetIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
-    <path d="M21 3v5h-5" />
-    <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
-    <path d="M3 21v-5h5" />
-  </svg>
-);
-
-// UI Components
-const ModeButton = ({ label, isActive, onClick, color }: { label: string; isActive: boolean; onClick: () => void; color: "emerald" | "violet" }) => (
-  <button
-    onPointerDown={(e) => { e.preventDefault(); onClick(); }}
-    className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full transition-all duration-150 select-none touch-manipulation ${
-      isActive ? `bg-${color}-600 text-white shadow` : "text-zinc-400 hover:text-white"
-    }`}
-  >
-    {label}
-  </button>
-);
-
-const IconButton = ({ onClick, title, icon: Icon, hoverColor = "text-white" }: { onClick: () => void; title: string; icon: React.ComponentType; hoverColor?: string }) => (
-  <button
-    onPointerDown={(e) => { e.preventDefault(); onClick(); }}
-    className={`flex items-center justify-center px-2 py-1 rounded-full transition-all duration-150 select-none touch-manipulation text-zinc-400 hover:${hoverColor} hover:bg-white/10`}
-    title={title}
-  >
-    <Icon />
-  </button>
-);
-
-const HintButton = ({ onClick, cooldown, title, cooldownLabel }: { onClick: () => void; cooldown: number; title: string; cooldownLabel: string }) => {
-  const isOnCooldown = cooldown > 0;
-  return (
-    <button
-      onPointerDown={(e) => { e.preventDefault(); onClick(); }}
-      disabled={isOnCooldown}
-      className={`flex items-center justify-center px-2 py-1 rounded-full transition-all duration-150 select-none touch-manipulation w-6 h-6 ${
-        isOnCooldown
-          ? "bg-zinc-700/50 text-zinc-500 cursor-not-allowed"
-          : "text-zinc-400 hover:text-white hover:bg-white/10"
-      }`}
-      title={isOnCooldown ? `${cooldownLabel} ${cooldown}s` : title}
-    >
-      {isOnCooldown ? (
-        <span className="text-xs font-bold">{cooldown}s</span>
-      ) : (
-        <span className="text-sm leading-none">💡</span>
-      )}
-    </button>
-  );
+// Tile sizing adapts to word length so 7-letter words fit on phones
+const getCellSize = (len: number) => {
+  if (len <= 5) return "w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 text-2xl sm:text-3xl";
+  if (len === 6) return "w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 text-xl sm:text-2xl";
+  return "w-9 h-9 sm:w-11 sm:h-11 lg:w-12 lg:h-12 text-lg sm:text-xl";
 };
 
-const Keyboard = ({ handleKey, keyStatuses }: { handleKey: (key: string) => void; keyStatuses: Record<string, KeyStatus> }) => (
-  <div className="lg:mt-6 flex flex-col items-center gap-1.5 w-full">
-    {KEYBOARD_ROWS.map((row, ri) => (
-      <div key={ri} className="flex gap-1 justify-center">
-        {row.map((key) => {
-          const isWide = key === "ENTER" || key === "BACK";
-          const status = keyStatuses[key] || "unused";
-          const bgClass = KEY_STATUS_COLORS[status];
-          const sizeClass = isWide
-            ? "px-2 sm:px-3 lg:px-4 text-[10px] sm:text-xs lg:text-sm min-w-[44px] sm:min-w-[52px] lg:min-w-[60px]"
-            : "w-8 sm:w-10 lg:w-12 text-sm sm:text-base lg:text-lg";
-          return (
-            <button
-              key={key}
-              onPointerDown={(e) => { e.preventDefault(); handleKey(key); }}
-              className={`select-none touch-manipulation ${sizeClass} h-12 sm:h-14 lg:h-16 rounded-lg border-2 font-bold uppercase transition-all duration-100 cursor-pointer ${bgClass}`}
-            >
-              {key === "BACK" ? <BackIcon /> : key}
-            </button>
-          );
-        })}
+// Emoji share grid
+const buildShareText = (guesses: string[], answer: string, won: boolean, dailyIndex: number) => {
+  const rows = guesses
+    .map((g) =>
+      evaluate(g, answer)
+        .map((c) => (c.status === "correct" ? "🟩" : c.status === "present" ? "🟨" : "⬛"))
+        .join("")
+    )
+    .join("\n");
+  return `PalGrid #${dailyIndex} ${won ? guesses.length : "X"}/${MAX_TRIES}\n\n${rows}`;
+};
+
+// ===== Persistence =====
+
+const loadStats = (): Stats => {
+  if (typeof window === "undefined") return EMPTY_STATS;
+  try {
+    const s = JSON.parse(localStorage.getItem("palgrid-stats") || "");
+    if (s && typeof s.played === "number") return { ...EMPTY_STATS, ...s };
+  } catch { /* fresh start */ }
+  return EMPTY_STATS;
+};
+
+const vibrate = (pattern: number | number[]) => {
+  try {
+    navigator.vibrate?.(pattern);
+  } catch { /* unsupported */ }
+};
+
+// ===== Small components =====
+
+function FlipCell({ letter, status, delay, sizeClass }: { letter: string; status: string; delay: number; sizeClass: string }) {
+  const [flipped, setFlipped] = useState(false);
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => requestAnimationFrame(() => setFlipped(true)));
+    return () => cancelAnimationFrame(raf);
+  }, []);
+  return (
+    <div className={`pg-tile ${sizeClass}`}>
+      <div className={`pg-tile-inner ${flipped ? "pg-flip" : ""}`} style={{ transitionDelay: `${delay}ms` }}>
+        <div className={`pg-face border-2 rounded-lg font-bold uppercase ${CELL_STATUS_COLORS.empty}`}>{letter}</div>
+        <div className={`pg-face pg-face-back border-2 rounded-lg font-bold uppercase ${CELL_STATUS_COLORS[status] || CELL_STATUS_COLORS.empty}`}>
+          {letter}
+        </div>
       </div>
-    ))}
-  </div>
-);
+    </div>
+  );
+}
 
-const GridCell = ({ cell, isCurrent }: { cell: Cell; isCurrent: boolean }) => {
-  const letterChar = cell.letter;
+function StaticCell({ cell, isCurrent, sizeClass, dance, danceDelay }: { cell: Cell; isCurrent: boolean; sizeClass: string; dance?: boolean; danceDelay?: number }) {
   let bgClass = CELL_STATUS_COLORS.empty;
-
-  if (cell.status) {
-    bgClass = CELL_STATUS_COLORS[cell.status] || CELL_STATUS_COLORS.empty;
-  } else if (letterChar.trim() && isCurrent) {
-    bgClass = CELL_STATUS_COLORS.active;
-  }
+  if (cell.status) bgClass = CELL_STATUS_COLORS[cell.status] || CELL_STATUS_COLORS.empty;
+  else if (cell.letter.trim() && isCurrent) bgClass = CELL_STATUS_COLORS.active;
 
   return (
     <div
-      className={`w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 flex items-center justify-center text-2xl sm:text-3xl lg:text-4xl font-bold uppercase rounded-lg border-2 transition-all duration-150 shadow-lg ${bgClass}`}
-      style={{ boxShadow: letterChar.trim() ? undefined : "inset 0 0 0 1px rgba(255,255,255,0.1)" }}
+      className={`${sizeClass} flex items-center justify-center font-bold uppercase rounded-lg border-2 transition-all duration-150 ${bgClass} ${
+        dance ? "pg-dance" : ""
+      } ${cell.letter.trim() && isCurrent ? "pg-pop" : ""}`}
+      style={dance ? { animationDelay: `${danceDelay}ms` } : undefined}
     >
-      {letterChar.trim()}
+      {cell.letter.trim()}
     </div>
   );
-};
+}
 
-const WordInfo = ({ word, category, arabic, meaning, context, meaningLabel, contextLabel }: { word: string; category: string; arabic: string; meaning: string; context: string; meaningLabel: string; contextLabel: string }) => (
-  <div className="bg-zinc-800/80 border border-zinc-600/50 rounded-xl p-5 w-full text-left shadow-inner">
-    <div className="flex justify-between items-start mb-3">
-      <span className="text-[10px] uppercase font-bold tracking-widest bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded">
-        {category}
-      </span>
-      <span className="text-2xl font-bold text-white/60">{arabic}</span>
-    </div>
-    <h3 className="text-emerald-400 font-bold text-xl mb-2 tracking-wide">{word}</h3>
-    <p className="text-white/90 text-sm mb-3">
-      <span className="font-semibold text-white/60 uppercase text-xs tracking-wider block mb-1">{meaningLabel}</span>
-      {meaning}
-    </p>
-    <div className="border-l-2 border-emerald-500/60 pl-3">
-      <span className="font-semibold text-white/60 uppercase text-xs tracking-wider block mb-1">{contextLabel}</span>
-      <p className="text-white/80 text-sm italic leading-relaxed">{context}</p>
-    </div>
-  </div>
-);
+// ===== Main component =====
 
 export default function PalGrid() {
   const { t } = useTranslation();
   const todayDateStr = getPalestineDateStr();
+  const dailyIndex = getDailyIndex();
+  const chatRef = useRef<{ askQuestion: (q: string) => void } | null>(null);
+
   const [mode, setMode] = useState<GameMode>("daily");
   const [targetData, setTargetData] = useState(() => getDailyWord());
   const answer = targetData.word.toUpperCase();
+  const wordLen = answer.length;
+  const sizeClass = getCellSize(wordLen);
 
   const loadDailyState = () => {
-    const saved = localStorage.getItem("palgrid-state");
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      return parsed.date === todayDateStr ? [parsed.guesses, parsed.status] : [[], "playing"];
-    }
-    return [[], "playing"];
+    if (typeof window === "undefined") return { guesses: [], status: "playing" as GameStatus, hinted: [] as string[] };
+    try {
+      const parsed = JSON.parse(localStorage.getItem("palgrid-state") || "");
+      if (parsed?.date === todayDateStr) {
+        return { guesses: parsed.guesses || [], status: parsed.status || "playing", hinted: parsed.hinted || [] };
+      }
+    } catch { /* fresh day */ }
+    return { guesses: [], status: "playing" as GameStatus, hinted: [] as string[] };
   };
 
-  const [dailyGuesses, setDailyGuesses] = useState<string[]>(() => loadDailyState()[0]);
-  const [dailyStatus, setDailyStatus] = useState<GameStatus>(() => loadDailyState()[1]);
+  const [dailyGuesses, setDailyGuesses] = useState<string[]>(() => loadDailyState().guesses);
+  const [dailyStatus, setDailyStatus] = useState<GameStatus>(() => loadDailyState().status);
   const [randomGuesses, setRandomGuesses] = useState<string[]>([]);
   const [randomStatus, setRandomStatus] = useState<GameStatus>("playing");
   const [current, setCurrent] = useState("");
-  const [error, setError] = useState("");
+  const [toast, setToast] = useState<{ text: string; kind: "error" | "success" } | null>(null);
   const [shake, setShake] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
   const [hintCooldown, setHintCooldown] = useState(0);
-  const [hintedLetters, setHintedLetters] = useState<Set<string>>(new Set());
+  const [hintedLetters, setHintedLetters] = useState<Set<string>>(() => new Set(loadDailyState().hinted));
+  const [revealRow, setRevealRow] = useState<number | null>(null);
+  const [dance, setDance] = useState(false);
+  const [stats, setStats] = useState<Stats>(loadStats);
+  const [showStats, setShowStats] = useState(false);
+  const [muted, setMuted] = useState<boolean>(() => typeof window !== "undefined" && localStorage.getItem("palgrid-sound") === "off");
+  const [user, setUser] = useState<{ id: string } | null>(null);
+  const [sharing, setSharing] = useState(false);
+  const [pressedKey, setPressedKey] = useState<string | null>(null);
+  const pressedTimerRef = useRef<number | undefined>(undefined);
+
+  // Light up the on-screen key when the physical keyboard is used
+  const flashKey = useCallback((key: string) => {
+    setPressedKey(key);
+    window.clearTimeout(pressedTimerRef.current);
+    pressedTimerRef.current = window.setTimeout(() => setPressedKey(null), 140);
+  }, []);
 
   // Route reads and writes through the active mode so Daily and Random keep separate progress.
   const guesses = mode === "daily" ? dailyGuesses : randomGuesses;
@@ -261,53 +255,144 @@ export default function PalGrid() {
   const setGuesses = mode === "daily" ? setDailyGuesses : setRandomGuesses;
   const setStatus = mode === "daily" ? setDailyStatus : setRandomStatus;
 
-  const startRandom = () => { setTargetData(getRandomWord()); setRandomGuesses([]); setRandomStatus("playing"); setCurrent(""); setError(""); setMode("random"); };
-  const goDaily = () => { setTargetData(getDailyWord()); setCurrent(""); setError(""); setMode("daily"); };
-  // Daily resets the same daily puzzle, while Random resets by choosing a fresh practice word.
-  const resetGame = () => { setCurrent(""); setError(""); setHintedLetters(new Set()); setHintCooldown(0); if (mode === "daily") { setDailyGuesses([]); setDailyStatus("playing"); } else { setTargetData(getRandomWord()); setRandomGuesses([]); setRandomStatus("playing"); } };
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUser(data.user || null));
+  }, []);
+
+  // ----- Sound -----
+  // One randomized, pitch-shifted flip sound per typed letter (lower pitch for backspace)
+  const playTileSound = useCallback(
+    (rateMin = 0.95, rateMax = 1.25, volume = 0.4) => {
+      if (muted) return;
+      try {
+        const audio = new Audio(SOUND_SRCS[Math.random() < 0.5 ? 0 : 1]);
+        // Disable pitch preservation so playbackRate naturally shifts pitch
+        (audio as HTMLAudioElement & { preservesPitch?: boolean; webkitPreservesPitch?: boolean }).preservesPitch = false;
+        (audio as HTMLAudioElement & { webkitPreservesPitch?: boolean }).webkitPreservesPitch = false;
+        audio.playbackRate = rateMin + Math.random() * (rateMax - rateMin);
+        audio.volume = volume;
+        audio.play().catch(() => {});
+      } catch { /* audio unavailable */ }
+    },
+    [muted]
+  );
+
+  const playSuccessSound = useCallback(() => {
+    if (muted) return;
+    try {
+      const audio = new Audio(SUCCESS_SOUND);
+      audio.volume = 0.55;
+      audio.play().catch(() => {});
+    } catch { /* audio unavailable */ }
+  }, [muted]);
+
+  const toggleMute = () => {
+    setMuted((m) => {
+      localStorage.setItem("palgrid-sound", m ? "on" : "off");
+      return !m;
+    });
+  };
+
+  // ----- Mode switching (clears hints so they can't leak across words) -----
+  const clearTransient = () => {
+    setCurrent("");
+    setToast(null);
+    setHintedLetters(new Set());
+    setHintCooldown(0);
+    setRevealRow(null);
+    setDance(false);
+  };
+
+  const startRandom = () => {
+    setTargetData(getRandomWord());
+    setRandomGuesses([]);
+    setRandomStatus("playing");
+    clearTransient();
+    setMode("random");
+  };
+
+  const goDaily = () => {
+    setTargetData(getDailyWord());
+    clearTransient();
+    setHintedLetters(new Set(loadDailyState().hinted));
+    setMode("daily");
+  };
+
+  // Reset only exists for practice mode — the daily puzzle is one attempt per day.
+  const resetRandom = () => {
+    setTargetData(getRandomWord());
+    setRandomGuesses([]);
+    setRandomStatus("playing");
+    clearTransient();
+  };
 
   const resetDailyPuzzle = useCallback(() => {
     const nextDateStr = getPalestineDateStr();
     setTargetData(getDailyWord());
     setDailyGuesses([]);
     setDailyStatus("playing");
-    setCurrent("");
-    setError("");
-    setHintedLetters(new Set());
-    setHintCooldown(0);
+    clearTransient();
     setTimeLeft(0);
-    localStorage.setItem("palgrid-state", JSON.stringify({ date: nextDateStr, guesses: [], status: "playing" }));
+    localStorage.setItem("palgrid-state", JSON.stringify({ date: nextDateStr, guesses: [], status: "playing", hinted: [] }));
   }, []);
 
+  // ----- Hints -----
   const giveHint = () => {
-    if (hintCooldown > 0 || status !== "playing") return;
+    if (hintCooldown > 0 || status !== "playing" || revealRow !== null) return;
 
     const allLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
     const answerLetters = new Set(answer.split(""));
-    // A hint should reveal something new, not repeat a letter the player already tested.
     const guessedLetters = new Set([...guesses.join(""), ...current]);
     const wrongLetters = allLetters.filter(
-      (letter) => !answerLetters.has(letter) && !hintedLetters.has(letter) && !guessedLetters.has(letter),
+      (letter) => !answerLetters.has(letter) && !hintedLetters.has(letter) && !guessedLetters.has(letter)
     );
 
-    // If every wrong letter is already known, keep the button from feeling broken.
     if (wrongLetters.length === 0) {
-      setError(t("palgrid.noMoreHints"));
+      setToast({ text: t("palgrid.noMoreHints"), kind: "error" });
       return;
     }
 
     const hintLetter = wrongLetters[Math.floor(Math.random() * wrongLetters.length)];
-    setError("");
+    if (!muted) {
+      try {
+        const audio = new Audio(HINT_SOUND);
+        audio.volume = 0.5;
+        audio.play().catch(() => {});
+      } catch { /* audio unavailable */ }
+    }
     setHintedLetters((prev) => new Set([...prev, hintLetter]));
     setHintCooldown(30);
   };
 
-  // Keyboard colors: correct > present > absent (upgrades only)
-  const keyStatuses = useCallback((): Record<string, KeyStatus> => {
+  // ----- Stats -----
+  const recordResult = useCallback(
+    (won: boolean, tries: number) => {
+      if (mode !== "daily") return;
+      setStats((prev) => {
+        const next: Stats = {
+          played: prev.played + 1,
+          won: prev.won + (won ? 1 : 0),
+          streak: won ? (dailyIndex - prev.lastIndex === 1 ? prev.streak + 1 : 1) : 0,
+          maxStreak: prev.maxStreak,
+          dist: [...prev.dist],
+          lastIndex: won ? dailyIndex : prev.lastIndex,
+        };
+        if (won) next.dist[tries - 1] += 1;
+        next.maxStreak = Math.max(next.maxStreak, next.streak);
+        localStorage.setItem("palgrid-stats", JSON.stringify(next));
+        return next;
+      });
+    },
+    [mode, dailyIndex]
+  );
+
+  // ----- Keyboard colors (revealing row excluded until its flip finishes) -----
+  const visibleGuesses = revealRow !== null ? guesses.slice(0, revealRow) : guesses;
+  const keyStatuses = useMemo((): Record<string, KeyStatus> => {
     const map: Record<string, KeyStatus> = {};
-    for (const guess of guesses) {
+    for (const guess of visibleGuesses) {
       const cells = evaluate(guess, answer);
-      for (let i = 0; i < WORD_LENGTH; i++) {
+      for (let i = 0; i < wordLen; i++) {
         const letter = guess[i];
         const cellStatus = cells[i].status as KeyStatus;
         const existing = map[letter];
@@ -316,20 +401,22 @@ export default function PalGrid() {
         else if (existing === "present" && cellStatus === "correct") map[letter] = cellStatus;
       }
     }
-    // Hinted letters behave like known misses, but never downgrade letters proven by guesses.
     for (const letter of hintedLetters) {
       if (!map[letter]) map[letter] = "absent";
     }
     return map;
-  }, [guesses, answer, hintedLetters]);
+  }, [visibleGuesses, answer, hintedLetters, wordLen]);
 
-  // Persist daily state to localStorage
+  // ----- Persist daily state -----
   useEffect(() => {
     if (mode !== "daily") return;
-    localStorage.setItem("palgrid-state", JSON.stringify({ date: todayDateStr, guesses: dailyGuesses, status: dailyStatus }));
-  }, [dailyGuesses, dailyStatus, todayDateStr, mode]);
+    localStorage.setItem(
+      "palgrid-state",
+      JSON.stringify({ date: todayDateStr, guesses: dailyGuesses, status: dailyStatus, hinted: [...hintedLetters] })
+    );
+  }, [dailyGuesses, dailyStatus, todayDateStr, mode, hintedLetters]);
 
-  // Countdown timer for daily mode
+  // ----- Countdown for next daily -----
   useEffect(() => {
     let timer: number;
     if (mode === "daily" && dailyStatus !== "playing") {
@@ -346,115 +433,410 @@ export default function PalGrid() {
     return () => clearInterval(timer);
   }, [dailyStatus, mode, resetDailyPuzzle]);
 
+  // ----- Input handling -----
   const handleKey = useCallback(
     (key: string) => {
-      if (status !== "playing") return;
+      if (status !== "playing" || revealRow !== null) return;
       if (key === "ENTER") {
-        if (current.length !== WORD_LENGTH) { setError(t("palgrid.notEnoughLetters")); setShake(true); setTimeout(() => setShake(false), 500); return; }
+        if (current.length !== wordLen) {
+          setToast({ text: t("palgrid.notEnoughLetters"), kind: "error" });
+          setShake(true);
+          vibrate(60);
+          setTimeout(() => setShake(false), 500);
+          return;
+        }
+        // 5-letter guesses validate against the dictionary; other lengths accept any complete word
         const isStandardWord = WORD_SET.has(current) || WORD_SET.has(current.toLowerCase());
         const isPalestineWord = PALESTINE_WORDS.some((w) => w.word.toUpperCase() === current);
-        if (!isStandardWord && !isPalestineWord) { setError(t("palgrid.notInWordList")); setShake(true); setTimeout(() => setShake(false), 500); return; }
-        setError("");
+        if (wordLen === 5 && !isStandardWord && !isPalestineWord) {
+          setToast({ text: t("palgrid.notInWordList"), kind: "error" });
+          setShake(true);
+          vibrate(60);
+          setTimeout(() => setShake(false), 500);
+          return;
+        }
+        setToast(null);
         const newGuesses = [...guesses, current];
+        const rowIndex = newGuesses.length - 1;
         setGuesses(newGuesses);
         setCurrent("");
-        if (current === answer) setStatus("won");
-        else if (newGuesses.length >= MAX_TRIES) setStatus("lost");
+        setRevealRow(rowIndex);
+
+        const totalReveal = (wordLen - 1) * STAGGER_MS + FLIP_MS + 60;
+        setTimeout(() => {
+          setRevealRow(null);
+          if (current === answer) {
+            setStatus("won");
+            setDance(true);
+            playSuccessSound();
+            vibrate([40, 60, 40, 60, 80]);
+            recordResult(true, newGuesses.length);
+            if (mode === "daily") setTimeout(() => setShowStats(true), 1600);
+          } else if (newGuesses.length >= MAX_TRIES) {
+            setStatus("lost");
+            vibrate(180);
+            recordResult(false, newGuesses.length);
+            if (mode === "daily") setTimeout(() => setShowStats(true), 1400);
+          }
+        }, totalReveal);
         return;
       }
-      if (key === "BACK") { setCurrent((c) => c.slice(0, -1)); return; }
-      if (/^[A-Z]$/.test(key) && current.length < WORD_LENGTH) setCurrent((c) => c + key);
+      if (key === "BACK") {
+        if (current.length > 0) playTileSound(0.7, 0.85, 0.3);
+        setCurrent((c) => c.slice(0, -1));
+        return;
+      }
+      if (/^[A-Z]$/.test(key) && current.length < wordLen) {
+        vibrate(8);
+        playTileSound();
+        setCurrent((c) => c + key);
+      }
     },
-    [current, guesses, status, answer, setGuesses, setStatus, t]
+    [current, guesses, status, answer, setGuesses, setStatus, t, wordLen, revealRow, playTileSound, playSuccessSound, recordResult, mode]
   );
 
   // Physical keyboard listener
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const target = e.target;
-      // Do not steal typing from form fields elsewhere on the page.
       if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) return;
       const k = e.key.toUpperCase();
-      if (k === "ENTER" || k === "BACKSPACE" || /^[A-Z]$/.test(k)) { e.preventDefault(); handleKey(k === "BACKSPACE" ? "BACK" : k); }
+      if (k === "ENTER" || k === "BACKSPACE" || /^[A-Z]$/.test(k)) {
+        e.preventDefault();
+        const mapped = k === "BACKSPACE" ? "BACK" : k;
+        flashKey(mapped);
+        handleKey(mapped);
+      }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [handleKey]);
+  }, [handleKey, flashKey]);
 
-  // Auto-clear error messages after 3 seconds
-  useEffect(() => { if (error) { const timer = setTimeout(() => setError(""), 3000); return () => clearTimeout(timer); } }, [error]);
+  // Auto-clear toasts
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   // Hint cooldown timer
   useEffect(() => {
     if (hintCooldown <= 0) return;
-    const timer = setInterval(() => {
-      setHintCooldown((prev) => Math.max(0, prev - 1));
-    }, 1000);
+    const timer = setInterval(() => setHintCooldown((prev) => Math.max(0, prev - 1)), 1000);
     return () => clearInterval(timer);
   }, [hintCooldown]);
 
-  const grid = [...guesses, current.padEnd(WORD_LENGTH, " ")];
-  const statuses = keyStatuses();
-  const modeColor = mode === "daily" ? "rgba(16, 185, 129, " : "rgba(139, 92, 246, ";
+  // ----- Sharing -----
+  const shareText = buildShareText(guesses, answer, status === "won", dailyIndex);
+  const canShare = mode === "daily" && status !== "playing";
+
+  const copyResult = async () => {
+    try {
+      await navigator.clipboard.writeText(shareText);
+      setToast({ text: t("palgrid.copied"), kind: "success" });
+    } catch {
+      setToast({ text: t("palgrid.shareFailed"), kind: "error" });
+    }
+  };
+
+  const shareToFeed = async () => {
+    if (!user) {
+      setToast({ text: t("palgrid.loginToShare"), kind: "error" });
+      return;
+    }
+    setSharing(true);
+    try {
+      const { error: insertError } = await supabase.from("posts").insert({ user_id: user.id, text: shareText });
+      if (insertError) throw insertError;
+      setToast({ text: t("palgrid.sharedToFeed"), kind: "success" });
+    } catch {
+      setToast({ text: t("palgrid.shareFailed"), kind: "error" });
+    } finally {
+      setSharing(false);
+    }
+  };
+
+  // ----- Cross-platform tie-ins -----
+  const askGuide = () => {
+    chatRef.current?.askQuestion(
+      `Tell me more about "${targetData.word}" (${targetData.arabic}) in Palestinian history and culture.`
+    );
+  };
+
+  const timelineMatch = useMemo(() => {
+    if (status === "playing") return false;
+    const needle = targetData.word.toLowerCase();
+    return timelineData.some((y: { months: { events: { title?: string; description?: string; location?: string; tags?: string[] }[] }[] }) =>
+      y.months.some((m) =>
+        m.events.some((ev) =>
+          [ev.title, ev.description, ev.location, ...(ev.tags || [])].filter(Boolean).join(" ").toLowerCase().includes(needle)
+        )
+      )
+    );
+  }, [status, targetData.word]);
+
+  // ----- Render -----
+  const grid = [...guesses, current.padEnd(wordLen, " ")];
+  const winningRow = status === "won" ? guesses.length - 1 : -1;
+  const winRate = stats.played > 0 ? Math.round((stats.won / stats.played) * 100) : 0;
+  const maxDist = Math.max(1, ...stats.dist);
+  const isDaily = mode === "daily";
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center p-4 pt-[70px] dark:bg-slate-900/40 backdrop-blur-m transition-colors duration-300 custom-scrollbar overflow-y-auto">
+    <div className="fixed inset-0 flex items-center justify-center p-4 pt-[80px] overflow-y-auto">
+      <style>{`
+        @keyframes pg-shake { 0%,100%{transform:translateX(0)} 15%,45%,75%{transform:translateX(-6px)} 30%,60%,90%{transform:translateX(6px)} }
+        @keyframes pg-pop-kf { 0%{transform:scale(.7)} 60%{transform:scale(1.12)} 100%{transform:scale(1)} }
+        @keyframes pg-dance-kf { 0%,100%{transform:translateY(0)} 30%{transform:translateY(-45%)} 60%{transform:translateY(8%)} }
+        .pg-shake { animation: pg-shake .45s ease-in-out; }
+        .pg-pop { animation: pg-pop-kf .14s ease-out; }
+        .pg-dance { animation: pg-dance-kf .65s cubic-bezier(.36,.07,.19,.97) both; }
+        .pg-tile { perspective: 700px; }
+        .pg-tile-inner { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform ${FLIP_MS}ms cubic-bezier(.45,0,.25,1); }
+        .pg-tile-inner.pg-flip { transform: rotateX(180deg); }
+        .pg-face { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+        .pg-face-back { transform: rotateX(180deg); }
+      `}</style>
+
       <div
-        className="backdrop-blur p-6 sm:p-8 lg:p-8 rounded-[2.5rem] flex flex-col items-center gap-5 lg:gap-8 border-2 w-full max-w-md lg:max-w-6xl my-auto transition-all duration-300"
-        style={{
-          background: `linear-gradient(135deg, ${modeColor}0.12) 0%, rgba(113, 113, 122, 0.35) 100%)`,
-          borderColor: `${modeColor}0.3)`,
-          boxShadow: `0 0 30px ${modeColor}0.15), 0 8px 32px rgba(0, 0, 0, 0.3)`,
-        }}
+        className={`relative rounded-[2.5rem] border bg-card/80 backdrop-blur-xl shadow-xl flex flex-col items-center gap-5 lg:gap-8 p-6 sm:p-8 w-full max-w-md lg:max-w-6xl my-auto transition-all duration-300 ${
+          isDaily ? "border-primary/30 shadow-primary/10" : "border-violet-500/30 shadow-violet-500/10"
+        }`}
       >
+        {/* Toast */}
+        {toast && (
+          <div
+            className={`absolute top-5 left-1/2 -translate-x-1/2 z-20 px-4 py-1.5 rounded-full text-xs font-semibold shadow-lg animate-in fade-in slide-in-from-top-2 ${
+              toast.kind === "error" ? "bg-destructive text-destructive-foreground" : "bg-primary text-primary-foreground"
+            }`}
+          >
+            {toast.text}
+          </div>
+        )}
+
         <div className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-8 items-center lg:items-start w-full gap-5">
-          <div className="flex flex-col items-center gap-1 w-full order-1 lg:gap-2 lg:col-start-1 lg:row-1">
-            <h1 className="text-4xl lg:text-5xl text-white font-bold tracking-widest drop-shadow-lg">{t("palgrid.title")}</h1>
-            <div className="flex gap-1 bg-zinc-800/60 rounded-full p-1 mt-1 border border-white/10">
-              <ModeButton label={t("palgrid.daily")} isActive={mode === "daily"} onClick={goDaily} color="emerald" />
-              <ModeButton label={t("palgrid.random")} isActive={mode === "random"} onClick={startRandom} color="violet" />
-              <div className="w-px bg-white/20" />
-              <IconButton onClick={resetGame} title={t("palgrid.resetGame")} icon={ResetIcon} />
-              <HintButton onClick={giveHint} cooldown={hintCooldown} title={t("palgrid.getHint")} cooldownLabel={t("palgrid.hintAvailableIn")} />
+          {/* Header + controls */}
+          <div className="flex flex-col items-center gap-2 w-full order-1 lg:col-start-1 lg:row-1">
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-4xl lg:text-5xl font-bold tracking-widest text-foreground">{t("palgrid.title")}</h1>
+              {isDaily && (
+                <span className="rounded-full bg-primary/10 border border-primary/30 px-2.5 py-0.5 text-[11px] font-bold text-primary tabular-nums">
+                  #{dailyIndex}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-1 rounded-full border border-border/60 bg-background/50 backdrop-blur-sm p-1">
+              <button
+                onPointerDown={(e) => { e.preventDefault(); goDaily(); }}
+                className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full transition-all duration-150 select-none touch-manipulation active:scale-95 ${
+                  isDaily ? "bg-primary text-primary-foreground shadow-md shadow-primary/25" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {t("palgrid.daily")}
+              </button>
+              <button
+                onPointerDown={(e) => { e.preventDefault(); startRandom(); }}
+                className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full transition-all duration-150 select-none touch-manipulation active:scale-95 ${
+                  !isDaily ? "bg-violet-600 text-white shadow-md shadow-violet-600/25" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {t("palgrid.random")}
+              </button>
+              <div className="w-px h-4 bg-border" />
+              {!isDaily && (
+                <button
+                  onPointerDown={(e) => { e.preventDefault(); resetRandom(); }}
+                  title={t("palgrid.resetGame")}
+                  className="flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-accent/15 transition-colors active:scale-90"
+                >
+                  <RotateCcw className="h-3.5 w-3.5" />
+                </button>
+              )}
+              <button
+                onPointerDown={(e) => { e.preventDefault(); giveHint(); }}
+                disabled={hintCooldown > 0}
+                title={hintCooldown > 0 ? `${t("palgrid.hintAvailableIn")} ${hintCooldown}s` : t("palgrid.getHint")}
+                className={`flex h-7 w-7 items-center justify-center rounded-full transition-colors active:scale-90 ${
+                  hintCooldown > 0 ? "text-muted-foreground/40 cursor-not-allowed" : "text-muted-foreground hover:text-amber-500 hover:bg-accent/15"
+                }`}
+              >
+                {hintCooldown > 0 ? <span className="text-[10px] font-bold tabular-nums">{hintCooldown}</span> : <Lightbulb className="h-3.5 w-3.5" />}
+              </button>
+              <button
+                onPointerDown={(e) => { e.preventDefault(); toggleMute(); }}
+                title={muted ? t("palgrid.soundOn") : t("palgrid.soundOff")}
+                className="flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-accent/15 transition-colors active:scale-90"
+              >
+                {muted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+              </button>
+              <button
+                onPointerDown={(e) => { e.preventDefault(); setShowStats(true); }}
+                title={t("palgrid.stats")}
+                className="flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-accent/15 transition-colors active:scale-90"
+              >
+                <BarChart3 className="h-3.5 w-3.5" />
+              </button>
             </div>
           </div>
 
-          {error && <div className="text-xs bg-red-600/90 text-white px-4 py-1 rounded-full font-medium shadow-sm absolute top-24 z-10 animate-in fade-in slide-in-from-top-2">{error}</div>}
-
+          {/* Keyboard / end panel */}
           <div className="flex flex-col items-center gap-1.5 w-full order-3 lg:col-start-1 lg:row-2 lg:gap-1">
             {status === "playing" ? (
-              <Keyboard handleKey={handleKey} keyStatuses={statuses} />
+              <div className="lg:mt-6 flex flex-col items-center gap-1.5 w-full">
+                {KEYBOARD_ROWS.map((row, ri) => (
+                  <div key={ri} className="flex gap-1 justify-center">
+                    {row.map((key) => {
+                      const isWide = key === "ENTER" || key === "BACK";
+                      const kStatus = keyStatuses[key] || "unused";
+                      const sizeCls = isWide
+                        ? "px-2 sm:px-3 lg:px-4 text-[10px] sm:text-xs lg:text-sm min-w-[44px] sm:min-w-[52px] lg:min-w-[60px]"
+                        : "w-8 sm:w-10 lg:w-12 text-sm sm:text-base lg:text-lg";
+                      const isPressed = pressedKey === key;
+                      return (
+                        <button
+                          key={key}
+                          onPointerDown={(e) => { e.preventDefault(); handleKey(key); }}
+                          className={`select-none touch-manipulation ${sizeCls} h-12 sm:h-14 lg:h-16 rounded-lg border-2 font-bold uppercase transition-all duration-100 cursor-pointer active:scale-90 active:brightness-110 ${KEY_STATUS_COLORS[kStatus]} ${
+                            isPressed ? "scale-90 brightness-110 ring-2 ring-primary/60" : ""
+                          }`}
+                        >
+                          {key === "BACK" ? <Delete className="w-4 h-4 mx-auto rtl:-scale-x-100" /> : key}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
             ) : (
               <div className="flex flex-col items-center gap-4 py-2 animate-in fade-in slide-in-from-bottom-4 w-full lg:max-w-sm">
-                <div className={`text-xl font-bold text-white px-6 py-3 rounded-xl border backdrop-blur-sm w-full text-center shadow-lg ${status === "won" ? "bg-emerald-600/20 border-emerald-500/30" : "bg-red-600/20 border-red-500/30"}`}>
+                <div
+                  className={`text-xl font-bold px-6 py-3 rounded-2xl border w-full text-center shadow-lg ${
+                    status === "won"
+                      ? "bg-primary/15 border-primary/30 text-foreground"
+                      : "bg-destructive/15 border-destructive/30 text-foreground"
+                  }`}
+                >
                   {status === "won" ? t("palgrid.wellDone") : `${t("palgrid.wordWas")} ${answer}`}
                 </div>
-                <WordInfo word={targetData.word} category={targetData.category} arabic={targetData.arabic} meaning={targetData.meaning} context={targetData.context} meaningLabel={t("palgrid.meaning")} contextLabel={t("palgrid.context")} />
-                {mode === "daily" ? (
-                  <div className="text-center mt-2">
-                    <p className="text-zinc-300 text-[10px] uppercase font-bold tracking-widest mb-1 opacity-80">{t("palgrid.nextPuzzleIn")}</p>
-                    <p className="text-3xl font-mono text-white tabular-nums drop-shadow-md">{formatTime(timeLeft)}</p>
+
+                {/* Word info — the educational payoff */}
+                <div className="rounded-2xl border border-border/60 bg-background/50 backdrop-blur-sm p-5 w-full text-start shadow-inner">
+                  <div className="flex justify-between items-start mb-3">
+                    <span className="text-[10px] uppercase font-bold tracking-widest bg-primary/15 text-primary px-2 py-1 rounded-md">
+                      {targetData.category}
+                    </span>
+                    <span className="text-2xl font-bold text-muted-foreground">{targetData.arabic}</span>
+                  </div>
+                  <h3 className="text-primary font-bold text-xl mb-2 tracking-wide">{targetData.word}</h3>
+                  <p className="text-sm text-foreground mb-3">
+                    <span className="font-semibold text-muted-foreground uppercase text-xs tracking-wider block mb-1">{t("palgrid.meaning")}</span>
+                    {targetData.meaning}
+                  </p>
+                  <div className="border-s-2 border-primary/60 ps-3">
+                    <span className="font-semibold text-muted-foreground uppercase text-xs tracking-wider block mb-1">{t("palgrid.context")}</span>
+                    <p className="text-sm italic leading-relaxed text-muted-foreground">{targetData.context}</p>
+                  </div>
+
+                  {/* Dig deeper: AI guide + timeline */}
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <button
+                      onClick={askGuide}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-1.5 text-xs font-semibold text-primary-foreground shadow-md shadow-primary/25 hover:bg-primary/90 transition-all active:scale-95"
+                    >
+                      <Sparkles className="h-3.5 w-3.5" />
+                      {t("palgrid.askGuide")}
+                    </button>
+                    {timelineMatch && (
+                      <Link
+                        to="/timeline"
+                        className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card/70 px-3.5 py-1.5 text-xs font-semibold text-foreground hover:border-primary/50 hover:text-primary transition-all active:scale-95"
+                      >
+                        <Map className="h-3.5 w-3.5" />
+                        {t("palgrid.viewTimeline")}
+                      </Link>
+                    )}
+                  </div>
+                </div>
+
+                {/* Share row (daily only) */}
+                {canShare && (
+                  <div className="flex gap-2 w-full">
+                    <button
+                      onClick={copyResult}
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-border/70 bg-card/70 px-3 py-2.5 text-xs font-semibold text-foreground hover:border-primary/50 hover:text-primary transition-all active:scale-95"
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                      {t("palgrid.copyResult")}
+                    </button>
+                    <button
+                      onClick={shareToFeed}
+                      disabled={sharing}
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary px-3 py-2.5 text-xs font-semibold text-primary-foreground shadow-md shadow-primary/25 hover:bg-primary/90 transition-all active:scale-95 disabled:opacity-50"
+                    >
+                      <Share2 className="h-3.5 w-3.5" />
+                      {t("palgrid.shareToFeed")}
+                    </button>
+                  </div>
+                )}
+
+                {isDaily ? (
+                  <div className="text-center mt-1">
+                    <p className="text-muted-foreground text-[10px] uppercase font-bold tracking-widest mb-1">{t("palgrid.nextPuzzleIn")}</p>
+                    <p className="text-3xl font-mono text-foreground tabular-nums">{formatTime(timeLeft)}</p>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center gap-2 mt-2 w-full">
-                    <button onPointerDown={(e) => { e.preventDefault(); startRandom(); }} className="w-full py-3 rounded-xl bg-violet-600/80 hover:bg-violet-500/90 border border-violet-400/30 text-white font-bold uppercase tracking-widest text-sm transition-all duration-150 select-none touch-manipulation active:scale-95 shadow-lg">{t("palgrid.newRandomWord")}</button>
-                    <button onPointerDown={(e) => { e.preventDefault(); goDaily(); }} className="text-[10px] text-zinc-400 hover:text-white uppercase tracking-widest font-bold transition-colors select-none touch-manipulation">{t("palgrid.backToDaily")}</button>
+                  <div className="flex flex-col items-center gap-2 mt-1 w-full">
+                    <button
+                      onPointerDown={(e) => { e.preventDefault(); startRandom(); }}
+                      className="w-full py-3 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-bold uppercase tracking-widest text-sm transition-all duration-150 select-none touch-manipulation active:scale-95 shadow-lg shadow-violet-600/25"
+                    >
+                      {t("palgrid.newRandomWord")}
+                    </button>
+                    <button
+                      onPointerDown={(e) => { e.preventDefault(); goDaily(); }}
+                      className="text-[10px] text-muted-foreground hover:text-foreground uppercase tracking-widest font-bold transition-colors select-none touch-manipulation"
+                    >
+                      {t("palgrid.backToDaily")}
+                    </button>
                   </div>
                 )}
               </div>
             )}
           </div>
 
-          <div className="flex flex-col flex-1 items-center justify-center order-1 lg:row-1 lg:row-span-2 lg:col-start-2 lg:pl-8 lg:border-l lg:border-white/10 lg:w-full">
-            <div className="flex flex-col gap-2 lg:gap-3">
+          {/* Grid */}
+          <div className="flex flex-col flex-1 items-center justify-center order-1 lg:row-1 lg:row-span-2 lg:col-start-2 lg:ps-8 lg:border-s lg:border-border/50 lg:w-full">
+            <div className="flex flex-col gap-2 lg:gap-2.5">
               {Array.from({ length: MAX_TRIES }).map((_, i) => {
                 const evaluated = guesses[i] ? evaluate(guesses[i], answer) : null;
                 const isCurrent = i === guesses.length && status === "playing";
+                const isRevealing = i === revealRow;
                 return (
-                  <div key={i} className={`flex gap-2 lg:gap-3 ${isCurrent && shake ? "animate-[shake_0.4s_ease-in-out]" : ""}`}>
-                    {Array.from({ length: WORD_LENGTH }).map((_, j) => {
+                  <div key={i} className={`flex gap-2 lg:gap-2.5 ${isCurrent && shake ? "pg-shake" : ""}`}>
+                    {Array.from({ length: wordLen }).map((_, j) => {
+                      if (isRevealing && evaluated) {
+                        return (
+                          <FlipCell
+                            key={`${i}-${j}-flip`}
+                            letter={evaluated[j].letter}
+                            status={evaluated[j].status}
+                            delay={j * STAGGER_MS}
+                            sizeClass={sizeClass}
+                          />
+                        );
+                      }
                       const cell = evaluated?.[j] || { letter: grid[i]?.[j] || "", status: "" as const };
-                      return <GridCell key={j} cell={cell} isCurrent={isCurrent} />;
+                      return (
+                        <StaticCell
+                          key={`${i}-${j}-${cell.letter}`}
+                          cell={cell}
+                          isCurrent={isCurrent}
+                          sizeClass={sizeClass}
+                          dance={dance && i === winningRow}
+                          danceDelay={j * 90}
+                        />
+                      );
                     })}
                   </div>
                 );
@@ -463,10 +845,87 @@ export default function PalGrid() {
           </div>
         </div>
 
-        <div className="text-sm text-zinc-200 text-center opacity-90 font-medium">
-          {status === "playing" ? t("palgrid.playingHelp") : mode === "daily" ? t("palgrid.dailyResetHelp") : t("palgrid.practiceHelp")}
+        <div className="text-sm text-muted-foreground text-center font-medium">
+          {status === "playing" ? t("palgrid.playingHelp") : isDaily ? t("palgrid.dailyResetHelp") : t("palgrid.practiceHelp")}
         </div>
       </div>
+
+      {/* Stats modal */}
+      {showStats && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in"
+          onClick={() => setShowStats(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-3xl border border-border/60 bg-card/95 backdrop-blur-xl shadow-2xl p-6 animate-in fade-in zoom-in-95"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-lg font-bold tracking-tight text-foreground">{t("palgrid.stats")}</h2>
+              <button
+                onClick={() => setShowStats(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/10 transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-4 gap-2 mb-6">
+              {[
+                { value: stats.played, label: t("palgrid.played") },
+                { value: `${winRate}%`, label: t("palgrid.winRate") },
+                { value: stats.streak, label: t("palgrid.streak") },
+                { value: stats.maxStreak, label: t("palgrid.maxStreak") },
+              ].map((item, idx) => (
+                <div key={idx} className="flex flex-col items-center rounded-xl bg-background/50 border border-border/50 py-3">
+                  <span className="text-2xl font-bold tabular-nums text-foreground">{item.value}</span>
+                  <span className="text-[10px] text-muted-foreground text-center leading-tight mt-0.5 px-1">{item.label}</span>
+                </div>
+              ))}
+            </div>
+
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2.5">{t("palgrid.distribution")}</h3>
+            <div className="flex flex-col gap-1.5 mb-6">
+              {stats.dist.map((count, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <span className="w-3 text-xs font-bold tabular-nums text-muted-foreground">{idx + 1}</span>
+                  <div className="flex-1 h-5 rounded-md bg-background/50 overflow-hidden">
+                    <div
+                      className="h-full rounded-md bg-primary flex items-center justify-end px-1.5 transition-all duration-500"
+                      style={{ width: count > 0 ? `${Math.max(10, (count / maxDist) * 100)}%` : "0%" }}
+                    >
+                      {count > 0 && <span className="text-[10px] font-bold text-primary-foreground tabular-nums">{count}</span>}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {canShare && (
+              <div className="flex gap-2">
+                <button
+                  onClick={copyResult}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-border/70 bg-background/50 px-3 py-2.5 text-xs font-semibold text-foreground hover:border-primary/50 hover:text-primary transition-all active:scale-95"
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                  {t("palgrid.copyResult")}
+                </button>
+                <button
+                  onClick={shareToFeed}
+                  disabled={sharing}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary px-3 py-2.5 text-xs font-semibold text-primary-foreground shadow-md shadow-primary/25 hover:bg-primary/90 transition-all active:scale-95 disabled:opacity-50"
+                >
+                  <Share2 className="h-3.5 w-3.5" />
+                  {t("palgrid.shareToFeed")}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* AI guide — lets players dig into the word they just learned */}
+      <ChatBot ref={chatRef} />
     </div>
   );
 }

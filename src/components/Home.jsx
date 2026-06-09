@@ -446,8 +446,8 @@ export default function Home() {
                         <p className="text-xs text-muted-foreground">{timeAgo(post.created_at)}</p>
                       </div>
                     </div>
-                    {post.content && (
-                      <p className="text-sm text-foreground leading-relaxed line-clamp-3">{post.content}</p>
+                    {post.text && (
+                      <p className="text-sm text-foreground leading-relaxed line-clamp-3 whitespace-pre-wrap">{post.text}</p>
                     )}
                     {post.image_url && (
                       <img

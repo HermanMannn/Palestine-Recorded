@@ -36,6 +36,7 @@ const INITIAL_MESSAGE = {
 };
 
 const STORAGE_KEY = "palrec_chat_history";
+const THINKING_SOUND = "/sounds/chatbot-thinking.wav";
 
 const SYSTEM_PROMPT_BASE = [
   "You are a friendly Palestine history guide, not a textbook.",
@@ -174,6 +175,27 @@ const ChatBot = forwardRef(function ChatBot(props, ref) {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const thinkingAudioRef = useRef(null);
+
+  // Soft "thinking/writing" loop while the guide composes a reply
+  useEffect(() => {
+    if (isLoading) {
+      try {
+        if (!thinkingAudioRef.current) {
+          thinkingAudioRef.current = new Audio(THINKING_SOUND);
+          thinkingAudioRef.current.loop = true;
+          thinkingAudioRef.current.volume = 0.3;
+        }
+        thinkingAudioRef.current.currentTime = 0;
+        thinkingAudioRef.current.play().catch(() => {});
+      } catch {
+        /* audio unavailable */
+      }
+    } else {
+      thinkingAudioRef.current?.pause();
+    }
+    return () => thinkingAudioRef.current?.pause();
+  }, [isLoading]);
 
   const isEmptyChat = messages.length === 1;
 
