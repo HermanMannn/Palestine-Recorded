@@ -1,8 +1,18 @@
 import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
+import {
+  Sparkles,
+  Send,
+  X,
+  Trash2,
+  ExternalLink,
+  Loader2,
+  MessageCircleQuestion,
+} from "lucide-react";
 import { callDeepSeek, MISSING_DEEPSEEK_API_KEY_ERROR } from "../services/deepseekService";
 import { searchWikipedia } from "../services/wikipediaService";
 import { renderMarkdown } from "../utils/markdownParser.jsx";
 import { timelineData } from "./TimelineSidebar.jsx";
+import { useTranslation } from "@/hooks/useTranslation";
 
 // ===== CONSTANTS =====
 
@@ -24,6 +34,8 @@ const INITIAL_MESSAGE = {
   sender: "bot",
   sources: [],
 };
+
+const STORAGE_KEY = "palrec_chat_history";
 
 const SYSTEM_PROMPT_BASE = [
   "You are a friendly Palestine history guide, not a textbook.",
@@ -140,148 +152,59 @@ const checkIfPalestineRelated = async (userMessage) => {
   }
 };
 
-// ===== UI COMPONENTS =====
-
-// SVG icon for lightbulb/AI
-const LightbulbIcon = ({ className = "w-4 h-4" }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5.36 4.64l-.707.707M9 19.071A9.003 9.003 0 0112 20.07m0 0A9.003 9.003 0 0115 19.07"
-    />
-  </svg>
-);
-
-// SVG icon for external link
-const ExternalLinkIcon = ({ className = "w-3.5 h-3.5" }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-  </svg>
-);
-
-// SVG icon for trash/delete
-const TrashIcon = ({ className = "w-5 h-5" }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-  </svg>
-);
-
-// SVG icon for close (X)
-const CloseIcon = ({ className = "w-5 h-5" }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-  </svg>
-);
-
-// SVG icon for loading spinner
-const SpinnerIcon = ({ className = "w-4 h-4" }) => (
-  <svg className={`${className} animate-spin`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M4 12a8 8 0 018-8v8H4z" />
-  </svg>
-);
-
-// SVG icon for send button
-const SendIcon = ({ className = "w-4 h-4" }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-  </svg>
-);
+// Load persisted chat (survives navigation between pages)
+const loadPersistedMessages = () => {
+  if (typeof window === "undefined") return [INITIAL_MESSAGE];
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY));
+    if (Array.isArray(saved) && saved.length > 0) return saved;
+  } catch {
+    /* ignore corrupt state */
+  }
+  return [INITIAL_MESSAGE];
+};
 
 // ===== MAIN COMPONENT =====
 
 const ChatBot = forwardRef(function ChatBot(props, ref) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([INITIAL_MESSAGE]);
+  const [messages, setMessages] = useState(loadPersistedMessages);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
 
   const isEmptyChat = messages.length === 1;
 
-  // Auto-scroll to latest message
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
+  // Persist conversation across page navigation
   useEffect(() => {
-    scrollToBottom();
+    try {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+    } catch {
+      /* storage full or unavailable */
+    }
   }, [messages]);
 
-  // Expose method for EventDetails to ask about events
-  useImperativeHandle(ref, () => ({
-    askAboutEvent: async (event) => {
-      setIsOpen(true);
-      const userQuery = `Tell me about ${event.title}. It occurred on ${event.startDate} in ${event.location}. Category: ${event.category}. Tags: ${(event.tags || []).join(", ")}.`;
+  // Auto-scroll to latest message
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isLoading, isOpen]);
 
-      const newMessages = [
-        ...messages,
-        { id: messages.length + 1, text: userQuery, sender: "user" },
-      ];
-      setMessages(newMessages);
-      setIsLoading(true);
+  // Focus input when opened
+  useEffect(() => {
+    if (isOpen) setTimeout(() => inputRef.current?.focus(), 250);
+  }, [isOpen]);
 
-      try {
-        const deepseekMessages = [
-          {
-            role: "system",
-            content:
-              "You are a knowledgeable guide about Palestinian history. Provide a concise, informative summary of the event based on the information provided. Then invite follow-up questions.",
-          },
-          { role: "user", content: userQuery },
-        ];
+  // Core send pipeline: validate topic, gather context, ask the model
+  const submitQuestion = async (rawText, baseMessages) => {
+    const userMessage = rawText.trim();
+    if (!userMessage || isLoading) return;
 
-        const botResponse = await callDeepSeek(deepseekMessages);
-        setMessages([
-          ...newMessages,
-          {
-            id: newMessages.length + 1,
-            text: botResponse,
-            sender: "bot",
-            sources: [],
-          },
-        ]);
-      } catch (error) {
-        const errorMessage = getDeepSeekErrorMessage(
-          error,
-          "Sorry, I encountered an error summarizing this event. Please try asking about it directly.",
-        );
-        setMessages([
-          ...newMessages,
-          {
-            id: newMessages.length + 1,
-            text: errorMessage,
-            sender: "bot",
-            sources: [],
-          },
-        ]);
-      } finally {
-        setIsLoading(false);
-      }
-    },
-  }));
-
-  // Reset chat to initial state
-  const clearChat = () => {
-    setMessages([INITIAL_MESSAGE]);
-    setInput("");
-  };
-
-  // Pre-fill input with conversation starter
-  const handlePresetClick = (preset) => {
-    setInput(preset);
-  };
-
-  // Main message handling: validate, search, and get AI response
-  const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
-
-    const userMessage = input;
-    setInput("");
-
+    const history = baseMessages || messages;
     const newMessages = [
-      ...messages,
-      { id: messages.length + 1, text: userMessage, sender: "user" },
+      ...history,
+      { id: history.length + 1, text: userMessage, sender: "user" },
     ];
     setMessages(newMessages);
     setIsLoading(true);
@@ -358,75 +281,164 @@ const ChatBot = forwardRef(function ChatBot(props, ref) {
     }
   };
 
+  // Expose controls for other components (homepage ask-bar, EventDetails)
+  useImperativeHandle(ref, () => ({
+    open: () => setIsOpen(true),
+
+    // Open the widget and immediately submit a question
+    askQuestion: (question) => {
+      setIsOpen(true);
+      submitQuestion(question);
+    },
+
+    askAboutEvent: async (event) => {
+      setIsOpen(true);
+      const userQuery = `Tell me about ${event.title}. It occurred on ${event.startDate} in ${event.location}. Category: ${event.category}. Tags: ${(event.tags || []).join(", ")}.`;
+
+      const newMessages = [
+        ...messages,
+        { id: messages.length + 1, text: userQuery, sender: "user" },
+      ];
+      setMessages(newMessages);
+      setIsLoading(true);
+
+      try {
+        const deepseekMessages = [
+          {
+            role: "system",
+            content:
+              "You are a knowledgeable guide about Palestinian history. Provide a concise, informative summary of the event based on the information provided. Then invite follow-up questions.",
+          },
+          { role: "user", content: userQuery },
+        ];
+
+        const botResponse = await callDeepSeek(deepseekMessages);
+        setMessages([
+          ...newMessages,
+          {
+            id: newMessages.length + 1,
+            text: botResponse,
+            sender: "bot",
+            sources: [],
+          },
+        ]);
+      } catch (error) {
+        const errorMessage = getDeepSeekErrorMessage(
+          error,
+          "Sorry, I encountered an error summarizing this event. Please try asking about it directly.",
+        );
+        setMessages([
+          ...newMessages,
+          {
+            id: newMessages.length + 1,
+            text: errorMessage,
+            sender: "bot",
+            sources: [],
+          },
+        ]);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+  }));
+
+  // Reset chat to initial state
+  const clearChat = () => {
+    setMessages([INITIAL_MESSAGE]);
+    setInput("");
+    try {
+      sessionStorage.removeItem(STORAGE_KEY);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const handleSend = () => {
+    const text = input;
+    setInput("");
+    submitQuestion(text);
+  };
+
   return (
     <>
       <style>{`
-        .chatbot-messages::-webkit-scrollbar {
-          width: 6px;
-        }
-        .chatbot-messages::-webkit-scrollbar-track {
-          background: transparent;
-        }
+        .chatbot-messages::-webkit-scrollbar { width: 6px; }
+        .chatbot-messages::-webkit-scrollbar-track { background: transparent; }
         .chatbot-messages::-webkit-scrollbar-thumb {
-          background: rgba(148, 163, 184, 0.3);
+          background: color-mix(in oklab, var(--muted-foreground) 30%, transparent);
           border-radius: 3px;
         }
         .chatbot-messages::-webkit-scrollbar-thumb:hover {
-          background: rgba(148, 163, 184, 0.5);
+          background: color-mix(in oklab, var(--muted-foreground) 50%, transparent);
         }
       `}</style>
 
       {/* Chat Widget Container */}
       <div
-        className={`fixed bottom-6 right-6 z-50 transition-all duration-300 ease-out ${
-          isOpen ? "w-96 h-[500px]" : "w-16 h-16"
+        className={`fixed bottom-20 md:bottom-6 end-4 md:end-6 z-50 transition-all duration-300 ease-out ${
+          isOpen
+            ? "w-[min(24rem,calc(100vw-2rem))] h-[min(34rem,calc(100dvh-7rem))]"
+            : "w-14 h-14 pointer-events-none"
         }`}
       >
         {/* Expanded Chat Window */}
         <div
-          className={`flex flex-col h-full bg-card/95 backdrop-blur-md border border-border rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 ${
-            isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          className={`flex flex-col h-full rounded-3xl border border-border/60 bg-card/90 backdrop-blur-xl shadow-2xl shadow-black/20 overflow-hidden transition-all duration-300 ${
+            isOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3 pointer-events-none"
           }`}
         >
           {/* Header */}
-          <div className="bg-gradient-to-r from-emerald-600/30 to-emerald-500/20 border-b border-border/50 px-5 py-4 flex items-center justify-between">
-            <div>
-              <h3 className="text-white font-bold text-base">Palestine Guide</h3>
-              <p className="text-xs text-foreground/50 mt-0.5">Powered by AI</p>
+          <div className="relative border-b border-border/60 px-4 py-3.5 flex items-center justify-between bg-gradient-to-r from-primary/15 via-transparent to-transparent">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-emerald-800 text-primary-foreground shadow-md shadow-primary/25">
+                  <Sparkles className="h-4.5 w-4.5" />
+                </div>
+                <span className="absolute -bottom-0.5 -end-0.5 h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-card animate-pulse" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold tracking-tight text-foreground">{t("chatbot.title")}</h3>
+                <p className="text-[11px] text-muted-foreground">{t("chatbot.status")}</p>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               {messages.length > 1 && (
                 <button
                   onClick={clearChat}
-                  className="text-foreground/60 hover:text-foreground/90 transition-colors p-1 hover:bg-white/10 rounded-lg"
-                  title="Clear chat"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/10 transition-colors"
+                  title={t("chatbot.clear")}
                 >
-                  <TrashIcon />
+                  <Trash2 className="h-4 w-4" />
                 </button>
               )}
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-foreground/60 hover:text-foreground/90 transition-colors p-1 hover:bg-white/10 rounded-lg"
-                title="Close"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/10 transition-colors"
+                title={t("chatbot.close")}
               >
-                <CloseIcon />
+                <X className="h-4 w-4" />
               </button>
             </div>
           </div>
 
           {/* Messages Container */}
-          <div className="chatbot-messages flex-1 overflow-y-auto p-4 space-y-3.5 flex flex-col">
+          <div className="chatbot-messages flex-1 overflow-y-auto p-4 space-y-3 flex flex-col">
             {isEmptyChat && (
-              <div className="flex-1 flex flex-col justify-center items-center gap-4 py-8">
-                <p className="text-sm text-foreground/60 text-center">Start a conversation below</p>
-                <div className="w-full space-y-2.5">
+              <div className="flex-1 flex flex-col justify-center items-center gap-5 py-6">
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
+                  <MessageCircleQuestion className="h-6 w-6 text-primary" />
+                </span>
+                <p className="text-sm text-muted-foreground text-center px-4">
+                  {t("chatbot.startPrompt")}
+                </p>
+                <div className="w-full space-y-2">
                   {CONVERSATION_STARTERS.map((starter, idx) => (
                     <button
                       key={idx}
-                      onClick={() => handlePresetClick(starter)}
-                      className="w-full p-3 rounded-lg bg-zinc-700/30 hover:bg-zinc-700/50 border border-zinc-600/40 text-sm text-foreground/90 transition-all text-left hover:text-white active:scale-95"
+                      onClick={() => submitQuestion(starter)}
+                      className="w-full p-3 rounded-xl border border-border/60 bg-background/40 text-sm text-foreground text-start transition-all hover:border-primary/50 hover:bg-primary/5 hover:text-primary active:scale-[0.98]"
                     >
-                      💬 {starter}
+                      {starter}
                     </button>
                   ))}
                 </div>
@@ -441,34 +453,32 @@ const ChatBot = forwardRef(function ChatBot(props, ref) {
                   className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-sm px-4 py-3 rounded-xl ${
+                    className={`max-w-[85%] px-4 py-2.5 text-sm leading-relaxed ${
                       msg.sender === "user"
-                        ? "bg-emerald-600/40 text-white rounded-br-none border border-emerald-500/40"
-                        : "bg-zinc-700/40 text-foreground/90 rounded-bl-none border border-zinc-600/40"
+                        ? "rounded-2xl rounded-br-md bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                        : "rounded-2xl rounded-bl-md border border-border/60 bg-muted/50 text-foreground"
                     }`}
                   >
                     {msg.sender === "user" ? (
-                      <p className="text-sm leading-relaxed">{msg.text}</p>
+                      <p>{msg.text}</p>
                     ) : (
                       <div className="space-y-2">
-                        <div className="text-sm leading-relaxed">
-                          {renderMarkdown(msg.text)}
-                        </div>
+                        <div>{renderMarkdown(msg.text)}</div>
                         {msg.sources && msg.sources.length > 0 && (
-                          <div className="border-t border-zinc-600/30 pt-2 mt-2">
-                            <p className="text-xs text-foreground/60 font-medium mb-2">
-                              {msg.sources.length === 1 ? "Source" : "Sources"} ({msg.sources.length})
+                          <div className="border-t border-border/60 pt-2 mt-2">
+                            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
+                              {msg.sources.length === 1 ? t("chatbot.source") : t("chatbot.sources")}
                             </p>
-                            <div className="space-y-1.5">
+                            <div className="flex flex-wrap gap-1.5">
                               {msg.sources.map((source, idx) => (
                                 <a
                                   key={idx}
                                   href={source.startsWith("http") ? source : "https://en.wikipedia.org/wiki/History_of_Palestine"}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/40 border border-emerald-500/40 text-xs text-emerald-400 hover:text-emerald-300 transition-all w-full"
+                                  className="inline-flex max-w-full items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary hover:bg-primary/20 transition-colors"
                                 >
-                                  <ExternalLinkIcon className="w-3.5 h-3.5 shrink-0" />
+                                  <ExternalLink className="h-3 w-3 shrink-0" />
                                   <span className="truncate">{getSourceDisplayName(source)}</span>
                                 </a>
                               ))}
@@ -481,15 +491,13 @@ const ChatBot = forwardRef(function ChatBot(props, ref) {
                 </div>
               ))}
 
-            {/* Loading Indicator */}
+            {/* Typing Indicator */}
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-zinc-700/40 text-foreground/90 rounded-xl rounded-bl-none border border-zinc-600/40 px-4 py-3 flex items-center gap-2">
-                  <div className="flex gap-1">
-                    <span className="w-2 h-2 bg-foreground/60 rounded-full animate-bounce"></span>
-                    <span className="w-2 h-2 bg-foreground/60 rounded-full animate-bounce delay-100"></span>
-                    <span className="w-2 h-2 bg-foreground/60 rounded-full animate-bounce delay-200"></span>
-                  </div>
+                <div className="rounded-2xl rounded-bl-md border border-border/60 bg-muted/50 px-4 py-3 flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary/70 animate-bounce" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary/70 animate-bounce [animation-delay:120ms]" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary/70 animate-bounce [animation-delay:240ms]" />
                 </div>
               </div>
             )}
@@ -497,22 +505,28 @@ const ChatBot = forwardRef(function ChatBot(props, ref) {
           </div>
 
           {/* Input Area */}
-          <div className="border-t border-border/50 bg-zinc-900/20 p-3.5 flex gap-2">
+          <div className="border-t border-border/60 bg-background/40 p-3 flex items-center gap-2">
             <input
+              ref={inputRef}
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && !isLoading && handleSend()}
-              placeholder="Ask about Palestine..."
+              onKeyDown={(e) => e.key === "Enter" && !isLoading && handleSend()}
+              placeholder={t("chatbot.placeholder")}
               disabled={isLoading}
-              className="flex-1 bg-zinc-800/50 border border-zinc-700/50 rounded-lg px-3.5 py-2.5 text-sm text-foreground placeholder:text-foreground/40 focus:outline-none focus:ring-1 focus:ring-emerald-500/60 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 min-w-0 rounded-full border border-border/60 bg-card px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all disabled:opacity-50"
             />
             <button
               onClick={handleSend}
               disabled={isLoading || !input.trim()}
-              className="bg-emerald-600/70 hover:bg-emerald-600/90 disabled:bg-emerald-600/40 disabled:cursor-not-allowed text-white px-3.5 py-2.5 rounded-lg transition-all font-medium text-sm active:scale-95"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md shadow-primary/25 transition-all hover:bg-primary/90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+              title={t("chatbot.send")}
             >
-              {isLoading ? <SpinnerIcon /> : <SendIcon />}
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4 rtl:-scale-x-100" />
+              )}
             </button>
           </div>
         </div>
@@ -522,10 +536,14 @@ const ChatBot = forwardRef(function ChatBot(props, ref) {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-xl hover:shadow-2xl hover:scale-110 transition-all duration-300 flex items-center justify-center group"
-          title="Open chat"
+          className="group fixed bottom-20 md:bottom-6 end-4 md:end-6 z-50 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-emerald-800 text-primary-foreground shadow-xl shadow-primary/30 transition-all duration-300 hover:scale-110 hover:shadow-2xl hover:shadow-primary/40"
+          title={t("chatbot.openChat")}
         >
-          <LightbulbIcon className="w-8 h-8 group-hover:scale-110 transition-transform" />
+          <Sparkles className="h-6 w-6 transition-transform group-hover:rotate-12 group-hover:scale-110" />
+          <span className="absolute -top-1 -end-1 flex h-3.5 w-3.5">
+            <span className="absolute inline-flex h-full w-full rounded-full bg-primary opacity-60 animate-ping" />
+            <span className="relative inline-flex h-3.5 w-3.5 rounded-full bg-primary ring-2 ring-background" />
+          </span>
         </button>
       )}
     </>

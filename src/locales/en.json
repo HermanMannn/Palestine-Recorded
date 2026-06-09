@@ -555,6 +555,27 @@
       "said": "Humanism is the only resistance we have against the inhuman practices that disfigure human history.",
       "kanafani": "Everything in this world can be robbed and stolen, except one thing; your identity."
     },
-    "heroTagline": "Preserving identity, one story at a time"
+    "heroTagline": "Preserving identity, one story at a time",
+    "askAi": {
+      "title": "Ask the AI Guide",
+      "subtitle": "Instant answers about Palestinian history and culture — with sources.",
+      "placeholder": "What happened in Jerusalem in 1948?",
+      "button": "Ask",
+      "chip1": "The history of Jerusalem",
+      "chip2": "Palestinian tatreez embroidery",
+      "chip3": "What was the Nakba?"
+    }
+  },
+  "chatbot": {
+    "title": "Palestine Guide",
+    "status": "Online — powered by AI",
+    "startPrompt": "Ask me anything about Palestinian history, culture, or events.",
+    "placeholder": "Ask about Palestine...",
+    "clear": "Clear chat",
+    "close": "Close",
+    "send": "Send",
+    "openChat": "Ask the AI guide",
+    "source": "Source",
+    "sources": "Sources"
   }
 }

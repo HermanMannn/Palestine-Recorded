@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   Map,
@@ -19,9 +19,11 @@ import {
   BookOpen,
   Sparkles,
   Quote,
+  Send,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "@/hooks/useTranslation";
+import ChatBot from "./ChatBot.jsx";
 
 /* ------------------------------------------------------------------ */
 /* Curated content (no events table yet — swap to DB when available)   */
@@ -88,6 +90,15 @@ export default function Home() {
   const [username, setUsername] = useState(null);
   const [recentPosts, setRecentPosts] = useState([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
+  const [askInput, setAskInput] = useState("");
+  const chatRef = useRef(null);
+
+  const handleAsk = (question) => {
+    const q = (question ?? askInput).trim();
+    if (!q) return;
+    setAskInput("");
+    chatRef.current?.askQuestion(q);
+  };
 
   // Rotate the daily quote by day of year
   const dayOfYear = Math.floor(
@@ -281,6 +292,57 @@ export default function Home() {
                   <Map className="h-4 w-4" />
                   {t("home.exploreTimeline")}
                 </Link>
+              </div>
+            </div>
+          </section>
+
+          {/* Ask the AI Guide */}
+          <section className="rounded-3xl p-[1.5px] bg-gradient-to-r from-primary/60 via-emerald-400/30 to-primary/60 shadow-lg shadow-primary/10">
+            <div className="rounded-[calc(1.5rem-1.5px)] bg-card/90 backdrop-blur-xl p-5 sm:p-6">
+              <div className="flex items-center gap-2.5 mb-1">
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-emerald-800 text-primary-foreground shadow-md shadow-primary/25">
+                  <Sparkles className="h-4 w-4" />
+                </span>
+                <h2 className="text-base font-bold tracking-tight text-foreground">
+                  {t("home.askAi.title")}
+                </h2>
+              </div>
+              <p className="text-xs text-muted-foreground mb-4 ms-[42px]">
+                {t("home.askAi.subtitle")}
+              </p>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleAsk();
+                }}
+                className="flex items-center gap-2"
+              >
+                <input
+                  type="text"
+                  value={askInput}
+                  onChange={(e) => setAskInput(e.target.value)}
+                  placeholder={t("home.askAi.placeholder")}
+                  className="flex-1 min-w-0 rounded-full border border-border/60 bg-background/60 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
+                />
+                <button
+                  type="submit"
+                  disabled={!askInput.trim()}
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md shadow-primary/25 transition-all hover:bg-primary/90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                  title={t("home.askAi.button")}
+                >
+                  <Send className="h-4 w-4 rtl:-scale-x-100" />
+                </button>
+              </form>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {["chip1", "chip2", "chip3"].map((chip) => (
+                  <button
+                    key={chip}
+                    onClick={() => handleAsk(t(`home.askAi.${chip}`))}
+                    className="rounded-full border border-border/60 bg-background/40 px-3 py-1.5 text-xs text-muted-foreground transition-all hover:border-primary/50 hover:bg-primary/5 hover:text-primary active:scale-95"
+                  >
+                    {t(`home.askAi.${chip}`)}
+                  </button>
+                ))}
               </div>
             </div>
           </section>
@@ -511,6 +573,9 @@ export default function Home() {
           </div>
         </aside>
       </div>
+
+      {/* Floating AI guide — shares its conversation across pages */}
+      <ChatBot ref={chatRef} />
     </main>
   );
 }
