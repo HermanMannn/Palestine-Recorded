@@ -407,9 +407,22 @@ export default function SocialFeed() {
       setUser(authData.user || null);
 
       if (uid) {
+        // Fetch current user profile
         const { data: prof } = await supabase.from("profiles").select("avatar_url, username").eq("id", uid).maybeSingle();
         setCurrentUserAvatarUrl(prof?.avatar_url || null);
         setProfiles((prev) => ({ ...prev, [uid]: { id: uid, ...prof } }));
+
+        // Fetch User Likes to update initial UI state
+        const { data: userLikes } = await supabase
+          .from("post_likes")
+          .select("post_id")
+          .eq("user_id", uid);
+        
+        if (userLikes) {
+          const likesMap = {};
+          userLikes.forEach(l => { likesMap[l.post_id] = true });
+          setLiked(likesMap);
+        }
 
         profileChannel = supabase
           .channel("profile-social")
@@ -471,17 +484,41 @@ export default function SocialFeed() {
   }, [dbPosts]);
 
   const toggleLike = async (id) => {
+    if (!user) {
+      setShowGuestPrompt(true);
+      return;
+    }
+
     const isLiked = !!liked[id];
+    
+    // Instant UI Optimistic Update
     setLiked((prev) => ({ ...prev, [id]: !isLiked }));
     setDbPosts((prev) => prev.map((p) => p.id === id ? { ...p, likes: (p.likes ?? 0) + (isLiked ? -1 : 1) } : p));
     if (selectedPost?.id === id) {
       setSelectedPost((prev) => prev ? { ...prev, likes: (prev.likes ?? 0) + (isLiked ? -1 : 1) } : prev);
     }
-    if (!String(id).startsWith("seed-")) {
+
+    // Bypass DB if it's a hardcoded seed post
+    if (String(id).startsWith("seed-")) return;
+
+    try {
       const post = dbPosts.find((p) => p.id === id);
-      if (post) {
-        await supabase.from("posts").update({ likes: (post.likes ?? 0) + (isLiked ? -1 : 1) }).eq("id", id);
+      const newLikesCount = (post?.likes ?? 0) + (isLiked ? -1 : 1);
+
+      if (isLiked) {
+        // Remove like record
+        await supabase.from("post_likes").delete().eq("post_id", id).eq("user_id", user.id);
+      } else {
+        // Add like record
+        await supabase.from("post_likes").insert({ post_id: id, user_id: user.id });
       }
+      
+      // Update the main post counter so everyone else sees the number jump up/down
+      await supabase.from("posts").update({ likes: newLikesCount }).eq("id", id);
+      
+    } catch (err) {
+      console.error("Error toggling like:", err);
+      // Optional: If you wanted to be super robust, you could revert the optimistic update here on failure
     }
   };
 
@@ -622,7 +659,7 @@ export default function SocialFeed() {
                     </li>
                   ))}
                 </ul>
-                <button className="mt-3 text-xs font-medium text-primary hover:underline">See all</button>
+                <Link to="/calendar" className="mt-3 inline-block text-xs font-medium text-primary hover:underline">See all</Link>
               </div>
 
               {/* Quote */}
