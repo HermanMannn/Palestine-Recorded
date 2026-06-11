@@ -6,15 +6,22 @@ import {
   Flame, Bookmark, ChevronRight, Quote,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from "@/hooks/useTranslation";
 import ProfilePage from "./Profilepage";
 import { Link, useNavigate } from "@tanstack/react-router";
 
-const GuestPrompt = ({ onClose }) => (
+const GuestPrompt = ({ onClose, t }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
     <div className="bg-card border border-border rounded-lg p-6 max-w-sm shadow-2xl">
+<<<<<<< HEAD
       <h3 className="font-bold text-lg mb-2">Sign up to interact</h3>
       <p className="text-sm text-muted-foreground mb-4">Create an account to comment, like, and share posts.</p>
       <button onClick={onClose} className="w-full bg-primary text-primary-foreground py-2 rounded-lg font-medium hover:opacity-90">Got it</button>
+=======
+      <h3 className="font-bold text-lg mb-2">{t('socialFeed.signUpToInteract')}</h3>
+      <p className="text-sm text-muted-foreground mb-4">{t('socialFeed.createAccountToComment')}</p>
+      <button onClick={onClose} className="w-full bg-primary text-white py-2 rounded-lg font-medium hover:opacity-90">{t('socialFeed.gotIt')}</button>
+>>>>>>> 88a237f903a6887a29fac7cc2ddb8367505e0785
     </div>
   </div>
 );
@@ -46,6 +53,7 @@ const seedComments = {
   ],
 };
 
+<<<<<<< HEAD
 const NAV_ITEMS = [
   { key: "Community Feed", icon: Home },
   { key: "Stories", icon: BookOpen },
@@ -83,12 +91,18 @@ function timeAgo(ts) {
   if (!ts) return "just now";
   const t = typeof ts === "string" ? new Date(ts).getTime() : ts;
   const diff = Math.max(0, Date.now() - t);
+=======
+function timeAgo(ts, t) {
+  if (!ts) return t('socialFeed.justNow');
+  const time = typeof ts === "string" ? new Date(ts).getTime() : ts;
+  const diff = Math.max(0, Date.now() - time);
+>>>>>>> 88a237f903a6887a29fac7cc2ddb8367505e0785
   const m = Math.floor(diff / 60000);
-  if (m < 1) return "just now";
-  if (m < 60) return `${m}m ago`;
+  if (m < 1) return t('socialFeed.justNow');
+  if (m < 60) return `${m}${t('socialFeed.minutesAgo')}`;
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
+  if (h < 24) return `${h}${t('socialFeed.hoursAgo')}`;
+  return `${Math.floor(h / 24)}${t('socialFeed.daysAgo')}`;
 }
 
 function Avatar({ post, size = "md" }) {
@@ -102,7 +116,7 @@ function Avatar({ post, size = "md" }) {
   );
 }
 
-function PostCard({ post, onClick, onAuthorClick, liked, onToggleLike, isSelected }) {
+function PostCard({ post, onClick, onAuthorClick, liked, onToggleLike, isSelected, t }) {
   return (
     <article
       onClick={() => onClick(post)}
@@ -120,8 +134,16 @@ function PostCard({ post, onClick, onAuthorClick, liked, onToggleLike, isSelecte
             <div className="font-semibold text-foreground leading-tight group-hover:text-primary transition-colors cursor-pointer">
               {post.author}
             </div>
+<<<<<<< HEAD
             <div className="text-xs text-muted-foreground">
               {post.location ? `${post.location} · ` : ""}{post.time ?? timeAgo(post.created_at)}
+=======
+            <div className="text-xs italic text-muted-foreground">{post.role}</div>
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <span>{post.time ?? timeAgo(post.created_at, t)}</span>
+              <span>·</span>
+              <Globe className="h-3 w-3" />
+>>>>>>> 88a237f903a6887a29fac7cc2ddb8367505e0785
             </div>
           </div>
         </div>
@@ -151,6 +173,7 @@ function PostCard({ post, onClick, onAuthorClick, liked, onToggleLike, isSelecte
         </div>
       )}
 
+<<<<<<< HEAD
       {post.image_url && (
         <div className="border-y border-border bg-muted">
           <img src={post.image_url} alt="" className="w-full object-cover max-h-96" />
@@ -190,13 +213,46 @@ function PostCard({ post, onClick, onAuthorClick, liked, onToggleLike, isSelecte
         >
           <Bookmark className="h-4 w-4" />
           <span className="text-xs">Save</span>
+=======
+      <div className="flex items-center justify-between px-4 py-1 text-xs text-muted-foreground">
+        <span>{(post.likes ?? 0)} {t('socialFeed.likes')}</span>
+        <span>{post.comments_count ?? 0} {t('socialFeed.comments')} · {post.shares_count ?? 0} {t('socialFeed.shares')}</span>
+      </div>
+
+      <div className="flex items-center justify-around border-t border-border px-2 py-1">
+        <button
+          onClick={(e) => { e.stopPropagation(); onToggleLike(post.id); }}
+          title={!post.isGuest ? "" : t('socialFeed.signUpToLike')}
+          disabled={post.isGuest}
+          className={`flex flex-1 items-center justify-center gap-2 rounded-md py-2 text-sm font-medium transition-colors hover:bg-accent/40 disabled:opacity-50 disabled:cursor-not-allowed ${
+            liked ? "text-red-500" : "text-muted-foreground hover:text-primary disabled:hover:bg-transparent"
+          }`}
+        >
+          <Heart className="h-4 w-4" fill={liked ? "currentColor" : "none"} /> {t('socialFeed.like')}
+        </button>
+        <button
+          onClick={(e) => e.stopPropagation()}
+          title={!post.isGuest ? "" : t('socialFeed.signUpToComment')}
+          disabled={post.isGuest}
+          className="flex flex-1 items-center justify-center gap-2 rounded-md py-2 text-sm font-medium text-muted-foreground hover:bg-accent/40 hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+        >
+          <MessageCircle className="h-4 w-4" /> {t('socialFeed.comment')}
+        </button>
+        <button
+          onClick={(e) => e.stopPropagation()}
+          title={!post.isGuest ? "" : t('socialFeed.signUpToShare')}
+          disabled={post.isGuest}
+          className="flex flex-1 items-center justify-center gap-2 rounded-md py-2 text-sm font-medium text-muted-foreground hover:bg-accent/40 hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+        >
+          <Share2 className="h-4 w-4" /> {t('socialFeed.share')}
+>>>>>>> 88a237f903a6887a29fac7cc2ddb8367505e0785
         </button>
       </div>
     </article>
   );
 }
 
-function PostDetail({ post, liked, onToggleLike, onClose, onAuthorClick, user, profiles, currentUserAvatarUrl }) {
+function PostDetail({ post, liked, onToggleLike, onClose, onAuthorClick, user, profiles, currentUserAvatarUrl, t }) {
   const [commentDraft, setCommentDraft] = useState("");
   const [comments, setComments] = useState(seedComments[post.id] || []);
   const [submitting, setSubmitting] = useState(false);
@@ -209,11 +265,11 @@ function PostDetail({ post, liked, onToggleLike, onClose, onAuthorClick, user, p
     const prof = profiles[user.id];
     const newComment = {
       id: `local-${Date.now()}`,
-      author: prof?.username || "You",
+      author: prof?.username || t('common.you'),
       initial: (prof?.username || "Y")[0].toUpperCase(),
       color: "bg-emerald-500",
       avatar_url: currentUserAvatarUrl || null,
-      time: "just now",
+      time: t('socialFeed.justNow'),
       text,
     };
     setComments((prev) => [...prev, newComment]);
@@ -233,7 +289,7 @@ function PostDetail({ post, liked, onToggleLike, onClose, onAuthorClick, user, p
         <button onClick={onClose} className="rounded-full p-1.5 text-muted-foreground hover:bg-accent/40 hover:text-foreground transition-colors">
           <ArrowLeft className="h-4 w-4" />
         </button>
-        <span className="font-semibold text-foreground">Post</span>
+        <span className="font-semibold text-foreground">{t('socialFeed.post')}</span>
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar">
@@ -259,18 +315,37 @@ function PostDetail({ post, liked, onToggleLike, onClose, onAuthorClick, user, p
 
         <div className="px-4 pb-3 flex items-center gap-1.5 text-xs text-muted-foreground border-b border-border">
           <Globe className="h-3 w-3" />
-          <span>{post.time ?? timeAgo(post.created_at)}</span>
+          <span>{post.time ?? timeAgo(post.created_at, t)}</span>
         </div>
 
+<<<<<<< HEAD
         <div className="flex items-center justify-around border-b border-border px-2 py-1">
           <button onClick={() => onToggleLike(post.id)} className={`flex flex-1 items-center justify-center gap-2 rounded-md py-2 text-sm font-medium transition-colors hover:bg-accent/40 ${liked ? "text-red-500" : "text-muted-foreground hover:text-primary"}`}>
             <Heart className="h-4 w-4" fill={liked ? "currentColor" : "none"} /> Like
+=======
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border text-sm text-muted-foreground">
+          <span><strong className="text-foreground">{post.likes ?? 0}</strong> {t('socialFeed.likes')}</span>
+          <div className="flex gap-4">
+            <span><strong className="text-foreground">{comments.length}</strong> {t('socialFeed.comments')}</span>
+            <span><strong className="text-foreground">{post.shares_count ?? 0}</strong> {t('socialFeed.shares')}</span>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-around border-b border-border px-2 py-1">
+          <button
+            onClick={() => onToggleLike(post.id)}
+            className={`flex flex-1 items-center justify-center gap-2 rounded-md py-2 text-sm font-medium transition-colors hover:bg-accent/40 ${
+              liked ? "text-red-500" : "text-muted-foreground hover:text-primary"
+            }`}
+          >
+            <Heart className="h-4 w-4" fill={liked ? "currentColor" : "none"} /> {t('socialFeed.like')}
+>>>>>>> 88a237f903a6887a29fac7cc2ddb8367505e0785
           </button>
           <button className="flex flex-1 items-center justify-center gap-2 rounded-md py-2 text-sm font-medium text-muted-foreground hover:bg-accent/40 hover:text-primary">
-            <MessageCircle className="h-4 w-4" /> Comment
+            <MessageCircle className="h-4 w-4" /> {t('socialFeed.comment')}
           </button>
           <button className="flex flex-1 items-center justify-center gap-2 rounded-md py-2 text-sm font-medium text-muted-foreground hover:bg-accent/40 hover:text-primary">
-            <Share2 className="h-4 w-4" /> Share
+            <Share2 className="h-4 w-4" /> {t('socialFeed.share')}
           </button>
         </div>
 
@@ -285,14 +360,19 @@ function PostDetail({ post, liked, onToggleLike, onClose, onAuthorClick, user, p
                 </div>
                 <div className="mt-1 flex items-center gap-3 px-1 text-xs text-muted-foreground">
                   <span>{c.time}</span>
+<<<<<<< HEAD
                   <button className="font-medium hover:text-primary">Like</button>
                   <button className="font-medium hover:text-primary">Reply</button>
+=======
+                  <button className="font-medium hover:text-primary transition-colors">{t('socialFeed.like')}</button>
+                  <button className="font-medium hover:text-primary transition-colors">{t('socialFeed.reply')}</button>
+>>>>>>> 88a237f903a6887a29fac7cc2ddb8367505e0785
                 </div>
               </div>
             </div>
           ))}
           {comments.length === 0 && (
-            <div className="px-4 py-6 text-center text-sm text-muted-foreground">No comments yet. Be the first!</div>
+            <div className="px-4 py-6 text-center text-sm text-muted-foreground">{t('socialFeed.noComments')}</div>
           )}
         </div>
       </div>
@@ -305,7 +385,7 @@ function PostDetail({ post, liked, onToggleLike, onClose, onAuthorClick, user, p
               value={commentDraft}
               onChange={(e) => setCommentDraft(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submitComment(e); } }}
-              placeholder={user ? "Write a comment…" : "Log in to comment"}
+              placeholder={user ? t('socialFeed.writeComment') : t('socialFeed.loginToComment')}
               disabled={!user}
               rows={1}
               className="flex-1 resize-none bg-transparent text-sm focus:outline-none disabled:opacity-60 leading-snug"
@@ -379,6 +459,7 @@ function ComposerModal({ open, onClose, user, profiles, currentUserAvatarUrl, on
 }
 
 export default function SocialFeed() {
+  const { t } = useTranslation();
   const [dbPosts, setDbPosts] = useState([]);
   const [profiles, setProfiles] = useState({});
   const [liked, setLiked] = useState({});
@@ -390,8 +471,12 @@ export default function SocialFeed() {
   const [user, setUser] = useState(null);
   const [currentUserAvatarUrl, setCurrentUserAvatarUrl] = useState(null);
   const fileInputRef = useRef(null);
+<<<<<<< HEAD
   const [activeFilter, setActiveFilter] = useState("All Posts");
   const [activeNav, setActiveNav] = useState("Community Feed");
+=======
+  const [activeTab, setActiveTab] = useState("forYou");
+>>>>>>> 88a237f903a6887a29fac7cc2ddb8367505e0785
   const [selectedPost, setSelectedPost] = useState(null);
   const [profileView, setProfileView] = useState(null);
   const [showGuestPrompt, setShowGuestPrompt] = useState(false);
@@ -461,7 +546,7 @@ export default function SocialFeed() {
       const prof = profiles[p.user_id];
       return {
         ...p,
-        author: prof?.username || "Member",
+        author: prof?.username || t('common.member'),
         role: "Community Member",
         initial: (prof?.username || "M")[0].toUpperCase(),
         color: "bg-emerald-500",
@@ -473,8 +558,14 @@ export default function SocialFeed() {
   ];
 
   const filteredPosts = allPosts.filter((p) => {
+<<<<<<< HEAD
     if (activeFilter === "All Posts") return true;
     return p.category === activeFilter;
+=======
+    if (activeTab === "following") return p.user_id === user?.id;
+    if (activeTab === "trending") return String(p.id).startsWith("seed-");
+    return true;
+>>>>>>> 88a237f903a6887a29fac7cc2ddb8367505e0785
   });
 
   useEffect(() => {
@@ -599,10 +690,12 @@ export default function SocialFeed() {
             user={user}
             profiles={profiles}
             currentUserAvatarUrl={currentUserAvatarUrl}
+            t={t}
           />
         )}
       </div>
 
+<<<<<<< HEAD
       {/* ── Main 3-column layout ── */}
       <div className={`flex-1 overflow-y-auto custom-scrollbar ${panelOpen ? "hidden sm:block" : "block"}`}>
         <div className="mx-auto max-w-7xl px-4 py-6">
@@ -618,6 +711,40 @@ export default function SocialFeed() {
                     <div className="font-semibold text-foreground truncate">{userName}</div>
                     <div className="text-xs text-muted-foreground">Community Member</div>
                   </div>
+=======
+      {/* ── Feed ── */}
+      <div
+        className={`
+          flex-1 overflow-y-auto custom-scrollbar transition-all duration-300
+          ${panelOpen ? "hidden sm:block" : "block"}
+        `}
+      >
+        <div className="mx-auto max-w-2xl px-4 py-6 space-y-4">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">{t('socialFeed.title')}</h1>
+            <p className="text-sm text-muted-foreground">
+              {t('socialFeed.subtitle')}
+            </p>
+          </div>
+
+          <form onSubmit={submitPost} className="rounded-xl border border-border bg-card/90 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm">
+            <div className="p-4">
+              <div className="flex gap-3">
+                <Avatar post={currentUserAvatarPost} />
+                <div className="flex-1 space-y-2">
+                  <textarea
+                    value={draft}
+                    onChange={(e) => {
+                      const text = e.target.value;
+                      if (text.length <= 500) setDraft(text);
+                    }}
+                    maxLength={500}
+                    placeholder={user ? t('socialFeed.shareYourStory') : t('socialFeed.loginToShare')}
+                    disabled={!user}
+                    className="min-h-[60px] w-full resize-none rounded-lg border border-input bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-60"
+                  />
+                  <div className="text-xs text-muted-foreground text-right">{draft.length}/500</div>
+>>>>>>> 88a237f903a6887a29fac7cc2ddb8367505e0785
                 </div>
                 <button
                   onClick={() => user ? setProfileView({ userId: user.id }) : setShowGuestPrompt(true)}
@@ -651,6 +778,7 @@ export default function SocialFeed() {
                   <Flame className="h-4 w-4 text-orange-500" />
                   <h3 className="font-semibold text-foreground text-sm">Trending Topics</h3>
                 </div>
+<<<<<<< HEAD
                 <ul className="space-y-2.5">
                   {TRENDING.map((t) => (
                     <li key={t.tag} className="flex items-center justify-between text-sm">
@@ -779,10 +907,73 @@ export default function SocialFeed() {
               </div>
             </aside>
 
+=======
+              )}
+              {error && (
+                <div className="mt-2 rounded-md bg-red-500/15 px-3 py-2 text-xs text-red-700 dark:text-red-400">{error}</div>
+              )}
+            </div>
+            <div className="flex items-center justify-between border-t border-border px-4 py-2">
+              <div className="flex items-center gap-1">
+                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handlePickImage} />
+                <button type="button" onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-muted-foreground hover:bg-accent/40 hover:text-primary">
+                  <ImageIcon className="h-4 w-4" /> {t('common.photo')}
+                </button>
+                <button type="button" className="hidden sm:flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-muted-foreground hover:bg-accent/40 hover:text-primary">
+                  <Video className="h-4 w-4" /> {t('common.video')}
+                </button>
+              </div>
+              <button
+                type="submit"
+                disabled={(!draft.trim() && !imageFile) || posting || !user}
+                className="flex items-center gap-1.5 rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
+              >
+                {posting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                {posting ? t('socialFeed.posting') : t('socialFeed.post')}
+              </button>
+            </div>
+          </form>
+
+          <div className="flex items-center gap-1 border-b border-border">
+            {[
+              ["forYou", t('socialFeed.forYou')],
+              ["following", t('socialFeed.following')],
+              ["trending", t('socialFeed.trending')],
+            ].map(([tab, label]) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  activeTab === tab ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          <div className="space-y-4">
+            {filteredPosts.map((post) => (
+              <PostCard
+                key={post.id}
+                post={{ ...post, isGuest: !user }}
+                onClick={setSelectedPost}
+                onAuthorClick={openAuthorProfile}
+                liked={!!liked[post.id]}
+                onToggleLike={() => requireAuth(() => toggleLike(post.id))}
+                isSelected={selectedPost?.id === post.id}
+                t={t}
+              />
+            ))}
+            {filteredPosts.length === 0 && (
+              <div className="py-12 text-center text-muted-foreground">{t('socialFeed.post')}</div>
+            )}
+>>>>>>> 88a237f903a6887a29fac7cc2ddb8367505e0785
           </div>
         </div>
       </div>
 
+<<<<<<< HEAD
       <ComposerModal
         open={composerOpen}
         onClose={() => setComposerOpen(false)}
@@ -802,6 +993,9 @@ export default function SocialFeed() {
       />
 
       {showGuestPrompt && <GuestPrompt onClose={() => setShowGuestPrompt(false)} />}
+=======
+      {showGuestPrompt && <GuestPrompt onClose={() => setShowGuestPrompt(false)} t={t} />}
+>>>>>>> 88a237f903a6887a29fac7cc2ddb8367505e0785
     </div>
   );
 }

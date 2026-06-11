@@ -1,5 +1,22 @@
+<<<<<<< HEAD
 import { useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+=======
+import { useTranslation } from "@/hooks/useTranslation";
+
+const EN_STATUS_LABELS = ["Ongoing", "Concluded"];
+const EN_CATEGORY_LABELS = ["Military", "Political", "Diplomatic", "Social"];
+const EN_TAG_LABELS = ["High Impact", "Regional", "Local", "National", "Conflict", "Reform", "Revolution", "Crisis"];
+
+function translateFromList(value, sourceLabels, translatedLabels) {
+  const index = sourceLabels.indexOf(value);
+  return index >= 0 ? translatedLabels[index] || value : value;
+}
+
+function getTranslatedEventContent(event, language) {
+  return language === "ar" ? event.translations?.ar || {} : {};
+}
+>>>>>>> 88a237f903a6887a29fac7cc2ddb8367505e0785
 
 function getStatusClass(status) {
   switch (status) {
@@ -40,6 +57,7 @@ function getTagClass(tag) {
 }
 
 export default function EventDetails({ event, onClose, onPrev, onNext, canGoPrev, canGoNext, onAskAI }) {
+<<<<<<< HEAD
   const fileInputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -90,6 +108,17 @@ export default function EventDetails({ event, onClose, onPrev, onNext, canGoPrev
     }
     setSubmitted(true);
   };
+=======
+  const { t, get, language } = useTranslation();
+  const translatedStatuses = get("timeline.statuses");
+  const translatedCategories = get("timeline.categories");
+  const translatedTags = get("timeline.tags");
+  const translatedContent = getTranslatedEventContent(event, language);
+  const title = translatedContent.title || event.title;
+  const location = translatedContent.location || event.location;
+  const description = translatedContent.description || event.description;
+  const articles = translatedContent.articles || event.articles;
+>>>>>>> 88a237f903a6887a29fac7cc2ddb8367505e0785
 
   return (
     <>
@@ -111,7 +140,7 @@ export default function EventDetails({ event, onClose, onPrev, onNext, canGoPrev
       <aside className="event-details-scroll absolute top-0 left-0 z-[1100] h-full w-72 max-w-full overflow-y-auto bg-card/95 backdrop-blur-md border-r border-border shadow-2xl animate-in slide-in-from-left duration-200">
       <div className="sticky top-0 bg-card/95 backdrop-blur-sm p-4 border-b border-border flex items-start justify-between gap-2">
         <h2 className="text-lg font-bold text-foreground leading-tight flex-1 min-w-0">
-          {event.title}
+          {title}
         </h2>
         <div className="flex items-center gap-1 shrink-0">
           {onPrev && (
@@ -119,7 +148,7 @@ export default function EventDetails({ event, onClose, onPrev, onNext, canGoPrev
               type="button"
               onClick={onPrev}
               disabled={!canGoPrev}
-              aria-label="Previous event"
+              aria-label={t("eventDetails.previousEvent")}
               className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -132,7 +161,7 @@ export default function EventDetails({ event, onClose, onPrev, onNext, canGoPrev
               type="button"
               onClick={onNext}
               disabled={!canGoNext}
-              aria-label="Next event"
+              aria-label={t("eventDetails.nextEvent")}
               className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -143,7 +172,7 @@ export default function EventDetails({ event, onClose, onPrev, onNext, canGoPrev
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close details"
+            aria-label={t("eventDetails.closeDetails")}
             className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -156,7 +185,7 @@ export default function EventDetails({ event, onClose, onPrev, onNext, canGoPrev
       {event.image && (
         <img
           src={event.image}
-          alt={event.title}
+          alt={title}
           className="w-full h-44 object-cover border-b border-border"
         />
       )}
@@ -164,21 +193,21 @@ export default function EventDetails({ event, onClose, onPrev, onNext, canGoPrev
       <div className="p-4 space-y-4">
         <div className="flex flex-wrap gap-1.5">
           <span className={`text-xs font-medium px-2 py-0.5 rounded ${getCategoryClass(event.category)}`}>
-            {event.category}
+            {translateFromList(event.category, EN_CATEGORY_LABELS, translatedCategories)}
           </span>
           <span className={`text-xs font-medium px-2 py-0.5 rounded ${getStatusClass(event.status)}`}>
-            {event.status}
+            {translateFromList(event.status, EN_STATUS_LABELS, translatedStatuses)}
           </span>
         </div>
 
         <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
-          <span className="text-muted-foreground">Location</span>
-          <span className="text-foreground">{event.location}</span>
+          <span className="text-muted-foreground">{t("eventDetails.location")}</span>
+          <span className="text-foreground">{location}</span>
 
-          <span className="text-muted-foreground">Start</span>
+          <span className="text-muted-foreground">{t("eventDetails.start")}</span>
           <span className="text-foreground">{event.startDate}</span>
 
-          <span className="text-muted-foreground">End</span>
+          <span className="text-muted-foreground">{t("eventDetails.end")}</span>
           <span className="text-foreground">{event.endDate}</span>
         </div>
 
@@ -189,7 +218,7 @@ export default function EventDetails({ event, onClose, onPrev, onNext, canGoPrev
                 key={tag}
                 className={`text-xs font-medium px-2 py-0.5 rounded ${getTagClass(tag)}`}
               >
-                {tag}
+                {translateFromList(tag, EN_TAG_LABELS, translatedTags)}
               </span>
             ))}
           </div>
@@ -197,20 +226,20 @@ export default function EventDetails({ event, onClose, onPrev, onNext, canGoPrev
 
         <div>
           <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
-            Description
+            {t("eventDetails.description")}
           </h3>
           <p className="text-sm text-foreground leading-relaxed">
-            {event.description}
+            {description}
           </p>
         </div>
 
-        {event.articles?.length > 0 && (
+        {articles?.length > 0 && (
           <div>
             <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
-              Related Articles
+              {t("eventDetails.relatedArticles")}
             </h3>
             <ul className="space-y-1.5">
-              {event.articles.map((article) => (
+              {articles.map((article) => (
                 <li key={article.url}>
                   <a
                     href={article.url}
@@ -246,7 +275,7 @@ export default function EventDetails({ event, onClose, onPrev, onNext, canGoPrev
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5.36 4.64l-.707.707M9 19.071A9.003 9.003 0 0012 20.07m0 0A9.003 9.003 0 0015 19.07" />
           </svg>
-          Ask AI
+          {t("eventDetails.askAi")}
         </button>
 
         {submitted ? (

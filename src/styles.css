@@ -55,6 +55,32 @@
   width: 256.5px !important;
   height: 256.5px !important;
 }
+
+/* Theme-aware page background: soft wash over the skyline in light mode,
+   deep dark overlay in dark mode so translucent surfaces render correctly. */
+body {
+  background-color: var(--background);
+  background-image:
+    linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--background) 55%, transparent),
+      color-mix(in oklab, var(--background) 90%, transparent)
+    ),
+    url("/PalRecBG.png");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+.dark body {
+  background-image:
+    linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--background) 88%, transparent),
+      color-mix(in oklab, var(--background) 97%, transparent)
+    ),
+    url("/PalRecBG.png");
+}
 :root {
   --radius: 0.625rem;
   --background: oklch(0.98 0.005 90);

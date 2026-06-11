@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { supabase } from '@/integrations/supabase/client'
+import { useTranslation } from '@/hooks/useTranslation'
 
 export default function Login() {
+  const { t } = useTranslation();
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -48,9 +50,9 @@ export default function Login() {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) throw error
       localStorage.setItem('palrec_user', JSON.stringify({ id: data.user.id, email: data.user.email }))
-      navigate({ to: '/timeline' })
+      navigate({ to: '/' })
     } catch (err) {
-      setError(err.message || 'Login failed')
+      setError(err.message || t('auth.loginFailed'))
     } finally {
       setIsLoading(false)
     }
@@ -80,11 +82,11 @@ export default function Login() {
 
     const { username, email, password, confirmPassword, organizationName, officialId } = applyForm
     if (!username || !email || !password || !confirmPassword || !organizationName || !officialId) {
-      setApplyError('All fields are required')
+      setApplyError(t('auth.allFieldsRequired'))
       return
     }
     if (password !== confirmPassword) {
-      setApplyError('Passwords do not match')
+      setApplyError(t('auth.passwordMismatch'))
       return
     }
 
@@ -122,7 +124,7 @@ export default function Login() {
       setSubmittedReview(true)
       setApplyType(null)
     } catch (err) {
-      setApplyError(err.message || 'Submission failed')
+      setApplyError(err.message || t('auth.submissionFailed'))
     } finally {
       setApplyLoading(false)
     }
@@ -142,10 +144,10 @@ export default function Login() {
 
       <div className="relative z-10 w-full max-w-[420px] text-center">
         <h1 className="font-serif text-[42px] font-bold text-foreground m-0 mb-1.5 tracking-tight">
-          Palestine Recorded
+          {t('navbar.title')}
         </h1>
         <p className="font-serif italic text-[15px] text-muted-foreground mb-6">
-          Join a community dedicated to truth and heritage
+          {t('auth.joinCommunity')}
         </p>
 
         <div className="bg-card/95 backdrop-blur-md rounded-2xl p-7 shadow-xl border border-border">
@@ -156,41 +158,41 @@ export default function Login() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h2 className="text-2xl font-bold text-foreground mb-3">Application submitted</h2>
+              <h2 className="text-2xl font-bold text-foreground mb-3">{t('auth.applicationSubmittedTitle')}</h2>
               <p className="text-muted-foreground mb-4 text-sm leading-relaxed">
-                We've sent a verification email to{' '}
+                {t('auth.applicationSubmitted')} {' '}
                 <span className="font-semibold text-foreground">{applyForm.email}</span>.<br /><br />
-                Your application will be reviewed by a moderator. You'll be redirected to the timeline in a moment.
+                {t('auth.applicationReview')}
               </p>
               <button
                 onClick={() => navigate({ to: '/timeline' })}
                 className="text-sm font-bold text-primary hover:underline"
               >
-                Go to timeline now
+                {t('404.goHome')}
               </button>
             </div>
           ) : applyType ? (
             <form onSubmit={handleApplySubmit} className="animate-in fade-in duration-300">
               <h2 className="text-xl font-bold text-foreground mb-1">
-                {applyType === 'government' ? 'Government Application' : 'Researcher Application'}
+                {applyType === 'government' ? t('auth.governmentApplication') : t('auth.researcherApplication')}
               </h2>
               <p className="text-xs text-muted-foreground mb-5">
-                Your application will be reviewed by a moderator.
+                {t('auth.applicationReviewed')}
               </p>
 
               {[
-                { name: 'username', label: 'Username', type: 'text' },
-                { name: 'email', label: 'Email', type: 'email' },
-                { name: 'password', label: 'Password', type: 'password' },
-                { name: 'confirmPassword', label: 'Confirm Password', type: 'password' },
+                { name: 'username', label: t('auth.username'), type: 'text' },
+                { name: 'email', label: t('auth.email'), type: 'email' },
+                { name: 'password', label: t('auth.password'), type: 'password' },
+                { name: 'confirmPassword', label: t('auth.confirmPassword'), type: 'password' },
                 {
                   name: 'organizationName',
-                  label: applyType === 'government' ? 'Government Name' : 'Research Institution',
+                  label: applyType === 'government' ? t('auth.governmentName') : t('auth.researchInstitution'),
                   type: 'text',
                 },
                 {
                   name: 'officialId',
-                  label: applyType === 'government' ? 'Government ID' : 'Institution ID',
+                  label: applyType === 'government' ? t('auth.governmentId') : t('auth.institutionId'),
                   type: 'text',
                 },
               ].map((f) => (
@@ -218,7 +220,7 @@ export default function Login() {
                 disabled={applyLoading}
                 className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed mb-3"
               >
-                {applyLoading ? 'Submitting...' : 'Submit Application'}
+                {applyLoading ? t('auth.submitting') : t('auth.submitApplication')}
               </button>
               <button
                 type="button"
@@ -226,15 +228,15 @@ export default function Login() {
                 disabled={applyLoading}
                 className="text-sm font-bold text-muted-foreground hover:underline"
               >
-                Cancel
+                {t('auth.cancel')}
               </button>
             </form>
           ) : (
             <>
               <div className="mb-6">
-                <h2 className="text-lg font-bold text-foreground mb-2">Browse as Guest</h2>
+                <h2 className="text-lg font-bold text-foreground mb-2">{t('auth.browseAsGuest')}</h2>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Explore our timeline and community content without an account.
+                  {t('auth.exploreContent')}
                 </p>
                 <button
                   type="button"
@@ -242,20 +244,20 @@ export default function Login() {
                   disabled={isLoading}
                   className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-lg hover:opacity-90 disabled:opacity-50 mb-4"
                 >
-                  Continue as Guest
+                  {t('auth.continueAsGuest')}
                 </button>
               </div>
 
               <div className="flex items-center gap-3 mb-6">
                 <div className="flex-1 h-px bg-border" />
-                <span className="text-[11px] font-semibold text-muted-foreground tracking-wider uppercase">OR</span>
+                <span className="text-[11px] font-semibold text-muted-foreground tracking-wider uppercase">{t('common.or')}</span>
                 <div className="flex-1 h-px bg-border" />
               </div>
 
               <form onSubmit={handleLogin} className="mb-6">
-                <h2 className="text-lg font-bold text-foreground mb-4">Sign In</h2>
+                <h2 className="text-lg font-bold text-foreground mb-4">{t('auth.signIn')}</h2>
                 <div className="text-left mb-4">
-                  <label className="block text-sm font-medium text-foreground mb-1.5">Email</label>
+                  <label className="block text-sm font-medium text-foreground mb-1.5">{t('auth.email')}</label>
                   <input
                     type="email"
                     value={email}
@@ -266,7 +268,7 @@ export default function Login() {
                 </div>
 
                 <div className="text-left mb-5">
-                  <label className="block text-sm font-medium text-foreground mb-1.5">Password</label>
+                  <label className="block text-sm font-medium text-foreground mb-1.5">{t('auth.password')}</label>
                   <input
                     type="password"
                     value={password}
@@ -287,13 +289,13 @@ export default function Login() {
                   disabled={isLoading}
                   className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isLoading ? 'Signing in...' : 'Sign In'}
+                  {isLoading ? t('auth.signingIn') : t('auth.signIn')}
                 </button>
               </form>
 
               <div className="flex items-center gap-3 mb-6">
                 <div className="flex-1 h-px bg-border" />
-                <span className="text-[11px] font-semibold text-muted-foreground tracking-wider uppercase">APPLY AS VERIFIED</span>
+                <span className="text-[11px] font-semibold text-muted-foreground tracking-wider uppercase">{t('auth.applyAsVerified')}</span>
                 <div className="flex-1 h-px bg-border" />
               </div>
 
@@ -304,7 +306,7 @@ export default function Login() {
                   disabled={isLoading}
                   className="flex-1 py-2.5 bg-destructive text-destructive-foreground font-semibold rounded-lg text-sm hover:opacity-90 disabled:opacity-50"
                 >
-                  Institute
+                  {t('auth.institute')}
                 </button>
                 <button
                   type="button"
@@ -312,17 +314,17 @@ export default function Login() {
                   disabled={isLoading}
                   className="flex-1 py-2.5 bg-destructive text-destructive-foreground font-semibold rounded-lg text-sm hover:opacity-90 disabled:opacity-50"
                 >
-                  Government
+                  {t('auth.government')}
                 </button>
               </div>
 
               <p className="text-sm text-foreground m-0">
-                Don't have an account?{' '}
+                {t('auth.dontHaveAccount')}{' '}
                 <a
                   onClick={() => !isLoading && navigate({ to: '/signup' })}
                   className={`font-bold text-destructive decoration-2 underline-offset-2 ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:underline'}`}
                 >
-                  Sign up here
+                  {t('auth.signUp')}
                 </a>
               </p>
             </>

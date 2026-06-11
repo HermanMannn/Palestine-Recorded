@@ -1,24 +1,28 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Home, Calendar, Grid3X3, MessageSquare, Settings, LogOut, User, LogIn } from "lucide-react";
+import { Home, Map, Calendar, Grid3X3, MessageSquare, Settings, LogOut, User, LogIn, Sun, Moon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from "@/hooks/useTranslation";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 import logoLight from "@/assets/PalRecLogo.png";
 import logoDark from "@/assets/Logo_Dark.png";
 
-const tools = [
-  { icon: Home, label: "Home", to: "/timeline" },
-  { icon: Calendar, label: "Community", to: "/social" },
-  { icon: Grid3X3, label: "PalGrid", to: "/palgrid" },
-  { icon: MessageSquare, label: "Messages", to: "/messages" },
-  { icon: Settings, label: "Settings", to: "/settings" },
-];
-
 export default function Navbar() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [profilePic, setProfilePic] = useState(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [user, setUser] = useState(null);
+
+  const tools = [
+    { icon: Home, label: t('navbar.homeTitle'), to: "/" },
+    { icon: Map, label: t('navbar.timelineTitle'), to: "/timeline" },
+    { icon: Calendar, label: t('navbar.communityTitle'), to: "/social" },
+    { icon: Grid3X3, label: t('common.grid'), to: "/palgrid" },
+    { icon: MessageSquare, label: t('navbar.messagesTitle'), to: "/messages" },
+    { icon: Settings, label: t('navbar.settingsTitle'), to: "/settings" },
+  ];
 
   useEffect(() => {
     const checkTheme = () => setIsDarkMode(document.documentElement.classList.contains("dark"));
@@ -55,6 +59,14 @@ export default function Navbar() {
     };
   }, []);
 
+  const toggleTheme = () => {
+    const next = isDarkMode ? "light" : "dark";
+    const root = document.documentElement;
+    root.classList.remove("light", "dark");
+    root.classList.add(next);
+    localStorage.setItem("theme", next);
+  };
+
   const handleLogout = async (e) => {
     e.preventDefault();
     await supabase.auth.signOut();
@@ -65,10 +77,10 @@ export default function Navbar() {
   return (
     <>
       <header className="relative z-20 flex items-center justify-between px-6 py-4 bg-card/90 backdrop-blur-sm border-b border-border">
-        <Link to="/timeline" className="flex items-center gap-2">
-          <img src={isDarkMode ? logoDark : logoLight} alt="Palestine Recorded logo" className="h-9 w-auto" />
+        <Link to="/" className="flex items-center gap-2">
+          <img src={isDarkMode ? logoDark : logoLight} alt={t('navbar.title')} className="h-9 w-auto" />
           <span className="text-base sm:text-lg font-bold tracking-tight text-foreground hidden sm:block">
-            Palestine Recorded
+            {t('navbar.title')}
           </span>
         </Link>
 
@@ -76,7 +88,7 @@ export default function Navbar() {
         <div className="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-1">
           {tools.map((tool) => {
             // Hide Settings for guests
-            if (tool.label === "Settings" && !user) return null;
+            if (tool.to === "/settings" && !user) return null;
             return (
               <Link
                 key={tool.label}
@@ -92,15 +104,15 @@ export default function Navbar() {
           {user ? (
             <button
               onClick={handleLogout}
-              title="Logout"
+              title={t('navbar.logoutTitle')}
               className="flex h-9 w-9 items-center justify-center rounded-md text-foreground hover:bg-accent/40 hover:text-primary transition-colors"
             >
               <LogOut className="h-4 w-4" />
             </button>
           ) : (
             <Link
-              to="/"
-              title="Sign In"
+              to="/login"
+              title={t('auth.login')}
               className="flex h-9 w-9 items-center justify-center rounded-md text-foreground hover:bg-accent/40 hover:text-primary transition-colors"
             >
               <LogIn className="h-4 w-4" />
@@ -109,27 +121,38 @@ export default function Navbar() {
         </div>
 
         <nav className="flex items-center gap-4">
-          <Link to="/about" className="text-sm font-medium text-foreground hover:text-primary hidden md:block">About</Link>
-          <Link to="/donate" className="text-sm font-medium text-foreground hover:text-primary hidden md:block">Donate</Link>
-          <Link to="/contact" className="text-sm font-medium text-foreground hover:text-primary hidden md:block">Contact</Link>
-          <Link to="/privacy" className="text-sm font-medium text-foreground hover:text-primary hidden md:block">Privacy</Link>
+          <Link to="/about" className="text-sm font-medium text-foreground hover:text-primary hidden md:block">{t('navbar.aboutTitle')}</Link>
+          <Link to="/donate" className="text-sm font-medium text-foreground hover:text-primary hidden md:block">{t('navbar.donateTitle')}</Link>
+          <Link to="/contact" className="text-sm font-medium text-foreground hover:text-primary hidden md:block">{t('navbar.contactUsTitle')}</Link>
+          <Link to="/privacy" className="text-sm font-medium text-foreground hover:text-primary hidden md:block">{t('common.privacy')}</Link>
+
+          <button
+            onClick={toggleTheme}
+            title={isDarkMode ? t('navbar.lightMode') : t('navbar.darkMode')}
+            aria-label={isDarkMode ? t('navbar.lightMode') : t('navbar.darkMode')}
+            className="flex h-9 w-9 items-center justify-center rounded-full text-foreground hover:bg-accent/40 hover:text-primary transition-colors"
+          >
+            {isDarkMode ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
+          </button>
+
+          <LanguageSwitcher />
 
           {user ? (
             <Link
               to="/settings"
-              title="Profile Settings"
+              title={t('navbar.profileSettingsTitle')}
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 overflow-hidden ml-1"
             >
               {profilePic ? (
-                <img src={profilePic} alt="User Profile" className="h-full w-full object-cover" />
+                <img src={profilePic} alt={t('navbar.userProfileAlt')} className="h-full w-full object-cover" />
               ) : (
                 <User className="h-4 w-4" />
               )}
             </Link>
           ) : (
             <Link
-              to="/"
-              title="Sign In"
+              to="/login"
+              title={t('auth.login')}
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 ml-1 transition-colors"
             >
               <LogIn className="h-4 w-4" />
@@ -143,7 +166,7 @@ export default function Navbar() {
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around bg-card border-t border-border px-2 py-3 pb-safe">
         {tools.map((tool) => {
           // Hide Settings for guests
-          if (tool.label === "Settings" && !user) return null;
+          if (tool.to === "/settings" && !user) return null;
           return (
             <Link
               key={tool.label}
@@ -158,11 +181,11 @@ export default function Navbar() {
         })}
         {!user && (
           <Link
-            to="/"
+            to="/login"
             className="flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary transition-colors"
           >
             <LogIn className="h-6 w-6" />
-            <span className="text-[10px]">Sign In</span>
+            <span className="text-[10px]">{t('auth.login')}</span>
           </Link>
         )}
       </div>

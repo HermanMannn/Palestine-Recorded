@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Users, Globe, ShieldCheck, Cpu, Database, Award, MessageSquare, User } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
 
 // Logo Imports
 import logoLight from "@/assets/PalRecLogo.png";
@@ -15,6 +16,7 @@ const team = [
 ];
 
 export default function About() {
+  const { t } = useTranslation();
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
@@ -27,6 +29,15 @@ export default function About() {
     return () => observer.disconnect();
   }, []);
 
+  const features = [
+    { icon: MessageSquare, title: t('about.communityHub'), desc: t('about.communityHubDesc') },
+    { icon: Award, title: t('about.reputationPoints'), desc: t('about.reputationPointsDesc') },
+    { icon: Database, title: t('about.palGrid'), desc: t('about.palGridDesc') },
+    { icon: ShieldCheck, title: t('about.strictModeration'), desc: t('about.strictModerationDesc') },
+    { icon: Cpu, title: t('about.futureTech'), desc: t('about.futureTechDesc') },
+    { icon: Globe, title: t('about.blockchain'), desc: t('about.blockchainDesc') }
+  ];
+
   return (
     <div className="min-h-screen bg-background/85 dark:bg-slate-900/40 backdrop-blur-xl text-foreground transition-colors duration-300 pb-20 overflow-x-hidden custom-scrollbar">
       <main className="max-w-5xl mx-auto px-6 py-16">
@@ -38,10 +49,9 @@ export default function About() {
             alt="PalRec Logo" 
             className="h-24 w-auto mx-auto mb-8 animate-in fade-in zoom-in duration-700" 
           />
-          <h1 className="text-5xl font-bold mb-6 tracking-tight">Preserving Identity, One Story at a Time</h1>
+          <h1 className="text-5xl font-bold mb-6 tracking-tight">{t('about.title')}</h1>
           <p className="text-xl text-foreground/90 max-w-3xl mx-auto leading-relaxed">
-            For decades, the narrative surrounding Palestine has been dominated by conflict.
-            <span className="text-foreground font-medium"> Palestine Recorded (PalRec)</span> is a web-based platform dedicated to preserving the rich tapestry of Palestinian heritage, culture, and traditions.
+            {t('about.description')}
           </p>
         </section>
 
@@ -49,32 +59,25 @@ export default function About() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-20">
           <div className="p-8 rounded-3xl border border-border bg-card/50 dark:bg-slate-800/60 backdrop-blur-md shadow-xl">
             <Globe className="h-10 w-10 text-emerald-500 mb-4" />
-            <h2 className="text-2xl font-bold mb-3">The Verified Timeline</h2>
+            <h2 className="text-2xl font-bold mb-3">{t('about.verifiedTimeline')}</h2>
             <p className="text-muted-foreground">
-              An unabridged record of historical events over a map layout of Palestine, supported by unbiased, verified sources.
+              {t('about.verifiedTimelineDesc')}
             </p>
           </div>
           <div className="p-8 rounded-3xl border border-border bg-card/50 dark:bg-slate-800/60 backdrop-blur-md shadow-xl">
             <Users className="h-10 w-10 text-emerald-500 mb-4" />
-            <h2 className="text-2xl font-bold mb-3">The Community Timeline</h2>
+            <h2 className="text-2xl font-bold mb-3">{t('about.communityTimeline')}</h2>
             <p className="text-muted-foreground">
-              A dynamic space where Palestinians and historians can upload media, testimonies, and proof of cultural history.
+              {t('about.communityTimelineDesc')}
             </p>
           </div>
         </div>
 
         {/* FEATURES GRID */}
         <section className="mb-20">
-          <h3 className="text-3xl font-bold mb-10 text-center">Platform Ecosystem</h3>
+          <h3 className="text-3xl font-bold mb-10 text-center">{t('about.platformEcosystem')}</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              { icon: MessageSquare, title: "Community Hub", desc: "Share posts and interact via a dedicated messaging system." },
-              { icon: Award, title: "Reputation Points", desc: "Earn points for contributions that maintain the platform's integrity." },
-              { icon: Database, title: "PalGrid", desc: "Learn culture through a daily word puzzle featuring Palestine-related terms." },
-              { icon: ShieldCheck, title: "Strict Moderation", desc: "AI and human moderators ensure history remains free of misinformation." },
-              { icon: Cpu, title: "Future Tech", desc: "AI-driven chatbots to assist researchers and historians." },
-              { icon: Globe, title: "Blockchain", desc: "Confirming authorship to ensure legitimacy regardless of interference." }
-            ].map((feature, i) => (
+            {features.map((feature, i) => (
               <div key={i} className="p-6 rounded-2xl border border-border bg-card/30 dark:bg-slate-800/60 hover:border-emerald-500/50 transition-colors backdrop-blur-sm">
                 <feature.icon className="h-6 w-6 text-emerald-500 mb-3" />
                 <h4 className="font-bold mb-1">{feature.title}</h4>

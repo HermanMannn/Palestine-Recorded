@@ -181,5 +181,84 @@ export const PALESTINE_WORDS: PalestineWord[] = [
     category: "Values",
     meaning: "Complete trust or confidence.",
     context: "Whether religious (Muslim and Christian) or secular faith in justice, it is what sustains the Palestinian spirit."
+  },
+
+  // --- VARIABLE-LENGTH WORDS (4–7 letters) ---
+  {
+    word: "AKKA",
+    arabic: "عكا",
+    category: "Geography",
+    meaning: "Acre, an ancient walled port city on the Mediterranean.",
+    context: "One of the oldest continuously inhabited cities in the world, famous for its sea walls, markets, and resistance to Napoleon's siege in 1799."
+  },
+  {
+    word: "GAZA",
+    arabic: "غزة",
+    category: "Geography",
+    meaning: "A coastal city and strip in southern Palestine.",
+    context: "A crossroads of civilizations for millennia, historically renowned for its port, pottery, and weaving traditions."
+  },
+  {
+    word: "SABR",
+    arabic: "صبر",
+    category: "Values",
+    meaning: "Patience and endurance; also the Arabic word for cactus.",
+    context: "The cactus plant marks the sites of depopulated Palestinian villages, making 'sabr' a living symbol of patience and memory."
+  },
+  {
+    word: "NABLUS",
+    arabic: "نابلس",
+    category: "Geography",
+    meaning: "A major city in the northern West Bank between two mountains.",
+    context: "Famous for its old city, olive-oil soap factories, and knafeh — it has been a center of Palestinian trade for centuries."
+  },
+  {
+    word: "HEBRON",
+    arabic: "الخليل",
+    category: "Geography",
+    meaning: "Al-Khalil, a historic city in the southern West Bank.",
+    context: "Known for its old city, glassblowing, ceramics, and grapes, and home to the Ibrahimi Mosque."
+  },
+  {
+    word: "KNAFEH",
+    arabic: "كنافة",
+    category: "Culture",
+    meaning: "A warm dessert of sweet cheese and shredded pastry.",
+    context: "Nablus is famed as the home of knafeh nabulsiyeh, served at celebrations and beloved across Palestine."
+  },
+  {
+    word: "HUMMUS",
+    arabic: "حمص",
+    category: "Culture",
+    meaning: "A dish of blended chickpeas, tahini, lemon, and garlic.",
+    context: "A cornerstone of the Palestinian table, traditionally shared from one plate — a symbol of hospitality."
+  },
+  {
+    word: "KARAMA",
+    arabic: "كرامة",
+    category: "Values",
+    meaning: "Dignity.",
+    context: "A central value in Palestinian life and struggle — the insistence on living with dignity regardless of circumstance."
+  },
+  {
+    word: "TATREEZ",
+    arabic: "تطريز",
+    category: "Culture",
+    meaning: "Traditional Palestinian cross-stitch embroidery.",
+    context: "Each region has distinct motifs and colors; tatreez patterns stitch village identity and women's stories into cloth, and are recognized by UNESCO."
+  },
+  {
+    word: "MAQLUBA",
+    arabic: "مقلوبة",
+    category: "Culture",
+    meaning: "'Upside-down' — a layered dish of rice, vegetables, and meat.",
+    context: "Flipped dramatically onto the platter at family gatherings, maqluba is a beloved centerpiece of Palestinian cuisine."
+  },
+  {
+    word: "AMAL",
+    arabic: "أمل",
+    category: "Values",
+    meaning: "Hope.",
+    context: "A word woven through Palestinian poetry and daily speech — the quiet engine of perseverance across generations."
   }
 ];

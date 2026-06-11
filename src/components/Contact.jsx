@@ -4,18 +4,12 @@ import { User } from "lucide-react";
 // Logo Imports
 import logoLight from "@/assets/PalRecLogo.png";
 import logoDark from "@/assets/Logo_Dark.png";
-
-const team = [
-  { name: "Ahmed Yacine Ahriche", role: "Chief Technology Officer" },
-  { name: "EmadEddin Al-Chmri", role: "Chief Design Officer" },
-  { name: "Isa Al-Khanous", role: "Chief Information Officer" },
-  { name: "Mohammad Aziz Khodahafez", role: "Chief Product Officer" },
-  { name: "Moheeb Suliman Musa", role: "Chief Operations Officer" },
-  { name: "Nader Zamrawi", role: "Chief Communications Officer" },
-];
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function About() {
+  const { t, get } = useTranslation();
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const team = get("about.team");
 
   useEffect(() => {
     const checkTheme = () => {
@@ -43,7 +37,7 @@ export default function About() {
         {/* TEAM SECTION */}
         <section className="rounded-[3rem] border border-border bg-card/50 dark:bg-slate-800/60 p-12 md:p-20 text-center backdrop-blur-md shadow-2xl">
           <h2 className="text-3xl md:text-4xl font-bold mb-16 text-foreground tracking-tight">
-            Developed by Midas Software Solutions
+            {t("about.developedBy")}
           </h2>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-y-16 gap-x-12 mb-20">
@@ -57,10 +51,10 @@ export default function About() {
 
           <div className="pt-10 border-t border-border/40">
             <p className="text-xl text-yellow-600 text-muted-foreground italic">
-              Lead by Dr. Manar Abu Talib 
+              {t("about.leadBy")}
             </p>
             <p className="text-base text-muted-foreground mt-2 font-medium opacity-80">
-              University of Sharjah 
+              {t("about.universityOfSharjah")}
             </p>
           </div>
         </section>

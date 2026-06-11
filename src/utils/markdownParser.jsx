@@ -44,7 +44,7 @@ export const renderMarkdown = (text) => {
       <div key={idx} className="text-sm leading-relaxed">
         {parts.map((part, partIdx) =>
           part.type === "bold" ? (
-            <strong key={partIdx} className="font-semibold text-white">
+            <strong key={partIdx} className="font-semibold text-foreground">
               {part.content}
             </strong>
           ) : (
