@@ -161,6 +161,9 @@ export default function Home() {
     { icon: Users, to: "/social", titleKey: "home.explore.community", descKey: "home.explore.communityDesc" },
     { icon: Grid3X3, to: "/palgrid", titleKey: "home.explore.palgrid", descKey: "home.explore.palgridDesc" },
     { icon: MessageSquare, to: "/messages", titleKey: "home.explore.messages", descKey: "home.explore.messagesDesc" },
+    { icon: Calendar, to: "/calendar", titleKey: "home.explore.calendar", descKey: "home.explore.calendarDesc" },
+    { icon: Users, to: "/figures", titleKey: "home.explore.figures", descKey: "home.explore.figuresDesc" },
+    { icon: BookOpen, to: "/library", titleKey: "home.explore.library", descKey: "home.explore.libraryDesc" },
   ];
 
   const quickActions = [
