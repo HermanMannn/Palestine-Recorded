@@ -1,7 +1,5 @@
-<<<<<<< HEAD
 import { useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-=======
 import { useTranslation } from "@/hooks/useTranslation";
 
 const EN_STATUS_LABELS = ["Ongoing", "Concluded"];
@@ -16,7 +14,6 @@ function translateFromList(value, sourceLabels, translatedLabels) {
 function getTranslatedEventContent(event, language) {
   return language === "ar" ? event.translations?.ar || {} : {};
 }
->>>>>>> 88a237f903a6887a29fac7cc2ddb8367505e0785
 
 function getStatusClass(status) {
   switch (status) {
@@ -57,7 +54,6 @@ function getTagClass(tag) {
 }
 
 export default function EventDetails({ event, onClose, onPrev, onNext, canGoPrev, canGoNext, onAskAI }) {
-<<<<<<< HEAD
   const fileInputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -108,7 +104,6 @@ export default function EventDetails({ event, onClose, onPrev, onNext, canGoPrev
     }
     setSubmitted(true);
   };
-=======
   const { t, get, language } = useTranslation();
   const translatedStatuses = get("timeline.statuses");
   const translatedCategories = get("timeline.categories");
@@ -118,7 +113,6 @@ export default function EventDetails({ event, onClose, onPrev, onNext, canGoPrev
   const location = translatedContent.location || event.location;
   const description = translatedContent.description || event.description;
   const articles = translatedContent.articles || event.articles;
->>>>>>> 88a237f903a6887a29fac7cc2ddb8367505e0785
 
   return (
     <>
