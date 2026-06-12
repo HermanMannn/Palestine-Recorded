@@ -557,7 +557,13 @@
       "palgrid": "PalGrid",
       "palgridDesc": "Daily cultural word puzzle",
       "messages": "Messages",
-      "messagesDesc": "Chat with other members"
+      "messagesDesc": "Chat with other members",
+      "calendar": "Calendar\n",
+      "calendarDesc": "Explore historical dates and events",
+      "figures": "Figured Encyclopedia",
+      "figuresDesc": "Discover key figures in history",
+      "library": "Library\n",
+      "libraryDesc": "Access research and books"
     },
     "quickActions": {
       "title": "Quick Actions",
