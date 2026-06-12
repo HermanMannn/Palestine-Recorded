@@ -8,20 +8,40 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "@/hooks/useTranslation";
 import ProfilePage from "./Profilepage";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
+
+// Missing mock data groupings required by the view layout
+const NAV_ITEMS = [
+  { key: "Community Feed", icon: Home },
+  { key: "Stories Archive", icon: BookOpen },
+  { key: "Media Gallery", icon: Camera },
+];
+
+const TRENDING = [
+  { tag: "JaffaHistory", posts: "1.2k" },
+  { tag: "OliveHarvest", posts: "852" },
+  { tag: "CulturalPreservation", posts: "643" },
+];
+
+const FILTER_CHIPS = ["All Posts", "Stories", "Culture", "Archive"];
+
+const COMMUNITIES = [
+  { name: "Historical Archives", members: "2.4k members", color: "bg-blue-600" },
+  { name: "Cultural Heritage", members: "1.8k members", color: "bg-emerald-600" },
+  { name: "Oral Histories", members: "942 members", color: "bg-amber-600" },
+];
+
+const EVENTS = [
+  { month: "JUN", day: "24", title: "Cultural Heritage Webinar", time: "6:00 PM", place: "Online Zoom" },
+  { month: "JUL", day: "05", title: "Archive Photo Exhibition", time: "4:00 PM", place: "Community Hall" },
+];
 
 const GuestPrompt = ({ onClose, t }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
     <div className="bg-card border border-border rounded-lg p-6 max-w-sm shadow-2xl">
-<<<<<<< HEAD
-      <h3 className="font-bold text-lg mb-2">Sign up to interact</h3>
-      <p className="text-sm text-muted-foreground mb-4">Create an account to comment, like, and share posts.</p>
-      <button onClick={onClose} className="w-full bg-primary text-primary-foreground py-2 rounded-lg font-medium hover:opacity-90">Got it</button>
-=======
       <h3 className="font-bold text-lg mb-2">{t('socialFeed.signUpToInteract')}</h3>
       <p className="text-sm text-muted-foreground mb-4">{t('socialFeed.createAccountToComment')}</p>
       <button onClick={onClose} className="w-full bg-primary text-white py-2 rounded-lg font-medium hover:opacity-90">{t('socialFeed.gotIt')}</button>
->>>>>>> 88a237f903a6887a29fac7cc2ddb8367505e0785
     </div>
   </div>
 );
@@ -53,50 +73,10 @@ const seedComments = {
   ],
 };
 
-<<<<<<< HEAD
-const NAV_ITEMS = [
-  { key: "Community Feed", icon: Home },
-  { key: "Stories", icon: BookOpen },
-  { key: "Photos", icon: Camera },
-  { key: "Culture", icon: Palette },
-  { key: "Places", icon: MapPin },
-  { key: "Groups", icon: Users },
-  { key: "Members", icon: UserCircle2 },
-];
-
-const FILTER_CHIPS = ["All Posts", "Stories", "Photos", "Culture", "Places", "Events"];
-
-const TRENDING = [
-  { tag: "Jerusalem", posts: "1.2K posts" },
-  { tag: "Family Stories", posts: "980 posts" },
-  { tag: "Old Photos", posts: "756 posts" },
-  { tag: "Recipes", posts: "642 posts" },
-  { tag: "Culture", posts: "591 posts" },
-];
-
-const COMMUNITIES = [
-  { name: "Jerusalem Stories", members: "1.8K members", color: "bg-amber-500" },
-  { name: "Palestinian Cuisine", members: "1.4K members", color: "bg-orange-500" },
-  { name: "Old Photos Archive", members: "1.2K members", color: "bg-stone-500" },
-  { name: "Heritage & Tradition", members: "2.2K members", color: "bg-emerald-600" },
-];
-
-const EVENTS = [
-  { month: "MAY", day: "24", title: "Olive Harvest Festival", time: "May 24 · 3:00 PM", place: "Ramallah, Palestine" },
-  { month: "MAY", day: "27", title: "Embroidery Workshop", time: "May 27 · 11:00 AM", place: "Nablus Cultural Center" },
-  { month: "JUN", day: "05", title: "Palestine Through Our Lens", time: "Jun 5 · 6:00 PM", place: "Online Event" },
-];
-
-function timeAgo(ts) {
-  if (!ts) return "just now";
-  const t = typeof ts === "string" ? new Date(ts).getTime() : ts;
-  const diff = Math.max(0, Date.now() - t);
-=======
 function timeAgo(ts, t) {
   if (!ts) return t('socialFeed.justNow');
   const time = typeof ts === "string" ? new Date(ts).getTime() : ts;
   const diff = Math.max(0, Date.now() - time);
->>>>>>> 88a237f903a6887a29fac7cc2ddb8367505e0785
   const m = Math.floor(diff / 60000);
   if (m < 1) return t('socialFeed.justNow');
   if (m < 60) return `${m}${t('socialFeed.minutesAgo')}`;
@@ -134,16 +114,11 @@ function PostCard({ post, onClick, onAuthorClick, liked, onToggleLike, isSelecte
             <div className="font-semibold text-foreground leading-tight group-hover:text-primary transition-colors cursor-pointer">
               {post.author}
             </div>
-<<<<<<< HEAD
-            <div className="text-xs text-muted-foreground">
-              {post.location ? `${post.location} · ` : ""}{post.time ?? timeAgo(post.created_at)}
-=======
             <div className="text-xs italic text-muted-foreground">{post.role}</div>
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <span>{post.time ?? timeAgo(post.created_at, t)}</span>
               <span>·</span>
               <Globe className="h-3 w-3" />
->>>>>>> 88a237f903a6887a29fac7cc2ddb8367505e0785
             </div>
           </div>
         </div>
@@ -173,47 +148,6 @@ function PostCard({ post, onClick, onAuthorClick, liked, onToggleLike, isSelecte
         </div>
       )}
 
-<<<<<<< HEAD
-      {post.image_url && (
-        <div className="border-y border-border bg-muted">
-          <img src={post.image_url} alt="" className="w-full object-cover max-h-96" />
-        </div>
-      )}
-
-      <div className="flex items-center justify-between px-4 py-2 text-sm text-muted-foreground">
-        <div className="flex items-center gap-5">
-          <button
-            onClick={(e) => { e.stopPropagation(); onToggleLike(post.id); }}
-            disabled={post.isGuest}
-            className={`flex items-center gap-1.5 transition-colors disabled:opacity-50 ${
-              liked ? "text-red-500" : "hover:text-primary"
-            }`}
-          >
-            <Heart className="h-4 w-4" fill={liked ? "currentColor" : "none"} />
-            <span className="text-xs">{post.likes ?? 0}</span>
-          </button>
-          <button
-            onClick={(e) => e.stopPropagation()}
-            className="flex items-center gap-1.5 hover:text-primary transition-colors"
-          >
-            <MessageCircle className="h-4 w-4" />
-            <span className="text-xs">{post.comments_count ?? 0}</span>
-          </button>
-          <button
-            onClick={(e) => e.stopPropagation()}
-            className="flex items-center gap-1.5 hover:text-primary transition-colors"
-          >
-            <Share2 className="h-4 w-4" />
-            <span className="text-xs">Share</span>
-          </button>
-        </div>
-        <button
-          onClick={(e) => e.stopPropagation()}
-          className="flex items-center gap-1.5 hover:text-primary transition-colors"
-        >
-          <Bookmark className="h-4 w-4" />
-          <span className="text-xs">Save</span>
-=======
       <div className="flex items-center justify-between px-4 py-1 text-xs text-muted-foreground">
         <span>{(post.likes ?? 0)} {t('socialFeed.likes')}</span>
         <span>{post.comments_count ?? 0} {t('socialFeed.comments')} · {post.shares_count ?? 0} {t('socialFeed.shares')}</span>
@@ -245,7 +179,6 @@ function PostCard({ post, onClick, onAuthorClick, liked, onToggleLike, isSelecte
           className="flex flex-1 items-center justify-center gap-2 rounded-md py-2 text-sm font-medium text-muted-foreground hover:bg-accent/40 hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
         >
           <Share2 className="h-4 w-4" /> {t('socialFeed.share')}
->>>>>>> 88a237f903a6887a29fac7cc2ddb8367505e0785
         </button>
       </div>
     </article>
@@ -318,11 +251,6 @@ function PostDetail({ post, liked, onToggleLike, onClose, onAuthorClick, user, p
           <span>{post.time ?? timeAgo(post.created_at, t)}</span>
         </div>
 
-<<<<<<< HEAD
-        <div className="flex items-center justify-around border-b border-border px-2 py-1">
-          <button onClick={() => onToggleLike(post.id)} className={`flex flex-1 items-center justify-center gap-2 rounded-md py-2 text-sm font-medium transition-colors hover:bg-accent/40 ${liked ? "text-red-500" : "text-muted-foreground hover:text-primary"}`}>
-            <Heart className="h-4 w-4" fill={liked ? "currentColor" : "none"} /> Like
-=======
         <div className="flex items-center justify-between px-4 py-3 border-b border-border text-sm text-muted-foreground">
           <span><strong className="text-foreground">{post.likes ?? 0}</strong> {t('socialFeed.likes')}</span>
           <div className="flex gap-4">
@@ -339,7 +267,6 @@ function PostDetail({ post, liked, onToggleLike, onClose, onAuthorClick, user, p
             }`}
           >
             <Heart className="h-4 w-4" fill={liked ? "currentColor" : "none"} /> {t('socialFeed.like')}
->>>>>>> 88a237f903a6887a29fac7cc2ddb8367505e0785
           </button>
           <button className="flex flex-1 items-center justify-center gap-2 rounded-md py-2 text-sm font-medium text-muted-foreground hover:bg-accent/40 hover:text-primary">
             <MessageCircle className="h-4 w-4" /> {t('socialFeed.comment')}
@@ -360,13 +287,8 @@ function PostDetail({ post, liked, onToggleLike, onClose, onAuthorClick, user, p
                 </div>
                 <div className="mt-1 flex items-center gap-3 px-1 text-xs text-muted-foreground">
                   <span>{c.time}</span>
-<<<<<<< HEAD
-                  <button className="font-medium hover:text-primary">Like</button>
-                  <button className="font-medium hover:text-primary">Reply</button>
-=======
                   <button className="font-medium hover:text-primary transition-colors">{t('socialFeed.like')}</button>
                   <button className="font-medium hover:text-primary transition-colors">{t('socialFeed.reply')}</button>
->>>>>>> 88a237f903a6887a29fac7cc2ddb8367505e0785
                 </div>
               </div>
             </div>
@@ -471,12 +393,9 @@ export default function SocialFeed() {
   const [user, setUser] = useState(null);
   const [currentUserAvatarUrl, setCurrentUserAvatarUrl] = useState(null);
   const fileInputRef = useRef(null);
-<<<<<<< HEAD
   const [activeFilter, setActiveFilter] = useState("All Posts");
   const [activeNav, setActiveNav] = useState("Community Feed");
-=======
   const [activeTab, setActiveTab] = useState("forYou");
->>>>>>> 88a237f903a6887a29fac7cc2ddb8367505e0785
   const [selectedPost, setSelectedPost] = useState(null);
   const [profileView, setProfileView] = useState(null);
   const [showGuestPrompt, setShowGuestPrompt] = useState(false);
@@ -492,12 +411,10 @@ export default function SocialFeed() {
       setUser(authData.user || null);
 
       if (uid) {
-        // Fetch current user profile
         const { data: prof } = await supabase.from("profiles").select("avatar_url, username").eq("id", uid).maybeSingle();
         setCurrentUserAvatarUrl(prof?.avatar_url || null);
         setProfiles((prev) => ({ ...prev, [uid]: { id: uid, ...prof } }));
 
-        // Fetch User Likes to update initial UI state
         const { data: userLikes } = await supabase
           .from("post_likes")
           .select("post_id")
@@ -558,14 +475,10 @@ export default function SocialFeed() {
   ];
 
   const filteredPosts = allPosts.filter((p) => {
-<<<<<<< HEAD
-    if (activeFilter === "All Posts") return true;
-    return p.category === activeFilter;
-=======
+    if (activeFilter !== "All Posts" && p.category !== activeFilter) return false;
     if (activeTab === "following") return p.user_id === user?.id;
     if (activeTab === "trending") return String(p.id).startsWith("seed-");
     return true;
->>>>>>> 88a237f903a6887a29fac7cc2ddb8367505e0785
   });
 
   useEffect(() => {
@@ -581,15 +494,12 @@ export default function SocialFeed() {
     }
 
     const isLiked = !!liked[id];
-    
-    // Instant UI Optimistic Update
     setLiked((prev) => ({ ...prev, [id]: !isLiked }));
     setDbPosts((prev) => prev.map((p) => p.id === id ? { ...p, likes: (p.likes ?? 0) + (isLiked ? -1 : 1) } : p));
     if (selectedPost?.id === id) {
       setSelectedPost((prev) => prev ? { ...prev, likes: (prev.likes ?? 0) + (isLiked ? -1 : 1) } : prev);
     }
 
-    // Bypass DB if it's a hardcoded seed post
     if (String(id).startsWith("seed-")) return;
 
     try {
@@ -597,19 +507,13 @@ export default function SocialFeed() {
       const newLikesCount = (post?.likes ?? 0) + (isLiked ? -1 : 1);
 
       if (isLiked) {
-        // Remove like record
         await supabase.from("post_likes").delete().eq("post_id", id).eq("user_id", user.id);
       } else {
-        // Add like record
         await supabase.from("post_likes").insert({ post_id: id, user_id: user.id });
       }
-      
-      // Update the main post counter so everyone else sees the number jump up/down
       await supabase.from("posts").update({ likes: newLikesCount }).eq("id", id);
-      
     } catch (err) {
       console.error("Error toggling like:", err);
-      // Optional: If you wanted to be super robust, you could revert the optimistic update here on failure
     }
   };
 
@@ -665,12 +569,16 @@ export default function SocialFeed() {
   };
 
   const panelOpen = !!selectedPost || !!profileView;
-  const userProfile = profiles[user?.id];
-  const userName = userProfile?.username || (user?.email?.split("@")[0]) || "Guest";
+  const userName = profiles[user?.id]?.username || (user?.email?.split("@")[0]) || "Guest";
+  const currentUserAvatarPost = {
+    avatar_url: currentUserAvatarUrl,
+    initial: userName[0]?.toUpperCase(),
+    color: "bg-primary",
+  };
 
   return (
     <div className="absolute inset-0 flex overflow-hidden">
-
+      
       {/* ── Detail / profile drawer ── */}
       <div
         className={`flex-shrink-0 border-r border-border bg-card transition-all duration-300 ease-in-out overflow-hidden
@@ -695,15 +603,13 @@ export default function SocialFeed() {
         )}
       </div>
 
-<<<<<<< HEAD
-      {/* ── Main 3-column layout ── */}
+      {/* ── Main content structural wrapper ── */}
       <div className={`flex-1 overflow-y-auto custom-scrollbar ${panelOpen ? "hidden sm:block" : "block"}`}>
         <div className="mx-auto max-w-7xl px-4 py-6">
           <div className="grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)_300px] gap-6">
 
             {/* ── LEFT SIDEBAR ── */}
             <aside className="hidden lg:flex flex-col gap-4">
-              {/* Profile card */}
               <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
                 <div className="flex items-center gap-3">
                   <Avatar post={{ avatar_url: currentUserAvatarUrl, initial: userName[0]?.toUpperCase(), color: "bg-emerald-600" }} size="lg" />
@@ -711,40 +617,6 @@ export default function SocialFeed() {
                     <div className="font-semibold text-foreground truncate">{userName}</div>
                     <div className="text-xs text-muted-foreground">Community Member</div>
                   </div>
-=======
-      {/* ── Feed ── */}
-      <div
-        className={`
-          flex-1 overflow-y-auto custom-scrollbar transition-all duration-300
-          ${panelOpen ? "hidden sm:block" : "block"}
-        `}
-      >
-        <div className="mx-auto max-w-2xl px-4 py-6 space-y-4">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">{t('socialFeed.title')}</h1>
-            <p className="text-sm text-muted-foreground">
-              {t('socialFeed.subtitle')}
-            </p>
-          </div>
-
-          <form onSubmit={submitPost} className="rounded-xl border border-border bg-card/90 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm">
-            <div className="p-4">
-              <div className="flex gap-3">
-                <Avatar post={currentUserAvatarPost} />
-                <div className="flex-1 space-y-2">
-                  <textarea
-                    value={draft}
-                    onChange={(e) => {
-                      const text = e.target.value;
-                      if (text.length <= 500) setDraft(text);
-                    }}
-                    maxLength={500}
-                    placeholder={user ? t('socialFeed.shareYourStory') : t('socialFeed.loginToShare')}
-                    disabled={!user}
-                    className="min-h-[60px] w-full resize-none rounded-lg border border-input bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-60"
-                  />
-                  <div className="text-xs text-muted-foreground text-right">{draft.length}/500</div>
->>>>>>> 88a237f903a6887a29fac7cc2ddb8367505e0785
                 </div>
                 <button
                   onClick={() => user ? setProfileView({ userId: user.id }) : setShowGuestPrompt(true)}
@@ -754,16 +626,13 @@ export default function SocialFeed() {
                 </button>
               </div>
 
-              {/* Navigation */}
               <nav className="rounded-2xl border border-border bg-card p-2 shadow-sm">
                 {NAV_ITEMS.map(({ key, icon: Icon }) => (
                   <button
                     key={key}
                     onClick={() => setActiveNav(key)}
                     className={`w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                      activeNav === key
-                        ? "bg-primary/10 text-primary"
-                        : "text-foreground/80 hover:bg-accent/40"
+                      activeNav === key ? "bg-primary/10 text-primary" : "text-foreground/80 hover:bg-accent/40"
                     }`}
                   >
                     <Icon className="h-4 w-4" />
@@ -772,13 +641,11 @@ export default function SocialFeed() {
                 ))}
               </nav>
 
-              {/* Trending */}
               <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
                 <div className="flex items-center gap-2 mb-3">
                   <Flame className="h-4 w-4 text-orange-500" />
                   <h3 className="font-semibold text-foreground text-sm">Trending Topics</h3>
                 </div>
-<<<<<<< HEAD
                 <ul className="space-y-2.5">
                   {TRENDING.map((t) => (
                     <li key={t.tag} className="flex items-center justify-between text-sm">
@@ -790,7 +657,6 @@ export default function SocialFeed() {
                 <Link to="/calendar" className="mt-3 inline-block text-xs font-medium text-primary hover:underline">See all</Link>
               </div>
 
-              {/* Quote */}
               <div className="rounded-2xl border border-border bg-rose-50 dark:bg-rose-950/20 p-4 shadow-sm relative overflow-hidden">
                 <Quote className="h-5 w-5 text-rose-400 mb-2" />
                 <p className="text-sm font-medium text-foreground leading-relaxed">
@@ -804,8 +670,8 @@ export default function SocialFeed() {
             <main className="min-w-0">
               <div className="flex items-start justify-between gap-4 mb-2">
                 <div>
-                  <h1 className="text-3xl font-bold text-foreground">Community</h1>
-                  <p className="text-sm text-muted-foreground mt-1">Share, preserve, and celebrate our stories and culture.</p>
+                  <h1 className="text-3xl font-bold text-foreground">{t('socialFeed.title')}</h1>
+                  <p className="text-sm text-muted-foreground mt-1">{t('socialFeed.subtitle')}</p>
                 </div>
                 <button
                   onClick={() => requireAuth(() => setComposerOpen(true))}
@@ -815,16 +681,65 @@ export default function SocialFeed() {
                 </button>
               </div>
 
-              {/* Filter chips */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-2 mt-4 mb-4 -mx-1 px-1">
+              {/* Story composer container form inline */}
+              <form onSubmit={submitPost} className="rounded-xl border border-border bg-card/90 dark:bg-slate-800/60 backdrop-blur-sm shadow-sm mt-4">
+                <div className="p-4">
+                  <div className="flex gap-3">
+                    <Avatar post={currentUserAvatarPost} />
+                    <div className="flex-1 space-y-2">
+                      <textarea
+                        value={draft}
+                        onChange={(e) => {
+                          const text = e.target.value;
+                          if (text.length <= 500) setDraft(text);
+                        }}
+                        maxLength={500}
+                        placeholder={user ? t('socialFeed.shareYourStory') : t('socialFeed.loginToShare')}
+                        disabled={!user}
+                        className="min-h-[60px] w-full resize-none rounded-lg border border-input bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-60"
+                      />
+                      <div className="text-xs text-muted-foreground text-right">{draft.length}/500</div>
+                    </div>
+                  </div>
+                  {imagePreview && (
+                    <div className="relative mt-3 overflow-hidden rounded-lg border border-border">
+                      <img src={imagePreview} alt="preview" className="max-h-60 w-full object-cover" />
+                      <button type="button" onClick={clearImage} className="absolute right-2 top-2 rounded-full bg-black/60 p-1 text-white hover:bg-black/80"><X className="h-4 w-4" /></button>
+                    </div>
+                  )}
+                  {error && (
+                    <div className="mt-2 rounded-md bg-red-500/15 px-3 py-2 text-xs text-red-700 dark:text-red-400">{error}</div>
+                  )}
+                </div>
+                <div className="flex items-center justify-between border-t border-border px-4 py-2">
+                  <div className="flex items-center gap-1">
+                    <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handlePickImage} />
+                    <button type="button" onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-muted-foreground hover:bg-accent/40 hover:text-primary">
+                      <ImageIcon className="h-4 w-4" /> {t('common.photo')}
+                    </button>
+                    <button type="button" className="hidden sm:flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-muted-foreground hover:bg-accent/40 hover:text-primary">
+                      <Video className="h-4 w-4" /> {t('common.video')}
+                    </button>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={(!draft.trim() && !imageFile) || posting || !user}
+                    className="flex items-center gap-1.5 rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
+                  >
+                    {posting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                    {posting ? t('socialFeed.posting') : t('socialFeed.post')}
+                  </button>
+                </div>
+              </form>
+
+              {/* Filter chips tabs */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-2 mt-6 mb-4 -mx-1 px-1">
                 {FILTER_CHIPS.map((chip) => (
                   <button
                     key={chip}
                     onClick={() => setActiveFilter(chip)}
                     className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-                      activeFilter === chip
-                        ? "bg-primary/15 text-primary"
-                        : "bg-muted/60 text-muted-foreground hover:bg-accent/40"
+                      activeFilter === chip ? "bg-primary/15 text-primary" : "bg-muted/60 text-muted-foreground hover:bg-accent/40"
                     }`}
                   >
                     {chip}
@@ -832,7 +747,26 @@ export default function SocialFeed() {
                 ))}
               </div>
 
-              {/* Feed */}
+              {/* Feed tabs selector */}
+              <div className="flex items-center gap-1 border-b border-border mb-4">
+                {[
+                  ["forYou", t('socialFeed.forYou')],
+                  ["following", t('socialFeed.following')],
+                  ["trending", t('socialFeed.trending')],
+                ].map(([tab, label]) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`px-4 py-2 text-sm font-medium transition-colors ${
+                      activeTab === tab ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Main Post Stream */}
               <div className="space-y-4">
                 {filteredPosts.map((post) => (
                   <PostCard
@@ -843,17 +777,17 @@ export default function SocialFeed() {
                     liked={!!liked[post.id]}
                     onToggleLike={() => requireAuth(() => toggleLike(post.id))}
                     isSelected={selectedPost?.id === post.id}
+                    t={t}
                   />
                 ))}
                 {filteredPosts.length === 0 && (
-                  <div className="py-12 text-center text-muted-foreground">No posts to show in this section yet.</div>
+                  <div className="py-12 text-center text-muted-foreground">{t('socialFeed.noPosts') || "No posts here yet."}</div>
                 )}
               </div>
             </main>
 
             {/* ── RIGHT SIDEBAR ── */}
             <aside className="hidden lg:flex flex-col gap-4">
-              {/* Active Communities */}
               <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold text-foreground text-sm">Active Communities</h3>
@@ -874,7 +808,6 @@ export default function SocialFeed() {
                 </ul>
               </div>
 
-              {/* Daily Inspiration */}
               <div className="rounded-2xl border border-border bg-emerald-50 dark:bg-emerald-950/20 p-4 shadow-sm">
                 <h3 className="font-semibold text-foreground text-sm mb-3">Daily Inspiration</h3>
                 <p className="text-sm font-medium text-foreground leading-relaxed italic">
@@ -883,11 +816,10 @@ export default function SocialFeed() {
                 <p className="mt-3 text-xs text-muted-foreground">— Mahmoud Darwish</p>
               </div>
 
-              {/* Upcoming Events */}
               <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold text-foreground text-sm">Upcoming Events</h3>
-                  <Link to="/calendar" className="mt-3 text-xs font-medium text-primary hover:underline">See all </Link>
+                  <Link to="/calendar" className="text-xs font-medium text-primary hover:underline">See all</Link>
                 </div>
                 <ul className="space-y-4">
                   {EVENTS.map((ev) => (
@@ -907,73 +839,11 @@ export default function SocialFeed() {
               </div>
             </aside>
 
-=======
-              )}
-              {error && (
-                <div className="mt-2 rounded-md bg-red-500/15 px-3 py-2 text-xs text-red-700 dark:text-red-400">{error}</div>
-              )}
-            </div>
-            <div className="flex items-center justify-between border-t border-border px-4 py-2">
-              <div className="flex items-center gap-1">
-                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handlePickImage} />
-                <button type="button" onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-muted-foreground hover:bg-accent/40 hover:text-primary">
-                  <ImageIcon className="h-4 w-4" /> {t('common.photo')}
-                </button>
-                <button type="button" className="hidden sm:flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-muted-foreground hover:bg-accent/40 hover:text-primary">
-                  <Video className="h-4 w-4" /> {t('common.video')}
-                </button>
-              </div>
-              <button
-                type="submit"
-                disabled={(!draft.trim() && !imageFile) || posting || !user}
-                className="flex items-center gap-1.5 rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
-              >
-                {posting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                {posting ? t('socialFeed.posting') : t('socialFeed.post')}
-              </button>
-            </div>
-          </form>
-
-          <div className="flex items-center gap-1 border-b border-border">
-            {[
-              ["forYou", t('socialFeed.forYou')],
-              ["following", t('socialFeed.following')],
-              ["trending", t('socialFeed.trending')],
-            ].map(([tab, label]) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 text-sm font-medium transition-colors ${
-                  activeTab === tab ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-
-          <div className="space-y-4">
-            {filteredPosts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={{ ...post, isGuest: !user }}
-                onClick={setSelectedPost}
-                onAuthorClick={openAuthorProfile}
-                liked={!!liked[post.id]}
-                onToggleLike={() => requireAuth(() => toggleLike(post.id))}
-                isSelected={selectedPost?.id === post.id}
-                t={t}
-              />
-            ))}
-            {filteredPosts.length === 0 && (
-              <div className="py-12 text-center text-muted-foreground">{t('socialFeed.post')}</div>
-            )}
->>>>>>> 88a237f903a6887a29fac7cc2ddb8367505e0785
           </div>
         </div>
       </div>
 
-<<<<<<< HEAD
+      {/* Overlays / Modals */}
       <ComposerModal
         open={composerOpen}
         onClose={() => setComposerOpen(false)}
@@ -992,10 +862,7 @@ export default function SocialFeed() {
         error={error}
       />
 
-      {showGuestPrompt && <GuestPrompt onClose={() => setShowGuestPrompt(false)} />}
-=======
       {showGuestPrompt && <GuestPrompt onClose={() => setShowGuestPrompt(false)} t={t} />}
->>>>>>> 88a237f903a6887a29fac7cc2ddb8367505e0785
     </div>
   );
 }
