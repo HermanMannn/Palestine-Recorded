@@ -63,8 +63,8 @@ body {
   background-image:
     linear-gradient(
       to bottom,
-      color-mix(in oklab, var(--background) 55%, transparent),
-      color-mix(in oklab, var(--background) 90%, transparent)
+      color-mix(in oklab, var(--background) 20%, transparent),
+      color-mix(in oklab, var(--background) 40%, transparent)
     ),
     url("/PalRecBG.png");
   background-size: cover;
