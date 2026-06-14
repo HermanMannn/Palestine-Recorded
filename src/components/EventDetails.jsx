@@ -381,7 +381,82 @@ export default function EventDetails({ event, onClose, onPrev, onNext, canGoPrev
             {error && <p className="mt-2 text-xs text-destructive">{error}</p>}
           </>
         )}
+
+        {/* Comments */}
+        <div className="mt-5 pt-4 border-t border-border">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+            Comments
+          </h3>
+
+          {currentUser ? (
+            <div className="space-y-2 mb-3">
+              <textarea
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                placeholder="Share your thoughts..."
+                rows={3}
+                maxLength={2000}
+                className="w-full text-sm p-2 rounded-md border border-border bg-background text-foreground resize-y focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[10px] text-muted-foreground">
+                  {commentSubmitted ? "Submitted — pending moderator approval." : "Comments are reviewed before being shown publicly."}
+                </span>
+                <button
+                  onClick={handlePostComment}
+                  disabled={posting || !commentText.trim()}
+                  className="text-xs font-semibold px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50 transition"
+                >
+                  {posting ? "Posting..." : "Post"}
+                </button>
+              </div>
+              {commentError && <p className="text-xs text-destructive">{commentError}</p>}
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground mb-3">Sign in to leave a comment.</p>
+          )}
+
+          <ul className="space-y-2">
+            {comments.length === 0 && (
+              <li className="text-xs text-muted-foreground">No comments yet.</li>
+            )}
+            {comments.map((c) => {
+              const mine = currentUser?.id === c.user_id;
+              const visible = c.status === "approved" || mine || isModerator;
+              if (!visible) return null;
+              return (
+                <li key={c.id} className="rounded-md border border-border bg-background/60 p-2.5">
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <span className="text-[10px] text-muted-foreground">
+                      {new Date(c.created_at).toLocaleDateString()}
+                    </span>
+                    <span className={`text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded ${
+                      c.status === "approved" ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" :
+                      c.status === "pending" ? "bg-amber-500/15 text-amber-600 dark:text-amber-400" :
+                      "bg-red-500/15 text-red-600 dark:text-red-400"
+                    }`}>{c.status}</span>
+                  </div>
+                  <p className="text-sm text-foreground whitespace-pre-wrap break-words">{c.content}</p>
+                  {(isModerator || mine) && (
+                    <div className="mt-2 flex items-center gap-2">
+                      {isModerator && c.status !== "approved" && (
+                        <button onClick={() => moderate(c.id, "approved")} className="text-[11px] text-emerald-600 hover:underline">Approve</button>
+                      )}
+                      {isModerator && c.status !== "rejected" && (
+                        <button onClick={() => moderate(c.id, "rejected")} className="text-[11px] text-amber-600 hover:underline">Reject</button>
+                      )}
+                      {(mine || isModerator) && (
+                        <button onClick={() => deleteComment(c.id)} className="text-[11px] text-destructive hover:underline ml-auto">Delete</button>
+                      )}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       </div>
+
     </aside>
     </>
   );
