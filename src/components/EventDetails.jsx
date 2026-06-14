@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "@/hooks/useTranslation";
 
