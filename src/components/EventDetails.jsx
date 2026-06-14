@@ -58,6 +58,79 @@ export default function EventDetails({ event, onClose, onPrev, onNext, canGoPrev
   const [uploading, setUploading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isModerator, setIsModerator] = useState(false);
+  const [comments, setComments] = useState([]);
+  const [commentText, setCommentText] = useState("");
+  const [posting, setPosting] = useState(false);
+  const [commentError, setCommentError] = useState("");
+  const [commentSubmitted, setCommentSubmitted] = useState(false);
+
+  const eventKey = String(event.id ?? event.title);
+
+  const loadComments = useCallback(async () => {
+    const { data } = await supabase
+      .from("event_comments")
+      .select("id, content, status, user_id, created_at")
+      .eq("event_id", eventKey)
+      .order("created_at", { ascending: false });
+    setComments(data || []);
+  }, [eventKey]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (cancelled) return;
+      setCurrentUser(user);
+      if (user) {
+        const [{ data: modRow }, { data: adminRow }] = await Promise.all([
+          supabase.rpc("has_role", { _user_id: user.id, _role: "moderator" }),
+          supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }),
+        ]);
+        if (!cancelled) setIsModerator(Boolean(modRow) || Boolean(adminRow));
+      } else {
+        setIsModerator(false);
+      }
+      await loadComments();
+    })();
+    return () => { cancelled = true; };
+  }, [eventKey, loadComments]);
+
+  const handlePostComment = async () => {
+    setCommentError("");
+    const text = commentText.trim();
+    if (!text) return;
+    if (text.length > 2000) { setCommentError("Comment too long (max 2000 chars)."); return; }
+    if (!currentUser) { setCommentError("Please sign in to comment."); return; }
+    setPosting(true);
+    const { error: insErr } = await supabase.from("event_comments").insert({
+      event_id: eventKey,
+      event_title: event.title,
+      user_id: currentUser.id,
+      content: text,
+    });
+    setPosting(false);
+    if (insErr) { setCommentError(insErr.message); return; }
+    setCommentText("");
+    setCommentSubmitted(true);
+    setTimeout(() => setCommentSubmitted(false), 4000);
+    await loadComments();
+  };
+
+  const moderate = async (id, status) => {
+    await supabase
+      .from("event_comments")
+      .update({ status, reviewed_by: currentUser?.id, reviewed_at: new Date().toISOString() })
+      .eq("id", id);
+    await loadComments();
+  };
+
+  const deleteComment = async (id) => {
+    await supabase.from("event_comments").delete().eq("id", id);
+    await loadComments();
+  };
+
 
   const handleUpload = async (e) => {
     const file = e.target.files?.[0];
